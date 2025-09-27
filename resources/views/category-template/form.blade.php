@@ -37,15 +37,11 @@
                                 @enderror
                             </div>
 
-                            {{-- Images --}}
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Images {{ $subcategory->id ? '' : '*' }}</label>
-                                <input type="file" id="imagesInput" name="images[]" multiple accept="image/*"
-                                    class="form-control mb-2">
-
-                                <div class="d-flex flex-wrap gap-2" id="imagesPreview">
-                                    {{-- Existing images --}}
-                                    @if ($subcategory->images)
+                            {{-- Current Images (only edit mode) --}}
+                            @if ($subcategory->id && $subcategory->images)
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Current Images</label>
+                                    <div class="d-flex flex-wrap gap-2" id="currentImages">
                                         @foreach (json_decode($subcategory->images, true) as $img)
                                             <div class="position-relative border rounded image-preview-item"
                                                 style="width:120px; height:120px;"
@@ -59,8 +55,18 @@
                                                 <input type="hidden" name="existing_images[]" value="{{ $img }}">
                                             </div>
                                         @endforeach
-                                    @endif
+                                    </div>
                                 </div>
+                            @endif
+
+                            {{-- New Images --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Add New Images
+                                    {{ $subcategory->id ? '' : '*' }}</label>
+                                <input type="file" id="newImagesInput" name="images[]" multiple accept="image/*"
+                                    class="form-control mb-2">
+
+                                <div class="d-flex flex-wrap gap-2" id="newImagesPreview"></div>
                             </div>
 
                             {{-- Description --}}
@@ -75,10 +81,12 @@
 
                             {{-- Buttons --}}
                             <div class="d-flex justify-content-end gap-2">
-                                <button type="submit" class="btn btn-success px-4"><i class="bi bi-check-circle"></i>
-                                    {{ $subcategory->id ? 'Update' : 'Save' }}</button>
-                                <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary px-4"><i
-                                        class="bi bi-x-circle"></i> Cancel</a>
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="bi bi-check-circle"></i> {{ $subcategory->id ? 'Update' : 'Save' }}
+                                </button>
+                                <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -90,39 +98,20 @@
     {{-- Scripts --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const imagesInput = document.getElementById('imagesInput');
-            const imagesPreview = document.getElementById('imagesPreview');
+            const newImagesInput = document.getElementById('newImagesInput');
+            const newImagesPreview = document.getElementById('newImagesPreview');
 
             let newFiles = [];
 
             // Preview new images
-            imagesInput.addEventListener('change', function() {
+            newImagesInput.addEventListener('change', function() {
                 Array.from(this.files).forEach(file => newFiles.push(file));
-                renderPreview();
+                renderNewPreview();
             });
 
-            function renderPreview() {
-                imagesPreview.innerHTML = '';
+            function renderNewPreview() {
+                newImagesPreview.innerHTML = '';
 
-                // Existing images
-                document.querySelectorAll('input[name="existing_images[]"]').forEach(input => {
-                    const name = input.value;
-                    const div = document.createElement('div');
-                    div.classList.add('position-relative', 'border', 'rounded', 'image-preview-item');
-                    div.style.width = '120px';
-                    div.style.height = '120px';
-                    div.dataset.full =
-                        "{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/') }}" +
-                        name;
-                    div.innerHTML = `
-                <img src="${div.dataset.full}" class="img-fluid h-100 w-100 object-fit-cover preview-clickable">
-                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-image" data-existing="1" data-name="${name}" style="font-size:14px;padding:2px 6px;">&times;</button>
-                <input type="hidden" name="existing_images[]" value="${name}">
-            `;
-                    imagesPreview.appendChild(div);
-                });
-
-                // New files
                 newFiles.forEach((file, index) => {
                     const div = document.createElement('div');
                     div.classList.add('position-relative', 'border', 'rounded', 'image-preview-item');
@@ -133,30 +122,33 @@
                         div.dataset.full = e.target.result;
                         div.innerHTML = `
                     <img src="${e.target.result}" class="img-fluid h-100 w-100 object-fit-cover preview-clickable">
-                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-image" data-existing="0" data-index="${index}" style="font-size:14px;padding:2px 6px;">&times;</button>
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-new-image" data-index="${index}" style="font-size:14px;padding:2px 6px;">&times;</button>
                 `;
                     }
                     reader.readAsDataURL(file);
-                    imagesPreview.appendChild(div);
+                    newImagesPreview.appendChild(div);
                 });
             }
 
-            // Remove image
-            imagesPreview.addEventListener('click', function(e) {
+            // Remove new image before submit
+            newImagesPreview.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-new-image')) {
+                    const index = parseInt(e.target.dataset.index);
+                    newFiles.splice(index, 1);
+                    const dt = new DataTransfer();
+                    newFiles.forEach(f => dt.items.add(f));
+                    newImagesInput.files = dt.files;
+                    renderNewPreview();
+                }
+            });
+
+            // Remove current image (existing)
+            document.getElementById('currentImages')?.addEventListener('click', function(e) {
                 if (e.target.classList.contains('remove-image')) {
-                    const isExisting = e.target.dataset.existing === '1';
-                    if (isExisting) {
-                        const name = e.target.dataset.name;
-                        document.querySelectorAll('input[name="existing_images[]"]').forEach(input => {
-                            if (input.value === name) input.remove();
-                        });
-                    } else {
-                        const index = parseInt(e.target.dataset.index);
-                        newFiles.splice(index, 1);
-                        const dt = new DataTransfer();
-                        newFiles.forEach(f => dt.items.add(f));
-                        imagesInput.files = dt.files;
-                    }
+                    const name = e.target.dataset.name;
+                    document.querySelectorAll('input[name="existing_images[]"]').forEach(input => {
+                        if (input.value === name) input.remove();
+                    });
                     e.target.parentElement.remove();
                 }
             });

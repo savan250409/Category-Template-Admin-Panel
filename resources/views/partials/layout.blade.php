@@ -54,68 +54,78 @@
 <body>
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
-        <div style="padding-bottom: 2rem; font-weight: 600; font-size: 1.15rem;">
-            <a class="sidebar-brand" href="{{ url('dashboard') }}" style="padding-left: 0.5rem">
-                <span class="align-middle" style="font-weight: 600; font-size: 1.15rem; color: #f8f9fa;">NGD
-                    Admin</span>
+        <div class="p-3 border-bottom">
+            <a class="sidebar-brand d-flex align-items-center" href="{{ url('dashboard') }}">
+                <span class="fw-bold fs-5 text-white">NGD Admin</span>
             </a>
         </div>
 
         <ul class="sidebar-nav flex-column p-2" id="sidebar-nav" style="background:#1e1e2d; min-height:100vh;">
+
+            {{-- Dashboard --}}
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3
+            {{ request()->is('/') || request()->is('dashboard') ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ url('dashboard') }}">
+                    <i class="bi bi-speedometer me-2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            {{-- Categories --}}
             @foreach ($categories as $cat)
                 @php
                     $catId = 'cat-' . Str::slug($cat, '-');
                     $currentRoute = request()->route()->getName();
                     $currentSubId = request()->route('id');
 
-                    // Active state for Add Subcategory
+                    // active check
                     $subActive = $currentRoute === 'subcategories.form' && request('category_name') === $cat;
+                    $activeSub =
+                        $currentRoute === 'subcategories.show'
+                            ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                            : null;
 
-                    // Active state for Existing Subcategories
-                    $activeSub = collect($allSubs[$cat] ?? [])->first(
-                        fn($s) => $currentRoute === 'subcategories.show' && $currentSubId == $s->id,
-                    );
-
-                    // Keep category open if Add or any Subcategory is active
                     $isOpen = $subActive || $activeSub;
                 @endphp
 
                 <li class="nav-item mb-1">
-                    <!-- Category -->
-                    <a class="nav-link d-flex align-items-center justify-content-between text-white py-2 px-3 rounded-3
+                    {{-- Category --}}
+                    <a class="nav-link d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
                 {{ $isOpen ? 'bg-secondary' : '' }}"
-                        data-bs-toggle="collapse" href="#{{ $catId }}" role="button"
+                        data-bs-toggle="collapse" href="#{{ $catId }}"
                         aria-expanded="{{ $isOpen ? 'true' : 'false' }}" aria-controls="{{ $catId }}"
-                        style="background: #2c2c3c;">
+                        style="transition: all 0.2s;">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-folder-fill me-2 text-warning fs-5"></i>
+                            <i class="bi bi-folder-fill me-2 text-warning"></i>
                             <span class="fw-semibold">{{ $cat }}</span>
                         </div>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
 
-                    <!-- Subcategories -->
+                    {{-- Subcategories --}}
                     <ul id="{{ $catId }}"
                         class="collapse nav flex-column ps-4 mt-2 {{ $isOpen ? 'show' : '' }}">
-                        <!-- Add Subcategory -->
+
+                        {{-- Add Subcategory --}}
                         <li class="mb-1">
                             <a href="{{ route('subcategories.form', ['category_name' => $cat]) }}"
-                                class="nav-link d-flex align-items-center py-1 px-2 rounded-2
-                           {{ $subActive ? 'active bg-primary text-white' : 'text-success' }}"
-                                style="background:#1f1f2a;">
+                                class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                       {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                                style="transition: all 0.2s;">
                                 <i class="bi bi-plus-circle me-2"></i>
                                 <span>Add Subcategory</span>
                             </a>
                         </li>
 
-                        <!-- Existing Subcategories -->
+                        {{-- Existing Subcategories --}}
                         @foreach ($allSubs[$cat] ?? [] as $sub)
                             <li class="mb-1">
                                 <a href="{{ route('subcategories.show', $sub->id) }}"
-                                    class="nav-link d-flex align-items-center py-1 px-2 rounded-2
-                                {{ $currentRoute === 'subcategories.show' && $currentSubId == $sub->id ? 'active bg-primary text-white' : 'text-light' }}"
-                                    style="background:#1f1f2a;">
-                                    <i class="bi bi-circle me-2 fs-6"></i>
+                                    class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                           {{ $currentRoute === 'subcategories.show' && $currentSubId == $sub->id ? 'active bg-primary text-white' : 'text-light' }}"
+                                    style="transition: all 0.2s;">
+                                    <i class="bi bi-circle me-2"></i>
                                     <span>{{ $sub->title }}</span>
                                 </a>
                             </li>
