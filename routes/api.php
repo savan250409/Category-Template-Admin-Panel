@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\SyncController;
 use App\Models\Admin;
+use App\Http\Controllers\Api\CategoryController;
 
 
 /*
@@ -25,5 +26,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::middleware('jwt.auth')->group(function () {
-
+Route::get('/getAllCategories', [CategoryController::class, 'getAllCategories']);
+Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
 });

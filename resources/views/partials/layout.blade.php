@@ -47,6 +47,9 @@
         #sidebar-nav ul.collapse .nav-link:hover {
             background: #2a2a3b !important;
         }
+        .sidebar-nav .nav-link i {
+            margin-right: 5px !important;
+        }
     </style>
 
 </head>

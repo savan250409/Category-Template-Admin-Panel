@@ -10,161 +10,167 @@
                     {{-- Header --}}
                     <div
                         class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3 px-4 rounded-top">
-                        <h4 class="mb-0 d-flex align-items-center gap-2" style="color:black">
+                        <h4 class="mb-0" style="color:black">
                             <i class="bi bi-folder2-open fs-4"></i>
-                            <span>{{ $subcategory->title }}</span>
+                            {{ $subcategory->title }}
                         </h4>
                         <span class="badge bg-light text-dark fw-semibold">{{ $subcategory->category_name }}</span>
                     </div>
 
-                    {{-- Header Image --}}
-                    @if ($headerImage)
+                    {{-- Thumbnail --}}
+                    @if ($subcategory->category_thumbnail_image)
                         <div class="text-center mt-3">
-                            <img src="{{ $headerImage }}" class="img-fluid rounded shadow-sm" style="max-height:250px;"
-                                alt="Header Image">
+                            <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                class="img-fluid rounded shadow-sm" style="max-height:200px;" alt="Category Thumbnail">
                         </div>
                     @endif
 
-                    {{-- Body --}}
                     <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <h6 class="text-uppercase text-muted mb-1">Title</h6>
+                                <p class="fw-semibold">{{ $subcategory->title }}</p>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <h6 class="text-uppercase text-muted mb-1">Description</h6>
+                                <p>{{ $subcategory->description ?? 'No description yet.' }}</p>
+                            </div>
+                        </div>
 
-                        {{-- Gallery --}}
-                        @if (count($imageUrls))
+                        {{-- Images Gallery --}}
+                        @if ($imageUrls && count($imageUrls))
                             <div class="mb-4">
                                 <h6 class="text-uppercase text-muted mb-2">Images</h6>
-                                <div class="row g-2" id="image-preview">
-                                    @foreach ($imageUrls as $index => $url)
-                                        @if ($index < 3)
-                                            <div class="col-4 col-md-2 position-relative">
-                                                <img src="{{ $url }}"
-                                                    class="img-fluid rounded shadow-sm border img-thumbnail gallery-img"
-                                                    style="cursor:pointer;" data-bs-toggle="modal"
-                                                    data-bs-target="#imageModal" data-img="{{ $url }}">
-                                                @if ($index === 2 && count($imageUrls) > 3)
-                                                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-                                                        style="background: rgba(0,0,0,0.5); color:#fff; font-weight:bold; font-size:1rem; cursor:pointer;"
-                                                        id="overlay-more">
-                                                        +{{ count($imageUrls) - 3 }}
+                                <div class="row">
+                                    @foreach ($imageUrls as $img)
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card shadow-sm">
+                                                <img src="{{ $img['url'] }}" class="card-img-top" alt="Image"
+                                                    style="height:200px; object-fit:cover;">
+                                                @if (!empty($img['prompt']))
+                                                    <div class="card-body">
+                                                        <p class="mb-0 text-muted">{{ $img['prompt'] }}</p>
                                                     </div>
                                                 @endif
                                             </div>
-                                        @endif
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
                         @endif
 
-                        {{-- Details --}}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Title</h6>
-                                <p class="fw-semibold">{{ $subcategory->title }}</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Category</h6>
-                                <p class="fw-semibold">{{ $subcategory->category_name }}</p>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Description</h6>
-                                <p class="text-dark">{{ $subcategory->description ?? 'No description available.' }}</p>
-                            </div>
+                        {{-- Buttons --}}
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('subcategories.addDetailsForm', $subcategory->id) }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add Images & Description
+                            </a>
+
+                            {{-- Edit Button --}}
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#editSubcategoryModal">
+                                <i class="bi bi-pencil-square"></i> Edit Subcategory
+                            </button>
+
+                            {{-- Delete Button --}}
+                            <form id="deleteForm" action="{{ route('subcategories.destroy', $subcategory->id) }}"
+                                method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn btn-outline-secondary" onclick="confirmDelete()">
+                                    <i class="bi bi-trash"></i> Delete Subcategory
+                                </button>
+                            </form>
                         </div>
 
                     </div>
 
                     {{-- Footer --}}
                     <div class="card-footer bg-light d-flex justify-content-between align-items-center rounded-bottom p-3">
-                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Back
-                        </a>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('subcategories.form', $subcategory->id) }}" class="btn btn-warning">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </a>
-                            <form id="delete-form-{{ $subcategory->id }}"
-                                action="{{ route('subcategories.destroy', $subcategory->id) }}" method="POST"
-                                class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-outline-secondary"
-                                    style="background-color:red;color:white"
-                                    onclick="confirmDelete({{ $subcategory->id }})">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </form>
+                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary"><i
+                                class="bi bi-arrow-left"></i> Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Edit Subcategory Modal --}}
+    <div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSubcategoryModalLabel">Edit Subcategory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('subcategories.save', $subcategory->id) }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+                            <select name="category_name" class="form-control" required>
+                                @foreach ($subcategory as $category)
+                                    <option value="{{ $category }}"
+                                        {{ $subcategory->category_name == $category ? 'selected' : '' }}>
+                                        {{ $category }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Subcategory Title <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" value="{{ $subcategory->title }}"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="4">{{ $subcategory->description }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Thumbnail Image</label>
+                            @if ($subcategory->category_thumbnail_image)
+                                <div class="mb-2">
+                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                        class="img-fluid rounded" style="height:120px; object-fit:cover;">
+                                </div>
+                            @endif
+                            <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
                         </div>
                     </div>
-
-                </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    {{-- Modal --}}
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content bg-transparent border-0">
-                <div class="modal-body p-0 text-center">
-                    <img src="" id="modalImage" class="img-fluid rounded" alt="Full Image">
-                </div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Scripts --}}
+    {{-- SweetAlert Script --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const imageUrls = @json($imageUrls ?? []);
-
-            // Delete subcategory with SweetAlert
-            window.confirmDelete = function(id) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This action cannot be undone!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById('delete-form-' + id).submit();
-                    }
-                });
-            }
-
-            // Modal image click
-            function bindModalClick() {
-                document.querySelectorAll('.gallery-img').forEach(img => {
-                    img.addEventListener('click', function() {
-                        document.getElementById('modalImage').src = this.dataset.img;
-                    });
-                });
-            }
-            bindModalClick();
-
-            // "+X more" overlay click
-            const overlayMore = document.getElementById('overlay-more');
-            if (overlayMore) {
-                overlayMore.addEventListener('click', function() {
-                    const container = document.getElementById('image-preview');
-                    container.innerHTML = '';
-                    imageUrls.forEach(url => {
-                        const div = document.createElement('div');
-                        div.classList.add('col-4', 'col-md-2');
-                        div.innerHTML =
-                            `<img src="${url}" class="img-fluid rounded shadow-sm border img-thumbnail gallery-img" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="${url}">`;
-                        container.appendChild(div);
-                    });
-                    bindModalClick();
-                });
-            }
-        });
+        function confirmDelete() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will permanently delete the subcategory!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
     </script>
 
 @endsection

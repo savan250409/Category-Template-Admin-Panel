@@ -4,7 +4,7 @@
 
     <div class="container py-4">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-8">
                 <div class="card shadow-lg border-0 rounded-3">
                     <div
                         class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
@@ -20,14 +20,31 @@
                     <div class="card-body p-4">
                         <form
                             action="{{ $subcategory->id ? route('subcategories.save', $subcategory->id) : route('subcategories.save') }}"
-                            method="POST" enctype="multipart/form-data" id="subcategoryForm">
+                            method="POST" enctype="multipart/form-data">
                             @csrf
-                            <input type="hidden" name="category_name"
-                                value="{{ old('category_name', $subcategory->category_name) }}">
 
-                            {{-- Title --}}
+                            {{-- Category Name --}}
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Category Name <span
+                                        class="text-danger">*</span></label>
+                                <select name="category_name"
+                                    class="form-control @error('category_name') is-invalid @enderror" required>
+                                    <option value="">Select Category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category }}"
+                                            {{ old('category_name', $subcategory->category_name) == $category ? 'selected' : '' }}>
+                                            {{ $category }}</option>
+                                    @endforeach
+                                </select>
+                                @error('category_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Subcategory Name --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Subcategory Name <span
+                                        class="text-danger">*</span></label>
                                 <input type="text" name="title"
                                     class="form-control @error('title') is-invalid @enderror"
                                     placeholder="Enter subcategory title" value="{{ old('title', $subcategory->title) }}"
@@ -37,45 +54,20 @@
                                 @enderror
                             </div>
 
-                            {{-- Current Images (only edit mode) --}}
-                            @if ($subcategory->id && $subcategory->images)
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Current Images</label>
-                                    <div class="d-flex flex-wrap gap-2" id="currentImages">
-                                        @foreach (json_decode($subcategory->images, true) as $img)
-                                            <div class="position-relative border rounded image-preview-item"
-                                                style="width:120px; height:120px;"
-                                                data-full="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img) }}">
-                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img) }}"
-                                                    class="img-fluid h-100 w-100 object-fit-cover preview-clickable">
-                                                <button type="button"
-                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-image"
-                                                    data-existing="1" data-name="{{ $img }}"
-                                                    style="font-size:14px;padding:2px 6px;">&times;</button>
-                                                <input type="hidden" name="existing_images[]" value="{{ $img }}">
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- New Images --}}
+                            {{-- Thumbnail --}}
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Add New Images
+                                <label class="form-label fw-semibold">Subcategory Thumbnail Image
                                     {{ $subcategory->id ? '' : '*' }}</label>
-                                <input type="file" id="newImagesInput" name="images[]" multiple accept="image/*"
-                                    class="form-control mb-2">
-
-                                <div class="d-flex flex-wrap gap-2" id="newImagesPreview"></div>
-                            </div>
-
-                            {{-- Description --}}
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Description</label>
-                                <textarea name="description" rows="4" class="form-control @error('description') is-invalid @enderror"
-                                    placeholder="Enter a short description...">{{ old('description', $subcategory->description) }}</textarea>
-                                @error('description')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @if ($subcategory->id && $subcategory->category_thumbnail_image)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                            class="img-fluid rounded" style="height:120px; object-fit:cover;">
+                                    </div>
+                                @endif
+                                <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control"
+                                    {{ $subcategory->id ? '' : 'required' }}>
+                                @error('category_thumbnail_image')
+                                    <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -95,63 +87,4 @@
         </div>
     </div>
 
-    {{-- Scripts --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const newImagesInput = document.getElementById('newImagesInput');
-            const newImagesPreview = document.getElementById('newImagesPreview');
-
-            let newFiles = [];
-
-            // Preview new images
-            newImagesInput.addEventListener('change', function() {
-                Array.from(this.files).forEach(file => newFiles.push(file));
-                renderNewPreview();
-            });
-
-            function renderNewPreview() {
-                newImagesPreview.innerHTML = '';
-
-                newFiles.forEach((file, index) => {
-                    const div = document.createElement('div');
-                    div.classList.add('position-relative', 'border', 'rounded', 'image-preview-item');
-                    div.style.width = '120px';
-                    div.style.height = '120px';
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        div.dataset.full = e.target.result;
-                        div.innerHTML = `
-                    <img src="${e.target.result}" class="img-fluid h-100 w-100 object-fit-cover preview-clickable">
-                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 remove-new-image" data-index="${index}" style="font-size:14px;padding:2px 6px;">&times;</button>
-                `;
-                    }
-                    reader.readAsDataURL(file);
-                    newImagesPreview.appendChild(div);
-                });
-            }
-
-            // Remove new image before submit
-            newImagesPreview.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-new-image')) {
-                    const index = parseInt(e.target.dataset.index);
-                    newFiles.splice(index, 1);
-                    const dt = new DataTransfer();
-                    newFiles.forEach(f => dt.items.add(f));
-                    newImagesInput.files = dt.files;
-                    renderNewPreview();
-                }
-            });
-
-            // Remove current image (existing)
-            document.getElementById('currentImages')?.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-image')) {
-                    const name = e.target.dataset.name;
-                    document.querySelectorAll('input[name="existing_images[]"]').forEach(input => {
-                        if (input.value === name) input.remove();
-                    });
-                    e.target.parentElement.remove();
-                }
-            });
-        });
-    </script>
 @endsection

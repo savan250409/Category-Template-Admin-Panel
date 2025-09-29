@@ -2,171 +2,91 @@
 @section('title', 'Admin Dashboard')
 @section('container')
 
-    <div class="dashboard-container container sidebar-closed" id="dashboardContainer">
-        <div>
-            <!-- Dashboard Header -->
-            <div class="dashboard-header">
-                <h1 class="h3 mb-0" style="font-weight: 600; color: #2c3e50;">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </h1>
-            </div>
+    <div class="container my-5">
+        <h1 class="h3 mb-4 text-dark fw-bold">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </h1>
 
-            <!-- Stats Cards -->
-            <div class="row g-4 mb-4">
-                <!-- Total Languages -->
-                <div class="col-md-3">
-                    <div class="stat-card language p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-translate"></i>
-                        </div>
-                        {{-- <div class="stat-count">{{ $totalLanguages }}</div> --}}
-                        <div class="stat-title">Total Languages</div>
-                        <a href="{{ url('/languageDisplay') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
+        <div class="row g-4">
 
-                <!-- Total Categories -->
-                <div class="col-md-3">
-                    <div class="stat-card category p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-tags"></i>
+            @forelse($categories as $category)
+                <div class="col-md-4 col-lg-3">
+                    <a href="{{ $category['redirect_url'] }}" class="text-decoration-none">
+                        <div class="card stat-card shadow-lg rounded-4 p-4 text-center category-card">
+                            <div class="stat-title fw-semibold mb-2">
+                                <i class="bi bi-folder-fill me-1"></i> {{ $category['category_name'] }}
+                            </div>
+                            <div class="stat-count fs-3 fw-bold mb-2">
+                                {{ $category['subcategories_count'] }}
+                            </div>
+                            <div class="stat-label text-muted">Subcategories</div>
+                            <div class="stat-link mt-3">
+                                View Subcategories <i class="bi bi-arrow-right"></i>
+                            </div>
                         </div>
-                        {{-- <div class="stat-count">{{ $totalCategories }}</div> --}}
-                        <div class="stat-title">Total Categories</div>
-                        <a href="{{ url('/categoryDisplay') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
+                    </a>
                 </div>
+            @empty
+                <p class="text-muted">No categories found.</p>
+            @endforelse
 
-                <!-- Total Frames -->
-                <div class="col-md-3">
-                    <div class="stat-card frames p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-images"></i>
-                        </div>
-                        {{-- <div class="stat-count">{{ $totalFrames }}</div> --}}
-                        <div class="stat-title">Total Frames</div>
-                        <a href="{{ url('/frameDisplay') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Total Apps -->
-                <div class="col-md-3">
-                    <div class="stat-card apps p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-app-indicator" style="color: white"></i>
-                        </div>
-                        {{-- <div class="stat-count">{{ $totalApps }}</div> --}}
-                        <div class="stat-title">Total Apps</div>
-                        <a href="{{ url('/applist') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Total AI Images -->
-                <div class="col-md-3">
-                    <div class="stat-card aiimages p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-image"></i>
-                        </div>
-                        {{-- <div class="stat-count">{{ $totalAIImages }}</div> --}}
-                        <div class="stat-title">Total AI Images</div>
-                        <a href="{{ url('/ai/images') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Total Videos -->
-                <div class="col-md-3">
-                    <div class="stat-card videos p-4 text-center">
-                        <div class="stat-icon">
-                            <i class="bi bi-play-btn"></i>
-                        </div>
-                        {{-- <div class="stat-count">{{ $totalVideos }}</div> --}}
-                        <div class="stat-title">Total Videos</div>
-                        <a href="{{ url('/ai/videos/index') }}" class="stat-link">
-                            View Details <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- Sidebar Toggle Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const dashboardContainer = document.getElementById('dashboardContainer');
-
-            if (localStorage.getItem('sidebarClosed') === 'true') {
-                dashboardContainer.classList.add('sidebar-closed');
-            }
-
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    dashboardContainer.classList.toggle('sidebar-closed');
-
-                    const isClosed = dashboardContainer.classList.contains('sidebar-closed');
-                    localStorage.setItem('sidebarClosed', isClosed);
-                });
-            }
-        });
-    </script>
-
-    <!-- Custom Card Colors -->
     <style>
         .stat-card {
-            border-radius: 15px;
+            border-radius: 20px;
+            padding: 30px 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
             color: white;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            top: -30px;
+            right: -30px;
+            z-index: 0;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-title i {
+            font-size: 1.3rem;
         }
 
         .stat-count {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
         }
 
+        .stat-label {
+            font-size: 0.95rem;
+        }
+
         .stat-link {
-            color: white;
+            font-size: 0.9rem;
             font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
         }
 
-        .language {
-            background: linear-gradient(45deg, #6a11cb, #2575fc);
+        a.category-card:hover .stat-link {
+            color: #fff;
         }
 
-        .category {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-        }
-
-        .frames {
-            background: linear-gradient(45deg, #11998e, #38ef7d);
-        }
-
-        .apps {
-            background: linear-gradient(45deg, #ff8008, #ffc837);
-        }
-
-        .aiimages {
-            background: linear-gradient(45deg, #8e2de2, #4a00e0);
-        }
-
-        .videos {
-            background: linear-gradient(45deg, #00c6ff, #0072ff);
+        a {
+            color: inherit;
         }
     </style>
+
 @endsection

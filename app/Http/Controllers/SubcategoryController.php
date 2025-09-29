@@ -30,40 +30,38 @@ class SubcategoryController extends Controller
         $request->validate([
             'category_name' => 'required|string|max:255',
             'title' => 'required|string|max:255',
-            'images.*' => $id ? 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048' : 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'existing_images.*' => 'nullable|string',
-            'description' => 'nullable|string',
+            'category_thumbnail_image' => $id ? 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048' : 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $subcategory = $id ? Subcategory::findOrFail($id) : new Subcategory();
         $subcategory->category_name = $request->category_name;
         $subcategory->title = $request->title;
-        $subcategory->description = $request->description;
 
-        // Merge existing images
-        $existingImages = $request->existing_images ?? [];
-
-        // Handle new uploaded images
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $imageName = $image->getClientOriginalName();
-
-                $folderPath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title);
-                if (!file_exists($folderPath)) {
-                    mkdir($folderPath, 0755, true);
-                }
-
-                $image->move($folderPath, $imageName);
-                $existingImages[] = $imageName;
+        // Handle Thumbnail
+        if ($request->hasFile('category_thumbnail_image')) {
+            $folderPath = public_path('upload/' . $request->category_name . '/' . $request->title . '/category_thumbnail');
+            if (!file_exists($folderPath)) {
+                mkdir($folderPath, 0755, true);
             }
+
+            // Delete old thumbnail if exists
+            if ($id && $subcategory->category_thumbnail_image) {
+                $oldPath = $folderPath . '/' . $subcategory->category_thumbnail_image;
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            $thumbFile = $request->file('category_thumbnail_image');
+            $thumbName = time() . '_' . $thumbFile->getClientOriginalName(); // unique name
+            $thumbFile->move($folderPath, $thumbName);
+            $subcategory->category_thumbnail_image = $thumbName;
         }
 
-        $subcategory->images = json_encode($existingImages);
         $subcategory->save();
 
-        // Redirect back to category detail page instead of index
         return redirect()
-            ->route('subcategories.show', $subcategory->id)
+            ->route('subcategories.index')
             ->with('success', $id ? 'Subcategory updated!' : 'Subcategory created!');
     }
 
@@ -74,12 +72,23 @@ class SubcategoryController extends Controller
         // Decode images
         $imagesArray = json_decode($subcategory->images, true) ?? [];
 
-        // Generate image URLs
+        // Normalize images: make sure each image is ['file' => ..., 'prompt' => ...]
         $imageUrls = array_map(function ($img) use ($subcategory) {
-            return asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img);
+            if (is_array($img)) {
+                $file = $img['file'] ?? '';
+                $prompt = $img['prompt'] ?? '';
+            } else {
+                $file = $img;
+                $prompt = '';
+            }
+
+            return [
+                'url' => asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $file),
+                'prompt' => $prompt,
+            ];
         }, $imagesArray);
 
-        // Header image
+        // Header image (optional)
         $headerImage = $subcategory->header_image ? asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $subcategory->header_image) : null;
 
         return view('category-template.show', compact('subcategory', 'imageUrls', 'headerImage'));
@@ -91,15 +100,63 @@ class SubcategoryController extends Controller
 
         if ($subcategory->images) {
             $images = json_decode($subcategory->images, true);
+
             foreach ($images as $img) {
-                $path = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img);
-                if (file_exists($path)) {
-                    unlink($path);
+                if (!empty($img['file'])) {
+                    $path = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']);
+                    if (file_exists($path)) {
+                        unlink($path);
+                    }
                 }
             }
         }
 
         $subcategory->delete();
         return redirect()->route('subcategories.index')->with('success', 'Subcategory deleted!');
+    }
+
+    // Show form for adding images & description
+    public function addDetailsForm($id)
+    {
+        $subcategory = Subcategory::findOrFail($id);
+        return view('category-template.addDetailsForm', compact('subcategory'));
+    }
+
+    // Save images & description
+    public function saveDetails(Request $request, $id)
+    {
+        $subcategory = Subcategory::findOrFail($id);
+
+        $request->validate([
+            'description' => 'nullable|string',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'prompts.*' => 'nullable|string|max:500',
+        ]);
+
+        $subcategory->description = $request->description;
+
+        $imagesData = json_decode($subcategory->images, true) ?? [];
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $key => $imgFile) {
+                $folderPath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title);
+                if (!file_exists($folderPath)) {
+                    mkdir($folderPath, 0755, true);
+                }
+
+                $fileName = $imgFile->getClientOriginalName();
+                $imgFile->move($folderPath, $fileName);
+
+                $imagesData[] = [
+                    'file' => $fileName,
+                    'prompt' => $request->prompts[$key] ?? '',
+                ];
+            }
+        }
+
+        $subcategory->images = json_encode($imagesData);
+        $subcategory->save();
+
+        return redirect()->route('subcategories.show', $id)->with('success', 'Details added successfully!');
     }
 }

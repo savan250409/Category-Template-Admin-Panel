@@ -45,5 +45,17 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::delete('/{id}', [SubcategoryController::class, 'destroy'])->name('subcategories.destroy'); // delete
 
         Route::get('/subcategory/{id}', [SubcategoryController::class, 'show'])->name('subcategories.show');
+
+        // Step 3: Add Images & Description (from show page)
+Route::get('subcategories/{id}/add-details', [SubcategoryController::class, 'addDetailsForm'])->name('subcategories.addDetailsForm');
+Route::post('subcategories/{id}/save-details', [SubcategoryController::class, 'saveDetails'])->name('subcategories.saveDetails');
     });
+
+    Route::prefix('subcategories')->name('subcategories.')->group(function() {
+    Route::get('/', [SubcategoryController::class, 'index'])->name('index');
+    Route::get('form/{id?}', [SubcategoryController::class, 'form'])->name('form');
+    Route::post('save/{id?}', [SubcategoryController::class, 'save'])->name('save');
+    Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
+    Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
+});
 });

@@ -34,6 +34,7 @@
                                 <tr>
                                     <th><i class="bi bi-hash"></i> ID</th>
                                     <th><i class="bi bi-folder-fill"></i> Category</th>
+                                    <th><i class="bi bi-image"></i> Thumbnail</th>
                                     <th><i class="bi bi-card-text"></i> Title</th>
                                     <th><i class="bi bi-file-text"></i> Description</th>
                                     <th class="text-center"><i class="bi bi-gear"></i> Actions</th>
@@ -44,6 +45,18 @@
                                     <tr>
                                         <td class="fw-semibold">{{ $sub->id }}</td>
                                         <td><span class="badge bg-info text-dark">{{ $sub->category_name }}</span></td>
+
+                                        {{-- Category Thumbnail --}}
+                                        <td>
+                                            @if ($sub->category_thumbnail_image)
+                                                <img src="{{ asset('upload/' . $sub->category_name . '/' . $sub->title . '/category_thumbnail/' . $sub->category_thumbnail_image) }}"
+                                                    alt="Thumbnail" class="img-fluid rounded"
+                                                    style="height:50px; object-fit:cover;">
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+
                                         <td>{{ $sub->title }}</td>
                                         <td>{{ Str::limit($sub->description, 50) }}</td>
                                         <td class="text-center">
