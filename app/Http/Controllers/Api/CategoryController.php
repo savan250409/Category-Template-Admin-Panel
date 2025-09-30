@@ -10,46 +10,31 @@ class CategoryController extends Controller
 {
     public function getAllCategories()
     {
-        // Get all distinct category names
         $categories = Subcategory::select('category_name')->distinct()->pluck('category_name');
 
         $response = [];
 
         foreach ($categories as $category) {
-            // Fetch max 5 subcategories per category
             $subcategories = Subcategory::where('category_name', $category)
-                ->limit(5)
-                ->get(['id', 'title', 'description', 'images', 'category_name']);
+                ->orderBy('id', 'desc')
+                ->get(['id', 'title', 'category_name', 'category_thumbnail_image']);
 
-            // Transform images
             $subcategories->transform(function ($subcat) {
-                $images = json_decode($subcat->images, true) ?? [];
-                $formattedImages = [];
-
                 $categoryName = trim($subcat->category_name);
                 $subcatTitle = trim($subcat->title);
 
-                foreach ($images as $img) {
-                    $file = $img['file'] ?? null;
-                    $prompt = $img['prompt'] ?? '';
+                $thumbnailPath = $subcat->category_thumbnail_image ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}" : null;
 
-                    if ($file) {
-                        $formattedImages[] = [
-                            'url' => "{$categoryName}/{$subcatTitle}/{$file}",
-                            'prompt' => $prompt,
-                        ];
-                    }
-                }
-
-                $subcat->images = $formattedImages;
-                unset($subcat->category_name); // remove category_name from response
-                return $subcat;
+                return [
+                    'id' => $subcat->id,
+                    'title' => $subcat->title,
+                    'thumbnail' => $thumbnailPath,
+                ];
             });
 
-            // Limit to only 1 subcategory per category in the response
             $response[] = [
                 'category_name' => $category,
-                'subcategories' => $subcategories->take(1), // take only first subcategory
+                'subcategories' => $subcategories,
             ];
         }
 
@@ -62,7 +47,6 @@ class CategoryController extends Controller
 
     public function getSubcategoriesByCategory(Request $request)
     {
-        // Validate input
         $validator = \Validator::make($request->all(), [
             'main_category' => 'required|string',
             'category_name' => 'required|string',
@@ -82,12 +66,10 @@ class CategoryController extends Controller
         $mainCategory = $request->main_category;
         $subCategoryName = $request->category_name;
 
-        // Fetch subcategories
         $subcategories = Subcategory::where('category_name', $mainCategory)
             ->where('title', $subCategoryName)
             ->get(['id', 'title', 'description', 'images', 'category_name']);
 
-        // Check if no data found
         if ($subcategories->isEmpty()) {
             return response()->json(
                 [
@@ -101,7 +83,6 @@ class CategoryController extends Controller
             );
         }
 
-        // Format images
         $subcategories->transform(function ($subcat) {
             $images = json_decode($subcat->images, true) ?? [];
             $formattedImages = [];
@@ -122,7 +103,7 @@ class CategoryController extends Controller
             }
 
             $subcat->images = $formattedImages;
-            unset($subcat->category_name); // remove category_name from response
+            unset($subcat->category_name);
             return $subcat;
         });
 

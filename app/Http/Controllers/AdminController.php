@@ -51,10 +51,6 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'please check email and password');
         }
 
-        // $totalFrames = Frame::count();
-        // $totalLanguages = Frame::distinct('language_name')->count('language_name');
-        // $totalCategories = Frame::distinct('category_name')->count('category_name');
-
         return view('dashboard');
     }
 }

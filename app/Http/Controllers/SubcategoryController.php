@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Subcategory;
 use Illuminate\Http\Request;
+use File;
 
 class SubcategoryController extends Controller
 {
@@ -34,45 +35,72 @@ class SubcategoryController extends Controller
         ]);
 
         $subcategory = $id ? Subcategory::findOrFail($id) : new Subcategory();
+        $oldTitle = $id ? $subcategory->title : null;
+
         $subcategory->category_name = $request->category_name;
         $subcategory->title = $request->title;
+        $subcategory->description = $request->description;
 
-        // Handle Thumbnail
+        if ($id && $oldTitle && $oldTitle !== $request->title) {
+            $oldFolder = public_path('upload/' . $request->category_name . '/' . $oldTitle);
+            $newFolder = public_path('upload/' . $request->category_name . '/' . $request->title);
+            if (file_exists($oldFolder)) {
+                rename($oldFolder, $newFolder);
+            }
+        }
+
         if ($request->hasFile('category_thumbnail_image')) {
-            $folderPath = public_path('upload/' . $request->category_name . '/' . $request->title . '/category_thumbnail');
-            if (!file_exists($folderPath)) {
-                mkdir($folderPath, 0755, true);
+            $folder = public_path('upload/' . $request->category_name . '/' . $request->title . '/category_thumbnail');
+            if (!file_exists($folder)) {
+                mkdir($folder, 0755, true);
             }
 
-            // Delete old thumbnail if exists
             if ($id && $subcategory->category_thumbnail_image) {
-                $oldPath = $folderPath . '/' . $subcategory->category_thumbnail_image;
+                $oldPath = $folder . '/' . $subcategory->category_thumbnail_image;
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
             }
 
-            $thumbFile = $request->file('category_thumbnail_image');
-            $thumbName = time() . '_' . $thumbFile->getClientOriginalName(); // unique name
-            $thumbFile->move($folderPath, $thumbName);
-            $subcategory->category_thumbnail_image = $thumbName;
+            $file = $request->file('category_thumbnail_image');
+            $name = $file->getClientOriginalName();
+            $file->move($folder, $name);
+            $subcategory->category_thumbnail_image = $name;
+        } elseif ($request->remove_thumbnail && $id) {
+            $oldPath = public_path('upload/' . $request->category_name . '/' . $request->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+            $subcategory->category_thumbnail_image = null;
+        }
+
+        if ($id && $request->existing_prompts) {
+            $imagesData = json_decode($subcategory->images, true) ?? [];
+            foreach ($imagesData as $index => &$img) {
+                if (isset($request->existing_prompts[$index])) {
+                    $img['prompt'] = $request->existing_prompts[$index];
+                }
+                if ($request->remove_images && in_array($img['file'], $request->remove_images)) {
+                    $path = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']);
+                    if (file_exists($path)) {
+                        unlink($path);
+                    }
+                    unset($imagesData[$index]);
+                }
+            }
+            $subcategory->images = json_encode(array_values($imagesData));
         }
 
         $subcategory->save();
-
-        return redirect()
-            ->route('subcategories.index')
-            ->with('success', $id ? 'Subcategory updated!' : 'Subcategory created!');
+        return redirect()->route('subcategories.show', $subcategory->id)->with('success', 'Subcategory updated!');
     }
 
     public function show($id)
     {
         $subcategory = Subcategory::findOrFail($id);
 
-        // Decode images
         $imagesArray = json_decode($subcategory->images, true) ?? [];
 
-        // Normalize images: make sure each image is ['file' => ..., 'prompt' => ...]
         $imageUrls = array_map(function ($img) use ($subcategory) {
             if (is_array($img)) {
                 $file = $img['file'] ?? '';
@@ -88,7 +116,6 @@ class SubcategoryController extends Controller
             ];
         }, $imagesArray);
 
-        // Header image (optional)
         $headerImage = $subcategory->header_image ? asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $subcategory->header_image) : null;
 
         return view('category-template.show', compact('subcategory', 'imageUrls', 'headerImage'));
@@ -98,31 +125,23 @@ class SubcategoryController extends Controller
     {
         $subcategory = Subcategory::findOrFail($id);
 
-        if ($subcategory->images) {
-            $images = json_decode($subcategory->images, true);
+        $folderPath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title);
 
-            foreach ($images as $img) {
-                if (!empty($img['file'])) {
-                    $path = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']);
-                    if (file_exists($path)) {
-                        unlink($path);
-                    }
-                }
-            }
+        if (File::exists($folderPath)) {
+            File::deleteDirectory($folderPath);
         }
 
         $subcategory->delete();
-        return redirect()->route('subcategories.index')->with('success', 'Subcategory deleted!');
+
+        return redirect()->route('subcategories.index')->with('success', 'Subcategory and its folder/images deleted successfully.');
     }
 
-    // Show form for adding images & description
     public function addDetailsForm($id)
     {
         $subcategory = Subcategory::findOrFail($id);
         return view('category-template.addDetailsForm', compact('subcategory'));
     }
 
-    // Save images & description
     public function saveDetails(Request $request, $id)
     {
         $subcategory = Subcategory::findOrFail($id);

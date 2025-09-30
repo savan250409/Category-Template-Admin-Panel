@@ -3,10 +3,8 @@
 @section('container')
 
     <div class="container mt-5">
-        {{-- Card --}}
         <div class="card shadow-lg border-0 rounded-4">
 
-            {{-- Card Header --}}
             <div
                 class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center p-3 rounded-top">
                 <h4 class="mb-0 d-flex align-items-center gap-2" style="color: black">
@@ -85,7 +83,6 @@
                         {{ $subcategories->links() }}
                     </div>
                 @else
-                    {{-- Empty State --}}
                     <div class="text-center py-5">
                         <i class="bi bi-folder-x fs-1 text-muted"></i>
                         <p class="mt-2 text-muted">No subcategories found. Start by adding a new one.</p>
@@ -122,7 +119,6 @@
                 });
             });
 
-            // Enable Bootstrap tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)

@@ -47,6 +47,7 @@
         #sidebar-nav ul.collapse .nav-link:hover {
             background: #2a2a3b !important;
         }
+
         .sidebar-nav .nav-link i {
             margin-right: 5px !important;
         }
@@ -138,7 +139,6 @@
             @endforeach
         </ul>
 
-
         <style>
             #sidebar-nav .nav-link {
                 transition: all 0.2s ease-in-out;
@@ -163,9 +163,6 @@
                 transition: height 0.3s ease;
             }
         </style>
-
-        <!-- removed the earlier small script here; replaced by robust script at the bottom (after Bootstrap loads) -->
-
     </aside>
 
     <!-- Header -->
@@ -273,27 +270,22 @@
         });
     </script>
 
-    <!-- NEW: Robust sidebar persistence & click handling -->
     <script>
         (function() {
-            // Utility: get normalized path (pathname + search) from an href
             function normalizePath(href) {
                 try {
                     const url = new URL(href, location.origin);
                     return url.pathname + url.search;
                 } catch (e) {
-                    // fallback
                     return href;
                 }
             }
 
-            // Restore open category and active link on load
             function restoreSidebarState() {
                 const openCat = localStorage.getItem('sidebar_open_cat');
                 if (openCat) {
                     const collapseEl = document.getElementById(openCat);
                     if (collapseEl) {
-                        // Show collapse without toggling others
                         const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, {
                             toggle: false
                         });
@@ -303,18 +295,15 @@
 
                 const activePath = localStorage.getItem('sidebar_active_path');
                 if (activePath) {
-                    // remove previous active styling
                     document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
                         a.classList.remove('active', 'bg-primary', 'text-white');
                     });
 
-                    // mark the matching link active
                     const links = document.querySelectorAll('#sidebar-nav a.nav-link');
                     links.forEach(a => {
                         const p = normalizePath(a.getAttribute('href') || '');
                         if (p === activePath) {
                             a.classList.add('active', 'bg-primary', 'text-white');
-                            // ensure parent category open
                             const parentCollapse = a.closest('.collapse');
                             if (parentCollapse) {
                                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(parentCollapse, {
@@ -325,10 +314,8 @@
                         }
                     });
                 } else {
-                    // also mark server-side active links (fallback)
                     document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
                         if (a.classList.contains('active')) {
-                            // ensure parent open
                             const parentCollapse = a.closest('.collapse');
                             if (parentCollapse) {
                                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(parentCollapse, {
@@ -341,51 +328,40 @@
                 }
             }
 
-            // Save active link path
             function saveActiveLinkByElement(el) {
                 const href = el.getAttribute('href') || '';
                 const path = normalizePath(href);
                 localStorage.setItem('sidebar_active_path', path);
             }
 
-            // Save open category id
             function saveOpenCategory(catId) {
                 if (catId) localStorage.setItem('sidebar_open_cat', catId);
                 else localStorage.removeItem('sidebar_open_cat');
             }
 
             document.addEventListener('DOMContentLoaded', function() {
-                // Restore state on load
                 restoreSidebarState();
 
-                // Prevent collapse toggling when clicking inside a collapse (inner links)
-                // and save state when clicking anchors.
                 document.querySelectorAll('#sidebar-nav a.nav-link').forEach(link => {
                     link.addEventListener('click', function(e) {
                         const isToggle = link.hasAttribute('data-bs-toggle'); // category header
                         const dataCat = link.getAttribute('data-sidebar-cat');
 
-                        // If it's not a header toggle, stop propagation to avoid accidental collapse toggle
                         if (!isToggle) {
-                            // allow the navigation to continue, but prevent the click from bubbling up to the header
                             e.stopPropagation();
                         }
 
-                        // Save open category (if present)
                         if (dataCat) {
                             saveOpenCategory(dataCat);
                         } else {
-                            // If link inside collapse but no data-cat, find closest collapse parent
                             const collapseParent = link.closest('.collapse');
                             if (collapseParent) saveOpenCategory(collapseParent.id);
                         }
 
-                        // Save active link path for highlighting on next page load
                         saveActiveLinkByElement(link);
                     });
                 });
 
-                // Listen to collapse show/hide events to keep storage in sync
                 document.querySelectorAll('#sidebar-nav .collapse').forEach(collapseEl => {
                     collapseEl.addEventListener('shown.bs.collapse', function() {
                         saveOpenCategory(this.id);
@@ -393,7 +369,6 @@
                     collapseEl.addEventListener('hidden.bs.collapse', function() {
                         const open = localStorage.getItem('sidebar_open_cat');
                         if (open === this.id) {
-                            // only remove if the closed one was stored
                             localStorage.removeItem('sidebar_open_cat');
                         }
                     });

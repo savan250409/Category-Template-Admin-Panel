@@ -12,7 +12,7 @@
                             <i class="bi {{ $subcategory->id ? 'bi-pencil-square' : 'bi-plus-circle' }}"></i>
                             {{ $subcategory->id ? 'Edit Subcategory' : 'Add Subcategory' }}
                         </h4>
-                        <a href="{{ route('subcategories.index') }}" class="btn btn-light btn-sm">
+                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Back
                         </a>
                     </div>
@@ -60,8 +60,14 @@
                                     {{ $subcategory->id ? '' : '*' }}</label>
                                 @if ($subcategory->id && $subcategory->category_thumbnail_image)
                                     <div class="mb-2">
-                                        <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                        <img id="thumbnailPreview"
+                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
                                             class="img-fluid rounded" style="height:120px; object-fit:cover;">
+                                    </div>
+                                @else
+                                    <div class="mb-2">
+                                        <img id="thumbnailPreview" src="#" class="img-fluid rounded"
+                                            style="height:120px; object-fit:cover; display:none;">
                                     </div>
                                 @endif
                                 <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control"
@@ -86,5 +92,28 @@
             </div>
         </div>
     </div>
+
+    {{-- Thumbnail Preview Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.querySelector('input[name="category_thumbnail_image"]');
+            const preview = document.getElementById('thumbnailPreview');
+
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.src = '#';
+                    preview.style.display = 'none';
+                }
+            });
+        });
+    </script>
 
 @endsection

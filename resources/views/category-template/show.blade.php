@@ -7,17 +7,14 @@
             <div class="col-lg-10">
                 <div class="card shadow-lg border-0 rounded-4">
 
-                    {{-- Header --}}
                     <div
                         class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3 px-4 rounded-top">
                         <h4 class="mb-0" style="color:black">
-                            <i class="bi bi-folder2-open fs-4"></i>
-                            {{ $subcategory->title }}
+                            <i class="bi bi-folder2-open fs-4"></i> {{ $subcategory->title }}
                         </h4>
                         <span class="badge bg-light text-dark fw-semibold">{{ $subcategory->category_name }}</span>
                     </div>
 
-                    {{-- Thumbnail --}}
                     @if ($subcategory->category_thumbnail_image)
                         <div class="text-center mt-3">
                             <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
@@ -32,12 +29,15 @@
                                 <p class="fw-semibold">{{ $subcategory->title }}</p>
                             </div>
                             <div class="col-12 mb-3">
+                                <h6 class="text-uppercase text-muted mb-1">Category</h6>
+                                <p class="fw-semibold">{{ $subcategory->category_name }}</p>
+                            </div>
+                            <div class="col-12 mb-3">
                                 <h6 class="text-uppercase text-muted mb-1">Description</h6>
                                 <p>{{ $subcategory->description ?? 'No description yet.' }}</p>
                             </div>
                         </div>
 
-                        {{-- Images Gallery --}}
                         @if ($imageUrls && count($imageUrls))
                             <div class="mb-4">
                                 <h6 class="text-uppercase text-muted mb-2">Images</h6>
@@ -45,8 +45,8 @@
                                     @foreach ($imageUrls as $img)
                                         <div class="col-md-4 mb-3">
                                             <div class="card shadow-sm">
-                                                <img src="{{ $img['url'] }}" class="card-img-top" alt="Image"
-                                                    style="height:200px; object-fit:cover;">
+                                                <img src="{{ $img['url'] }}" class="card-img-top"
+                                                    style="height:200px; object-fit:cover;" alt="Image">
                                                 @if (!empty($img['prompt']))
                                                     <div class="card-body">
                                                         <p class="mb-0 text-muted">{{ $img['prompt'] }}</p>
@@ -59,19 +59,16 @@
                             </div>
                         @endif
 
-                        {{-- Buttons --}}
                         <div class="d-flex gap-2">
                             <a href="{{ route('subcategories.addDetailsForm', $subcategory->id) }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle"></i> Add Images & Description
                             </a>
 
-                            {{-- Edit Button --}}
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                 data-bs-target="#editSubcategoryModal">
                                 <i class="bi bi-pencil-square"></i> Edit Subcategory
                             </button>
 
-                            {{-- Delete Button --}}
                             <form id="deleteForm" action="{{ route('subcategories.destroy', $subcategory->id) }}"
                                 method="POST" class="d-inline">
                                 @csrf
@@ -84,7 +81,6 @@
 
                     </div>
 
-                    {{-- Footer --}}
                     <div class="card-footer bg-light d-flex justify-content-between align-items-center rounded-bottom p-3">
                         <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary"><i
                                 class="bi bi-arrow-left"></i> Back</a>
@@ -94,30 +90,22 @@
         </div>
     </div>
 
-    {{-- Edit Subcategory Modal --}}
     <div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editSubcategoryModalLabel">Edit Subcategory</h5>
+                    <h5 class="modal-title">Edit Subcategory</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('subcategories.save', $subcategory->id) }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf
-                    @method('PUT')
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
-                            <select name="category_name" class="form-control" required>
-                                @foreach ($subcategory as $category)
-                                    <option value="{{ $category }}"
-                                        {{ $subcategory->category_name == $category ? 'selected' : '' }}>
-                                        {{ $category }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="form-label fw-semibold">Category Name</label>
+                            <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
+                            <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">
                         </div>
 
                         <div class="mb-3">
@@ -137,11 +125,45 @@
                             @if ($subcategory->category_thumbnail_image)
                                 <div class="mb-2">
                                     <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
-                                        class="img-fluid rounded" style="height:120px; object-fit:cover;">
+                                        class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="remove_thumbnail"
+                                            id="removeThumbnail">
+                                        <label class="form-check-label" for="removeThumbnail">Remove current
+                                            thumbnail</label>
+                                    </div>
                                 </div>
                             @endif
                             <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
                         </div>
+
+                        @if ($subcategory->images)
+                            @php $imagesArray = json_decode($subcategory->images, true); @endphp
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Edit Images & Prompts</label>
+                                <div class="row">
+                                    @foreach ($imagesArray as $index => $img)
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card p-2">
+                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                    class="img-fluid rounded mb-2"
+                                                    style="height:120px; object-fit:cover;">
+                                                <input type="text" name="existing_prompts[{{ $index }}]"
+                                                    value="{{ $img['prompt'] }}" class="form-control mb-2"
+                                                    placeholder="Edit prompt">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="remove_images[]" value="{{ $img['file'] }}"
+                                                        id="removeImage{{ $index }}">
+                                                    <label class="form-check-label"
+                                                        for="removeImage{{ $index }}">Remove this image</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Update</button>
@@ -152,7 +174,6 @@
         </div>
     </div>
 
-    {{-- SweetAlert Script --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function confirmDelete() {
@@ -166,9 +187,7 @@
                 confirmButtonText: 'Yes, delete it!',
                 cancelButtonText: 'Cancel'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('deleteForm').submit();
-                }
+                if (result.isConfirmed) document.getElementById('deleteForm').submit();
             });
         }
     </script>

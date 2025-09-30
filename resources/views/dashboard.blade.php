@@ -8,6 +8,12 @@
         </h1>
 
         <div class="row g-4">
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             @forelse($categories as $category)
                 <div class="col-md-4 col-lg-3">
