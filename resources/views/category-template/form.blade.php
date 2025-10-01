@@ -23,7 +23,6 @@
                             method="POST" enctype="multipart/form-data">
                             @csrf
 
-                            {{-- Category Name --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Category Name <span
                                         class="text-danger">*</span></label>
@@ -33,7 +32,8 @@
                                     @foreach ($categories as $category)
                                         <option value="{{ $category }}"
                                             {{ old('category_name', $subcategory->category_name) == $category ? 'selected' : '' }}>
-                                            {{ $category }}</option>
+                                            {{ $category }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('category_name')
@@ -41,7 +41,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Subcategory Name --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Subcategory Name <span
                                         class="text-danger">*</span></label>
@@ -54,7 +53,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Thumbnail --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Subcategory Thumbnail Image
                                     {{ $subcategory->id ? '' : '*' }}</label>
@@ -70,14 +68,13 @@
                                             style="height:120px; object-fit:cover; display:none;">
                                     </div>
                                 @endif
-                                <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control"
-                                    {{ $subcategory->id ? '' : 'required' }}>
+                                <input type="file" name="category_thumbnail_image" accept=".webp" class="form-control"
+                                    {{ $subcategory->id ? '' : 'required' }} onchange="validateThumbnail(this)">
                                 @error('category_thumbnail_image')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            {{-- Buttons --}}
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="submit" class="btn btn-success px-4">
                                     <i class="bi bi-check-circle"></i> {{ $subcategory->id ? 'Update' : 'Save' }}
@@ -93,27 +90,30 @@
         </div>
     </div>
 
-    {{-- Thumbnail Preview Script --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const input = document.querySelector('input[name="category_thumbnail_image"]');
-            const preview = document.getElementById('thumbnailPreview');
-
-            input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    preview.src = '#';
-                    preview.style.display = 'none';
+        function validateThumbnail(input) {
+            const file = input.files[0];
+            if (file) {
+                const allowedTypes = ['image/webp'];
+                const maxSize = 1 * 1024 * 1024;
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Only .webp files are allowed.');
+                    input.value = '';
+                    return false;
                 }
-            });
-        });
+                if (file.size > maxSize) {
+                    alert('File size must not exceed 1 MB.');
+                    input.value = '';
+                    return false;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('thumbnailPreview').src = e.target.result;
+                    document.getElementById('thumbnailPreview').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
     </script>
 
 @endsection

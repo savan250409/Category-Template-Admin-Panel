@@ -35,6 +35,10 @@ Route::middleware(['admin_auth'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
+    Route::get('/apiList', function () {
+        return view('apiList');
+    });
+
     Route::post('/logout', [AdminController::class, 'logout'])->name('auth.logout');
 
     Route::prefix('subcategories')->group(function () {

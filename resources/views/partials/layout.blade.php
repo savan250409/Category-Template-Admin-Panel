@@ -56,7 +56,6 @@
 </head>
 
 <body>
-    <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <div class="p-3 border-bottom">
             <a class="sidebar-brand d-flex align-items-center" href="{{ url('dashboard') }}">
@@ -67,9 +66,13 @@
         <ul class="sidebar-nav flex-column p-2" id="sidebar-nav" style="background:#1e1e2d; min-height:100vh;">
 
             {{-- Dashboard --}}
+
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Component
+            </li>
             <li class="nav-item mb-1">
                 <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3
-            {{ request()->is('/') || request()->is('dashboard') ? 'active bg-primary text-white' : 'text-light' }}"
+                {{ request()->is('dashboard') || request()->is('/') || request()->routeIs('dashboard') ? 'active bg-primary text-white' : 'text-light' }}"
                     href="{{ url('dashboard') }}">
                     <i class="bi bi-speedometer me-2"></i>
                     <span>Dashboard</span>
@@ -83,10 +86,13 @@
                     $currentRoute = request()->route()->getName();
                     $currentSubId = request()->route('id');
 
-                    // active check
-                    $subActive = $currentRoute === 'subcategories.form' && request('category_name') === $cat;
+                    // Only check active state if route is inside subcategories.*
+                    $isSubRoute = str_starts_with($currentRoute ?? '', 'subcategories.');
+
+                    $subActive =
+                        $isSubRoute && $currentRoute === 'subcategories.form' && request('category_name') === $cat;
                     $activeSub =
-                        $currentRoute === 'subcategories.show'
+                        $isSubRoute && $currentRoute === 'subcategories.show'
                             ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
                             : null;
 
@@ -96,7 +102,7 @@
                 <li class="nav-item mb-1">
                     {{-- Category --}}
                     <a class="nav-link d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                {{ $isOpen ? 'bg-secondary' : '' }}"
+                    {{ $isOpen ? 'bg-secondary' : '' }}"
                         data-bs-toggle="collapse" href="#{{ $catId }}"
                         aria-expanded="{{ $isOpen ? 'true' : 'false' }}" aria-controls="{{ $catId }}"
                         style="transition: all 0.2s;">
@@ -110,12 +116,11 @@
                     {{-- Subcategories --}}
                     <ul id="{{ $catId }}"
                         class="collapse nav flex-column ps-4 mt-2 {{ $isOpen ? 'show' : '' }}">
-
                         {{-- Add Subcategory --}}
                         <li class="mb-1">
                             <a href="{{ route('subcategories.form', ['category_name' => $cat]) }}"
                                 class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                       {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                                {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
                                 style="transition: all 0.2s;">
                                 <i class="bi bi-plus-circle me-2"></i>
                                 <span>Add Subcategory</span>
@@ -127,7 +132,9 @@
                             <li class="mb-1">
                                 <a href="{{ route('subcategories.show', $sub->id) }}"
                                     class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                           {{ $currentRoute === 'subcategories.show' && $currentSubId == $sub->id ? 'active bg-primary text-white' : 'text-light' }}"
+                                    {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
+                                        ? 'active bg-primary text-white'
+                                        : 'text-light' }}"
                                     style="transition: all 0.2s;">
                                     <i class="bi bi-circle me-2"></i>
                                     <span>{{ $sub->title }}</span>
@@ -137,6 +144,18 @@
                     </ul>
                 </li>
             @endforeach
+
+            {{-- api url --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                API
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('apiList') ? 'active' : '' }}" href="{{ url('apiList') }}">
+                    <img src="https://cdn-icons-png.flaticon.com/512/103/103093.png" alt="API Icon" width="18"
+                        height="18" style="margin-right: 8px; filter: brightness(0) invert(1);">
+                    <span>API URL</span>
+                </a>
+            </li>
         </ul>
 
         <style>
@@ -376,7 +395,6 @@
             });
         })();
     </script>
-
 </body>
 
 </html>
