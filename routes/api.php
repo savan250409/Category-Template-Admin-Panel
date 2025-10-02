@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\SyncController;
 use App\Models\Admin;
 use App\Http\Controllers\Api\CategoryController;
-
+use App\Http\Controllers\Api\NgendevCategoryApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +26,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::middleware('jwt.auth')->group(function () {
-Route::get('/getAllCategories', [CategoryController::class, 'getAllCategories']);
-Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
+    Route::get('/getAllCategories', [CategoryController::class, 'getAllCategories']);
+    Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
+
+    Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
+    Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
 });

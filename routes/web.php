@@ -5,6 +5,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SubcategoryController;
+use App\Http\Controllers\NgendevImageController;
+use App\Http\Controllers\NgendevCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,5 +64,29 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::post('save/{id?}', [SubcategoryController::class, 'save'])->name('save');
             Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
             Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
+        });
+
+    // Ngendev Images Routes
+    Route::prefix('ngendev')
+        ->name('ngendev.')
+        ->group(function () {
+            Route::get('/images', [NgendevImageController::class, 'index'])->name('images.index');
+            Route::post('/images', [NgendevImageController::class, 'store'])->name('images.store');
+            Route::get('/images/create', [NgendevImageController::class, 'create'])->name('images.create');
+            Route::get('/images/{id}/edit', [NgendevImageController::class, 'edit'])->name('images.edit');
+            Route::put('/images/{id}', [NgendevImageController::class, 'update'])->name('images.update');
+            Route::delete('/images/{id}', [NgendevImageController::class, 'destroy'])->name('images.destroy');
+        });
+
+    // Ngendev Categories Routes
+    Route::prefix('ngendev')
+        ->name('ngendev.')
+        ->group(function () {
+            Route::get('/categories', [NgendevCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories/create', [NgendevCategoryController::class, 'create'])->name('categories.create');
+            Route::post('/categories', [NgendevCategoryController::class, 'store'])->name('categories.store');
+            Route::get('/categories/{id}/edit', [NgendevCategoryController::class, 'edit'])->name('categories.edit');
+            Route::put('/categories/{id}', [NgendevCategoryController::class, 'update'])->name('categories.update');
+            Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
         });
 });

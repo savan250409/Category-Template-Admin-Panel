@@ -145,6 +145,27 @@
                 </li>
             @endforeach
 
+            <!-- AI Image Module (ngendev) -->
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                AI Image (NGD)
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('ngendev/categories*') ? 'active' : '' }}"
+                    href="{{ route('ngendev.categories.index') }}">
+                    <i class="bi bi-tags" style="color: white"></i>
+                    <span>AI Category</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('ngendev/images*') ? 'active' : '' }}"
+                    href="{{ route('ngendev.images.index') }}">
+                    <i class="bi bi-robot" style="color: white"></i>
+                    <span>AI Image</span>
+                </a>
+            </li>
+
             {{-- api url --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API
