@@ -78,7 +78,6 @@
                                 </button>
                             </form>
                         </div>
-
                     </div>
 
                     <div class="card-footer bg-light d-flex justify-content-between align-items-center rounded-bottom p-3">
@@ -90,6 +89,7 @@
         </div>
     </div>
 
+    {{-- ======================= Edit Modal ======================= --}}
     <div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -102,12 +102,14 @@
                     enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
+                        {{-- Category Name --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Category Name</label>
                             <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
                             <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">
                         </div>
 
+                        {{-- Title --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Subcategory Title <span
                                     class="text-danger">*</span></label>
@@ -115,11 +117,13 @@
                                 required>
                         </div>
 
+                        {{-- Description --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea name="description" class="form-control" rows="4">{{ $subcategory->description }}</textarea>
                         </div>
 
+                        {{-- Thumbnail --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Thumbnail Image</label>
                             @if ($subcategory->category_thumbnail_image)
@@ -137,10 +141,11 @@
                             <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
                         </div>
 
-                        @if ($subcategory->images)
+                        {{-- Existing Images --}}
+                        @if ($subcategory->images && count(json_decode($subcategory->images, true)) > 0)
                             @php $imagesArray = json_decode($subcategory->images, true); @endphp
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Edit Images & Prompts</label>
+                                <label class="form-label fw-semibold">Edit Existing Images & Prompts</label>
                                 <div class="row">
                                     @foreach ($imagesArray as $index => $img)
                                         <div class="col-md-6 mb-3">
@@ -148,9 +153,19 @@
                                                 <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
                                                     class="img-fluid rounded mb-2"
                                                     style="height:120px; object-fit:cover;">
-                                                <input type="text" name="existing_prompts[{{ $index }}]"
-                                                    value="{{ $img['prompt'] }}" class="form-control mb-2"
-                                                    placeholder="Edit prompt">
+
+                                                {{-- Prompt Edit --}}
+                                                <label class="small text-muted">Prompt</label>
+                                                <input type="text" name="existing_prompts[{{ $img['file'] }}]"
+                                                    value="{{ $img['prompt'] ?? '' }}" class="form-control mb-2"
+                                                    placeholder="Enter prompt">
+
+                                                {{-- Replace Image --}}
+                                                <label class="small text-muted">Replace Image</label>
+                                                <input type="file" name="replace_images[{{ $img['file'] }}]"
+                                                    accept="image/*" class="form-control mb-2">
+
+                                                {{-- Remove Checkbox --}}
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox"
                                                         name="remove_images[]" value="{{ $img['file'] }}"
@@ -164,7 +179,16 @@
                                 </div>
                             </div>
                         @endif
+
+                        {{-- Add New Images --}}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Add New Images & Prompts</label>
+                            <div id="newImagesWrapper"></div>
+                            <button type="button" id="addImageBtn" class="btn btn-outline-primary btn-sm mt-2">+ Add
+                                Image</button>
+                        </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Update</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -174,22 +198,41 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDelete() {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "This will permanently delete the subcategory!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) document.getElementById('deleteForm').submit();
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrapper = document.getElementById('newImagesWrapper');
+            const addBtn = document.getElementById('addImageBtn');
+
+            addBtn.addEventListener('click', function() {
+                const div = document.createElement('div');
+                div.classList.add('d-flex', 'gap-2', 'align-items-start', 'mb-2');
+                div.innerHTML = `
+                    <div class="flex-grow-1">
+                        <label class="small text-muted">Image</label>
+                        <input type="file" name="images[]" accept="image/*" class="form-control" required>
+                    </div>
+                    <div class="flex-grow-1">
+                        <label class="small text-muted">Prompt</label>
+                        <input type="text" name="prompts[]" placeholder="Enter prompt" class="form-control">
+                    </div>
+                    <div class="d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-new">X</button>
+                    </div>
+                `;
+                wrapper.appendChild(div);
             });
+
+            wrapper.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-new')) {
+                    e.target.closest('div').remove();
+                }
+            });
+        });
+
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete this subcategory? This action cannot be undone.')) {
+                document.getElementById('deleteForm').submit();
+            }
         }
     </script>
-
 @endsection

@@ -68,7 +68,7 @@
                                             style="height:120px; object-fit:cover; display:none;">
                                     </div>
                                 @endif
-                                <input type="file" name="category_thumbnail_image" accept=".webp" class="form-control"
+                                <input type="file" name="category_thumbnail_image" class="form-control"
                                     {{ $subcategory->id ? '' : 'required' }} onchange="validateThumbnail(this)">
                                 @error('category_thumbnail_image')
                                     <div class="text-danger">{{ $message }}</div>

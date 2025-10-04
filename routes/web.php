@@ -90,3 +90,5 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
         });
 });
+
+Route::get('/temp/create-subcategory-thumbnail', [SubcategoryController::class, 'createSubCategoryThumbnailColumn'])->name('temp.createSubCategoryThumbnail');

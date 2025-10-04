@@ -24,21 +24,18 @@ class NgendevCategoryApiController extends Controller
             );
         }
 
-        $categories->transform(function ($category) {
+        $categories = $categories->map(function ($category) {
             $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
-            // Fetch 3 AI images per category
-            $images = NgendevImage::where('category_id', $category->id)->select('id', 'ai_prompt', 'ai_model', 'image_path')->orderBy('id', 'desc')->limit(3)->get();
+            $images = NgendevImage::where('category_id', $category->id)->select('id', 'ai_prompt', 'ai_model', 'image_path')->orderBy('id', 'desc')->limit(5)->get();
 
-            // Format images
-            $images->transform(function ($image) use ($encodedCategory) {
-                $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
-                $image->ai_model = $image->ai_model ?? 'AI Image';
+            $images->transform(function ($image) use ($encodedCategory, $category) {
+                $image->category_image = $image->image_path ? "ngendev/images/{$category->category_name}/category_image/{$image->image_path}" : null;
+                $image->ai_model = $image->ai_model ?? 'Ngendev Image';
                 unset($image->image_path);
                 return $image;
             });
 
-            // Return category with items
             return [
                 'category_id' => $category->id,
                 'category_name' => $category->category_name,
@@ -46,10 +43,19 @@ class NgendevCategoryApiController extends Controller
             ];
         });
 
+        $trending = $categories->firstWhere('category_name', 'Trending');
+
+        if ($trending) {
+            $categories = $categories->reject(function ($cat) {
+                return $cat['category_name'] === 'Trending';
+            });
+            $categories->prepend($trending);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Categories fetched successfully',
-            'data' => $categories,
+            'data' => $categories->values(),
         ]);
     }
 

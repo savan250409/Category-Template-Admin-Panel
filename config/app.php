@@ -82,6 +82,8 @@ return [
 
     'locale' => 'en',
 
+    'Image' => Intervention\Image\Facades\Image::class,
+
     /*
     |--------------------------------------------------------------------------
     | Application Fallback Locale
