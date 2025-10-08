@@ -68,7 +68,7 @@ class CategoryController extends Controller
 
         $subcategories = Subcategory::where('category_name', $mainCategory)
             ->where('title', $subCategoryName)
-            ->get(['id', 'title', 'description', 'images', 'sub_category_thumbnail_image', 'category_name']);
+            ->get(['id', 'title', 'description', 'images', 'category_name']); // Removed sub_category_thumbnail_image
 
         if ($subcategories->isEmpty()) {
             return response()->json(
@@ -89,7 +89,6 @@ class CategoryController extends Controller
 
             $categoryName = trim($subcat->category_name);
             $subcatTitle = trim($subcat->title);
-            $thumbnailFileName = $subcat->sub_category_thumbnail_image;
 
             foreach ($images as $img) {
                 $file = $img['file'] ?? null;
@@ -99,14 +98,12 @@ class CategoryController extends Controller
                     $formattedImages[] = [
                         'url' => "{$categoryName}/{$subcatTitle}/{$file}",
                         'prompt' => $prompt,
-                        'sub_category_thumbnail_url' => $thumbnailFileName ? "{$categoryName}/{$subcatTitle}/sub_category_thumbnail/{$thumbnailFileName}" : null,
                     ];
                 }
             }
 
             $subcat->images = $formattedImages;
             unset($subcat->category_name);
-            unset($subcat->sub_category_thumbnail_image);
 
             return $subcat;
         });

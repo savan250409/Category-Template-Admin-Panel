@@ -90,4 +90,3 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
         });
 });
-

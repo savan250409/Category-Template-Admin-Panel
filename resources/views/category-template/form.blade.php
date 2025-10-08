@@ -90,30 +90,4 @@
         </div>
     </div>
 
-    <script>
-        function validateThumbnail(input) {
-            const file = input.files[0];
-            if (file) {
-                const allowedTypes = ['image/webp'];
-                const maxSize = 1 * 1024 * 1024;
-                if (!allowedTypes.includes(file.type)) {
-                    alert('Only .webp files are allowed.');
-                    input.value = '';
-                    return false;
-                }
-                if (file.size > maxSize) {
-                    alert('File size must not exceed 1 MB.');
-                    input.value = '';
-                    return false;
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('thumbnailPreview').src = e.target.result;
-                    document.getElementById('thumbnailPreview').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-    </script>
-
 @endsection
