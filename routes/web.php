@@ -91,4 +91,3 @@ Route::middleware(['admin_auth'])->group(function () {
         });
 });
 
-Route::get('/temp/create-subcategory-thumbnail', [SubcategoryController::class, 'createSubCategoryThumbnailColumn'])->name('temp.createSubCategoryThumbnail');
