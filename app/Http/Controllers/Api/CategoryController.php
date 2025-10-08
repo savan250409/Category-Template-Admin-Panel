@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subcategory;
+use App\Models\AiImageBabyPhotoSetting;
 
 class CategoryController extends Controller
 {
     public function getAllCategories()
     {
+        // Get Baby AI setting
+        $babyAiSetting = AiImageBabyPhotoSetting::first();
+        $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
+
         $categories = Subcategory::select('category_name')->distinct()->pluck('category_name');
 
         $response = [];
@@ -41,6 +46,7 @@ class CategoryController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Categories retrieved successfully',
+            'model' => $babyAiModel,
             'data' => $response,
         ]);
     }
@@ -66,15 +72,20 @@ class CategoryController extends Controller
         $mainCategory = $request->main_category;
         $subCategoryName = $request->category_name;
 
+        // Get Baby AI setting
+        $babyAiSetting = AiImageBabyPhotoSetting::first();
+        $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
+
         $subcategories = Subcategory::where('category_name', $mainCategory)
             ->where('title', $subCategoryName)
-            ->get(['id', 'title', 'description', 'images', 'category_name']); // Removed sub_category_thumbnail_image
+            ->get(['id', 'title', 'description', 'images', 'category_name']);
 
         if ($subcategories->isEmpty()) {
             return response()->json(
                 [
                     'status' => false,
                     'message' => 'No data found for the given main category and subcategory',
+                    'model' => $babyAiModel,
                     'main_category' => $mainCategory,
                     'category_name' => $subCategoryName,
                     'subcategories' => [],
@@ -111,6 +122,7 @@ class CategoryController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Subcategories retrieved successfully',
+            'model' => $babyAiModel,
             'main_category' => $mainCategory,
             'category_name' => $subCategoryName,
             'subcategories' => $subcategories,

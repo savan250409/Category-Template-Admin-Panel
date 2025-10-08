@@ -608,6 +608,8 @@ class ComposerStaticInit2c498483e5e9b702875a72c997729431
         'App\\Http\\Middleware\\TrustProxies' => __DIR__ . '/../..' . '/app/Http/Middleware/TrustProxies.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
         'App\\Models\\Admin' => __DIR__ . '/../..' . '/app/Models/Admin.php',
+        'App\\Models\\AiImageBabyPhotoSetting' => __DIR__ . '/../..' . '/app/Models/AiImageBabyPhotoSetting.php',
+        'App\\Models\\AiImageNgdSetting' => __DIR__ . '/../..' . '/app/Models/AiImageNgdSetting.php',
         'App\\Models\\NgendevCategory' => __DIR__ . '/../..' . '/app/Models/NgendevCategory.php',
         'App\\Models\\NgendevImage' => __DIR__ . '/../..' . '/app/Models/NgendevImage.php',
         'App\\Models\\Subcategory' => __DIR__ . '/../..' . '/app/Models/Subcategory.php',

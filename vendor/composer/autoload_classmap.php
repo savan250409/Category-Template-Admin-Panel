@@ -49,6 +49,8 @@ return array(
     'App\\Http\\Middleware\\TrustProxies' => $baseDir . '/app/Http/Middleware/TrustProxies.php',
     'App\\Http\\Middleware\\VerifyCsrfToken' => $baseDir . '/app/Http/Middleware/VerifyCsrfToken.php',
     'App\\Models\\Admin' => $baseDir . '/app/Models/Admin.php',
+    'App\\Models\\AiImageBabyPhotoSetting' => $baseDir . '/app/Models/AiImageBabyPhotoSetting.php',
+    'App\\Models\\AiImageNgdSetting' => $baseDir . '/app/Models/AiImageNgdSetting.php',
     'App\\Models\\NgendevCategory' => $baseDir . '/app/Models/NgendevCategory.php',
     'App\\Models\\NgendevImage' => $baseDir . '/app/Models/NgendevImage.php',
     'App\\Models\\Subcategory' => $baseDir . '/app/Models/Subcategory.php',

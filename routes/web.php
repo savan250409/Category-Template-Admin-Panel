@@ -7,6 +7,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\NgendevImageController;
 use App\Http\Controllers\NgendevCategoryController;
+use App\Http\Controllers\AiImageBabyPhotoSettingController;
+use App\Http\Controllers\AiImageNgdSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,5 +90,35 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::get('/categories/{id}/edit', [NgendevCategoryController::class, 'edit'])->name('categories.edit');
             Route::put('/categories/{id}', [NgendevCategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
+        });
+
+    /*
+|--------------------------------------------------------------------------
+| AI Image Baby Photo Setting Routes
+|--------------------------------------------------------------------------
+*/
+    Route::prefix('ai-image-baby-photo-setting')
+        ->name('ai-image-baby-photo-setting.')
+        ->group(function () {
+            Route::get('/', [AiImageBabyPhotoSettingController::class, 'index'])->name('index');
+            Route::get('/create', [AiImageBabyPhotoSettingController::class, 'create'])->name('create');
+            Route::post('/', [AiImageBabyPhotoSettingController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [AiImageBabyPhotoSettingController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [AiImageBabyPhotoSettingController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AiImageBabyPhotoSettingController::class, 'destroy'])->name('destroy');
+        });
+
+    /*
+|--------------------------------------------------------------------------
+| AI Image NGD Setting Routes
+|--------------------------------------------------------------------------
+*/
+    Route::prefix('ai-image-ngd-setting')
+        ->name('ai-image-ngd-setting.')
+        ->group(function () {
+            Route::get('/', [AiImageNgdSettingController::class, 'index'])->name('index');
+            Route::post('/', [AiImageNgdSettingController::class, 'store'])->name('store');
+            Route::put('/{id}', [AiImageNgdSettingController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AiImageNgdSettingController::class, 'destroy'])->name('destroy');
         });
 });

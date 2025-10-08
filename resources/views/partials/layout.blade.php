@@ -66,7 +66,6 @@
         <ul class="sidebar-nav flex-column p-2" id="sidebar-nav" style="background:#1e1e2d; min-height:100vh;">
 
             {{-- Dashboard --}}
-
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Component
             </li>
@@ -79,99 +78,179 @@
                 </a>
             </li>
 
-            {{-- Categories --}}
-            @foreach ($categories as $cat)
-                @php
-                    $catId = 'cat-' . Str::slug($cat, '-');
-                    $currentRoute = request()->route()->getName();
-                    $currentSubId = request()->route('id');
+            {{-- AI Image Module Header --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                AI Image Module
+            </li>
 
-                    // Only check active state if route is inside subcategories.*
-                    $isSubRoute = str_starts_with($currentRoute ?? '', 'subcategories.');
+            {{-- AI Image Baby Photo (Static Categories) --}}
+            @php
+                $currentRoute = request()->route()->getName();
+                $currentSubId = request()->route('id');
+                $isSubRoute = str_starts_with($currentRoute ?? '', 'subcategories.');
 
+                // Check if any static category route is active
+                $isBabyPhotoActive = false;
+                foreach ($categories as $cat) {
                     $subActive =
                         $isSubRoute && $currentRoute === 'subcategories.form' && request('category_name') === $cat;
                     $activeSub =
                         $isSubRoute && $currentRoute === 'subcategories.show'
                             ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
                             : null;
+                    if ($subActive || $activeSub) {
+                        $isBabyPhotoActive = true;
+                        break;
+                    }
+                }
 
-                    $isOpen = $subActive || $activeSub;
-                @endphp
+                // Check if baby photo setting is active
+                $isBabyPhotoSettingActive = request()->routeIs('ai-image-baby-photo-setting.index');
+                $isBabyPhotoActive = $isBabyPhotoActive || $isBabyPhotoSettingActive;
+            @endphp
 
-                <li class="nav-item mb-1">
-                    {{-- Category --}}
-                    <a class="nav-link d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                    {{ $isOpen ? 'bg-secondary' : '' }}"
-                        data-bs-toggle="collapse" href="#{{ $catId }}"
-                        aria-expanded="{{ $isOpen ? 'true' : 'false' }}" aria-controls="{{ $catId }}"
-                        style="transition: all 0.2s;">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-folder-fill me-2 text-warning"></i>
-                            <span class="fw-semibold">{{ $cat }}</span>
-                        </div>
-                        <i class="bi bi-chevron-down small"></i>
-                    </a>
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isBabyPhotoActive ? 'bg-secondary' : '' }}"
+                    href="javascript:void(0);" data-target="#babyPhotoCollapse" style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-image-fill me-2 text-info"></i>
+                        <span class="fw-semibold">AI Image Baby Photo</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
 
-                    {{-- Subcategories --}}
-                    <ul id="{{ $catId }}"
-                        class="collapse nav flex-column ps-4 mt-2 {{ $isOpen ? 'show' : '' }}">
-                        {{-- Add Subcategory --}}
-                        <li class="mb-1">
-                            <a href="{{ route('subcategories.form', ['category_name' => $cat]) }}"
-                                class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                {{-- Static Categories Submenu --}}
+                <ul id="babyPhotoCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isBabyPhotoActive ? 'block' : 'none' }};">
+
+                    {{-- AI Image Baby Photo Setting --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('ai-image-baby-photo-setting.index') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-image-baby-photo-setting.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-gear me-2"></i>
+                            <span>AI Image Baby Photo Setting</span>
+                        </a>
+                    </li>
+
+                    @foreach ($categories as $cat)
+                        @php
+                            $catId = 'cat-' . Str::slug($cat, '-');
+                            $subActive =
+                                $isSubRoute &&
+                                $currentRoute === 'subcategories.form' &&
+                                request('category_name') === $cat;
+                            $activeSub =
+                                $isSubRoute && $currentRoute === 'subcategories.show'
+                                    ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                                    : null;
+                            $isOpen = $subActive || $activeSub;
+                        @endphp
+
+                        <li class="nav-item mb-1">
+                            {{-- Category --}}
+                            <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                                {{ $isOpen ? 'bg-secondary' : '' }}"
+                                href="javascript:void(0);" data-target="#{{ $catId }}"
                                 style="transition: all 0.2s;">
-                                <i class="bi bi-plus-circle me-2"></i>
-                                <span>Add Subcategory</span>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-folder-fill me-2 text-warning"></i>
+                                    <span class="fw-semibold">{{ $cat }}</span>
+                                </div>
+                                <i class="bi bi-chevron-down small chevron-icon"></i>
                             </a>
+
+                            {{-- Subcategories --}}
+                            <ul id="{{ $catId }}" class="submenu-list nav flex-column ps-4 mt-2"
+                                style="display: {{ $isOpen ? 'block' : 'none' }};">
+                                {{-- Add Subcategory --}}
+                                <li class="mb-1">
+                                    <a href="{{ route('subcategories.form', ['category_name' => $cat]) }}"
+                                        class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                            {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                                        style="transition: all 0.2s;">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        <span>Add Subcategory</span>
+                                    </a>
+                                </li>
+
+                                {{-- Existing Subcategories --}}
+                                @foreach ($allSubs[$cat] ?? [] as $sub)
+                                    <li class="mb-1">
+                                        <a href="{{ route('subcategories.show', $sub->id) }}"
+                                            class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                                {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
+                                                    ? 'active bg-primary text-white'
+                                                    : 'text-light' }}"
+                                            style="transition: all 0.2s;">
+                                            <i class="bi bi-circle me-2"></i>
+                                            <span>{{ $sub->title }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
                         </li>
-
-                        {{-- Existing Subcategories --}}
-                        @foreach ($allSubs[$cat] ?? [] as $sub)
-                            <li class="mb-1">
-                                <a href="{{ route('subcategories.show', $sub->id) }}"
-                                    class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                    {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
-                                        ? 'active bg-primary text-white'
-                                        : 'text-light' }}"
-                                    style="transition: all 0.2s;">
-                                    <i class="bi bi-circle me-2"></i>
-                                    <span>{{ $sub->title }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </li>
-            @endforeach
-
-            <!-- AI Image Module (ngendev) -->
-            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
-                AI Image (NGD)
+                    @endforeach
+                </ul>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link {{ request()->is('ngendev/categories*') ? 'active' : '' }}"
-                    href="{{ route('ngendev.categories.index') }}">
-                    <i class="bi bi-tags" style="color: white"></i>
-                    <span>AI Category</span>
+            {{-- AI Image NGD (NGD Module) --}}
+            @php
+                $isNGDActive = request()->is('ngendev/categories*') || request()->is('ngendev/images*');
+                // Check if NGD setting is active
+                $isNGDSettingActive = request()->routeIs('ai-image-ngd-setting.index');
+                $isNGDActive = $isNGDActive || $isNGDSettingActive;
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isNGDActive ? 'bg-secondary' : '' }}"
+                    href="javascript:void(0);" data-target="#ngdCollapse" style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-robot me-2 text-success"></i>
+                        <span class="fw-semibold">AI Image NGD</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
                 </a>
+
+                {{-- NGD Module Submenu --}}
+                <ul id="ngdCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isNGDActive ? 'block' : 'none' }};">
+
+                    {{-- AI Image NGD Setting --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('ai-image-ngd-setting.index') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-image-ngd-setting.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-gear me-2"></i>
+                            <span>AI Image NGD Setting</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('ngendev/categories*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ngendev.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>AI Category</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('ngendev/images*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ngendev.images.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-image me-2"></i>
+                            <span>AI Image</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link {{ request()->is('ngendev/images*') ? 'active' : '' }}"
-                    href="{{ route('ngendev.images.index') }}">
-                    <i class="bi bi-robot" style="color: white"></i>
-                    <span>AI Image</span>
-                </a>
-            </li>
-
-            {{-- api url --}}
+            {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API
             </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->is('apiList') ? 'active' : '' }}" href="{{ url('apiList') }}">
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ request()->is('apiList') ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ url('apiList') }}" style="transition: all 0.2s;">
                     <img src="https://cdn-icons-png.flaticon.com/512/103/103093.png" alt="API Icon" width="18"
                         height="18" style="margin-right: 8px; filter: brightness(0) invert(1);">
                     <span>API URL</span>
@@ -195,12 +274,25 @@
                 color: #fff !important;
             }
 
-            #sidebar-nav ul.collapse .nav-link:hover {
+            #sidebar-nav ul.submenu-list .nav-link:hover {
                 background: #2a2a3b !important;
             }
 
-            #sidebar-nav ul.collapse {
-                transition: height 0.3s ease;
+            #sidebar-nav ul.submenu-list {
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .chevron-icon {
+                transition: transform 0.3s ease;
+            }
+
+            .collapsed .chevron-icon {
+                transform: rotate(0deg);
+            }
+
+            .expanded .chevron-icon {
+                transform: rotate(180deg);
             }
         </style>
     </aside>
@@ -260,12 +352,10 @@
     </header>
 
     <!-- Main Content -->
-
     <main class="main">
         @section('container')
         @show
     </main>
-
 
     <!-- Vendor JS Files -->
     <script src="{{ asset('NiceAdmin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -286,7 +376,6 @@
     <script src="NiceAdmin/assets/vendor/php-email-form/validate.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- existing sidebar toggle state -->
     <script>
@@ -311,6 +400,40 @@
     </script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.collapse-toggle').forEach(function(toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const targetId = this.getAttribute('data-target');
+                    const targetMenu = document.querySelector(targetId);
+
+                    if (targetMenu) {
+                        if (targetMenu.style.display === 'none' || targetMenu.style.display ===
+                            '') {
+                            targetMenu.style.display = 'block';
+                            this.classList.remove('collapsed');
+                            this.classList.add('expanded');
+                        } else {
+                            targetMenu.style.display = 'none';
+                            this.classList.remove('expanded');
+                            this.classList.add('collapsed');
+                        }
+                    }
+                });
+
+                const targetId = toggle.getAttribute('data-target');
+                const targetMenu = document.querySelector(targetId);
+                if (targetMenu && targetMenu.style.display === 'block') {
+                    toggle.classList.add('expanded');
+                } else {
+                    toggle.classList.add('collapsed');
+                }
+            });
+        });
+    </script>
+
+    <script>
         (function() {
             function normalizePath(href) {
                 try {
@@ -322,47 +445,12 @@
             }
 
             function restoreSidebarState() {
-                const openCat = localStorage.getItem('sidebar_open_cat');
-                if (openCat) {
-                    const collapseEl = document.getElementById(openCat);
-                    if (collapseEl) {
-                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, {
-                            toggle: false
-                        });
-                        bsCollapse.show();
-                    }
-                }
-
                 const activePath = localStorage.getItem('sidebar_active_path');
                 if (activePath) {
                     document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
-                        a.classList.remove('active', 'bg-primary', 'text-white');
-                    });
-
-                    const links = document.querySelectorAll('#sidebar-nav a.nav-link');
-                    links.forEach(a => {
                         const p = normalizePath(a.getAttribute('href') || '');
                         if (p === activePath) {
                             a.classList.add('active', 'bg-primary', 'text-white');
-                            const parentCollapse = a.closest('.collapse');
-                            if (parentCollapse) {
-                                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(parentCollapse, {
-                                    toggle: false
-                                });
-                                bsCollapse.show();
-                            }
-                        }
-                    });
-                } else {
-                    document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
-                        if (a.classList.contains('active')) {
-                            const parentCollapse = a.closest('.collapse');
-                            if (parentCollapse) {
-                                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(parentCollapse, {
-                                    toggle: false
-                                });
-                                bsCollapse.show();
-                            }
                         }
                     });
                 }
@@ -374,48 +462,19 @@
                 localStorage.setItem('sidebar_active_path', path);
             }
 
-            function saveOpenCategory(catId) {
-                if (catId) localStorage.setItem('sidebar_open_cat', catId);
-                else localStorage.removeItem('sidebar_open_cat');
-            }
-
             document.addEventListener('DOMContentLoaded', function() {
                 restoreSidebarState();
 
-                document.querySelectorAll('#sidebar-nav a.nav-link').forEach(link => {
+                document.querySelectorAll('#sidebar-nav a.nav-link:not(.collapse-toggle)').forEach(link => {
                     link.addEventListener('click', function(e) {
-                        const isToggle = link.hasAttribute('data-bs-toggle'); // category header
-                        const dataCat = link.getAttribute('data-sidebar-cat');
-
-                        if (!isToggle) {
-                            e.stopPropagation();
-                        }
-
-                        if (dataCat) {
-                            saveOpenCategory(dataCat);
-                        } else {
-                            const collapseParent = link.closest('.collapse');
-                            if (collapseParent) saveOpenCategory(collapseParent.id);
-                        }
-
                         saveActiveLinkByElement(link);
-                    });
-                });
-
-                document.querySelectorAll('#sidebar-nav .collapse').forEach(collapseEl => {
-                    collapseEl.addEventListener('shown.bs.collapse', function() {
-                        saveOpenCategory(this.id);
-                    });
-                    collapseEl.addEventListener('hidden.bs.collapse', function() {
-                        const open = localStorage.getItem('sidebar_open_cat');
-                        if (open === this.id) {
-                            localStorage.removeItem('sidebar_open_cat');
-                        }
                     });
                 });
             });
         })();
     </script>
+
+    @yield('scripts')
 </body>
 
 </html>

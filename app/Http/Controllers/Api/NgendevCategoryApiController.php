@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NgendevCategory;
 use App\Models\NgendevImage;
 use Illuminate\Http\Request;
+use App\Models\AiImageNgdSetting;
 
 class NgendevCategoryApiController extends Controller
 {
@@ -164,6 +165,10 @@ class NgendevCategoryApiController extends Controller
 
     public function getCategories()
     {
+        // Get NGD AI setting
+        $ngdAiSetting = AiImageNgdSetting::first();
+        $ngdAiModel = $ngdAiSetting ? $ngdAiSetting->model : null;
+
         $categories = NgendevCategory::select('id', 'category_name')->orderBy('id', 'desc')->get();
 
         if ($categories->isEmpty()) {
@@ -171,6 +176,7 @@ class NgendevCategoryApiController extends Controller
                 [
                     'status' => false,
                     'message' => 'No categories found',
+                    'model' => $ngdAiModel,
                     'data' => [],
                 ],
                 404,
@@ -180,11 +186,10 @@ class NgendevCategoryApiController extends Controller
         $categories = $categories->map(function ($category) {
             $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
-            $images = NgendevImage::where('category_id', $category->id)->select('id', 'ai_prompt', 'ai_model', 'image_path')->orderBy('id', 'desc')->limit(5)->get();
+            $images = NgendevImage::where('category_id', $category->id)->select('id', 'ai_prompt', 'image_path')->orderBy('id', 'desc')->limit(5)->get();
 
             $images->transform(function ($image) use ($encodedCategory) {
                 $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
-                $image->ai_model = $image->ai_model ?? 'Ngendev Image';
                 unset($image->image_path);
                 return $image;
             });
@@ -204,13 +209,12 @@ class NgendevCategoryApiController extends Controller
             $categories->prepend($trending);
         }
 
-        $latestImages = NgendevImage::select('id', 'ai_prompt', 'ai_model', 'image_path', 'category_id')->inRandomOrder()->limit(5)->get();
+        $latestImages = NgendevImage::select('id', 'ai_prompt', 'image_path', 'category_id')->inRandomOrder()->limit(5)->get();
 
         $latestImages->transform(function ($image) {
             $category = NgendevCategory::find($image->category_id);
             $encodedCategory = $category ? str_replace(' ', '%20', $category->category_name) : 'Unknown';
             $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
-            $image->ai_model = $image->ai_model ?? 'Ngendev Image';
             unset($image->image_path, $image->category_id);
             return $image;
         });
@@ -226,6 +230,7 @@ class NgendevCategoryApiController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Categories fetched successfully',
+            'model' => $ngdAiModel,
             'data' => $categories->values(),
         ]);
     }
@@ -244,11 +249,16 @@ class NgendevCategoryApiController extends Controller
             ],
         );
 
+        // Get NGD AI setting
+        $ngdAiSetting = AiImageNgdSetting::first();
+        $ngdAiModel = $ngdAiSetting ? $ngdAiSetting->model : null;
+
         if ($validator->fails()) {
             return response()->json(
                 [
                     'status' => false,
                     'message' => $validator->errors()->first(),
+                    'model' => $ngdAiModel,
                     'data' => [],
                 ],
                 422,
@@ -256,13 +266,12 @@ class NgendevCategoryApiController extends Controller
         }
 
         if ($data['category_id'] == 0) {
-            $images = NgendevImage::select('id', 'ai_prompt', 'ai_model', 'image_path', 'category_id')->inRandomOrder()->limit(10)->get();
+            $images = NgendevImage::select('id', 'ai_prompt', 'image_path', 'category_id')->inRandomOrder()->limit(10)->get();
 
             $images->transform(function ($image) {
                 $category = NgendevCategory::find($image->category_id);
                 $encodedCategory = $category ? str_replace(' ', '%20', $category->category_name) : 'Unknown';
                 $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
-                $image->ai_model = $image->ai_model ?? 'Ngendev Image';
                 unset($image->image_path, $image->category_id);
                 return $image;
             });
@@ -270,6 +279,7 @@ class NgendevCategoryApiController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Latest images fetched successfully',
+                'model' => $ngdAiModel,
                 'data' => $images,
             ]);
         }
@@ -280,6 +290,7 @@ class NgendevCategoryApiController extends Controller
                 [
                     'status' => false,
                     'message' => 'Category not found',
+                    'model' => $ngdAiModel,
                     'data' => [],
                 ],
                 404,
@@ -288,13 +299,14 @@ class NgendevCategoryApiController extends Controller
 
         $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
-        $images = NgendevImage::where('category_id', $data['category_id'])->select('id', 'image_path', 'ai_prompt', 'ai_model')->orderBy('id', 'desc')->get();
+        $images = NgendevImage::where('category_id', $data['category_id'])->select('id', 'image_path', 'ai_prompt')->orderBy('id', 'desc')->get();
 
         if ($images->isEmpty()) {
             return response()->json(
                 [
                     'status' => false,
                     'message' => 'No images found for this category',
+                    'model' => $ngdAiModel,
                     'data' => [],
                 ],
                 404,
@@ -303,7 +315,6 @@ class NgendevCategoryApiController extends Controller
 
         $images->transform(function ($image) use ($encodedCategory) {
             $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
-            $image->ai_model = $image->ai_model ?? 'Ngendev Image';
             unset($image->image_path);
             return $image;
         });
@@ -311,6 +322,7 @@ class NgendevCategoryApiController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Images fetched successfully',
+            'model' => $ngdAiModel,
             'data' => $images,
         ]);
     }
