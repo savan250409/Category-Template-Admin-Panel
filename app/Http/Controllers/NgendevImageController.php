@@ -48,9 +48,9 @@ class NgendevImageController extends Controller
     {
         $request->validate([
             'category_id' => 'required|exists:ngendev_categories,id',
-            'ai_prompt' => 'required|string|max:1000',
+            'ai_prompt' => 'required|string|max:10000',
             'ai_model' => 'nullable|string|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
         ]);
 
         $imageName = null;
@@ -86,7 +86,7 @@ class NgendevImageController extends Controller
             'category_id' => 'required|exists:ngendev_categories,id',
             'ai_prompt' => 'required|string|max:1000',
             'ai_model' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
         ]);
 
         $image = NgendevImage::findOrFail($id);

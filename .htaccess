@@ -1,12 +1,3 @@
-# Increase PHP upload limits
-php_value upload_max_filesize 100M
-php_value post_max_size 100M
-php_value max_file_uploads 1000
-php_value max_input_vars 10000
-php_value memory_limit 512M
-php_value max_execution_time 300
-php_value max_input_time 300
-
 # Alternative method for servers that don't support php_value
 <IfModule mod_php.c>
     php_value upload_max_filesize 100M

@@ -34,7 +34,7 @@ class NgendevCategoryController extends Controller
     {
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name',
-            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
         $categoryFolder = $request->category_name;
@@ -79,7 +79,7 @@ class NgendevCategoryController extends Controller
 
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name,' . $id,
-            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
         $oldName = $category->category_name;

@@ -165,7 +165,6 @@
             </div>
         @endif
 
-        {{-- Form --}}
         <div class="form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 id="formTitle"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image</h4>
@@ -203,7 +202,7 @@
                         <label for="image" class="form-label">Image</label>
                         <input type="file" class="form-control" id="image" name="image" accept="image/*"
                             onchange="previewImage(this)">
-                        <div class="form-text">Upload image (only for new entries)</div>
+                        <div class="form-text">Upload image (max 4 MB, only for new entries)</div>
                         <div id="imagePreview" class="mt-2 d-none">
                             <img id="previewImg" src="#" alt="Preview" class="img-thumbnail">
                         </div>
@@ -347,19 +346,28 @@
         let searchTimeout = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Image preview function
             window.previewImage = function(input) {
                 if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    const maxSize = 4 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Too Large',
+                            text: 'The selected image exceeds 4 MB. Please choose a smaller file.'
+                        });
+                        input.value = '';
+                        return;
+                    }
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         document.getElementById('previewImg').src = e.target.result;
                         document.getElementById('imagePreview').classList.remove('d-none');
                     };
-                    reader.readAsDataURL(input.files[0]);
+                    reader.readAsDataURL(file);
                 }
             };
 
-            // Search functionality
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
@@ -370,13 +378,11 @@
                 });
             }
 
-            // Clear search
             document.getElementById('clearSearch').addEventListener('click', function() {
                 searchInput.value = '';
                 loadImages(1, '');
             });
 
-            // Enter key search
             searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     clearTimeout(searchTimeout);
@@ -399,7 +405,6 @@
                 success: function(res) {
                     $('#imagesTableContainer').html(res.table + res.pagination);
                     $('#totalCount').text(res.total);
-
                     $('.ajax-pagination').off('click').on('click', function(e) {
                         e.preventDefault();
                         const url = new URL($(this).attr('href'));
@@ -434,10 +439,8 @@
             document.getElementById('ai_prompt').value = prompt;
 
             if (imagePath) {
-                const categoryName = button.closest('tr').querySelector('td:first-child strong')
-                    .textContent.trim();
-                const imgUrl = "{{ asset('upload/ngendev/images') }}/" + categoryName +
-                    '/category_image/' + imagePath;
+                const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
+                const imgUrl = "{{ asset('upload/ngendev/images') }}/" + categoryName + '/category_image/' + imagePath;
                 document.getElementById('previewImg').src = imgUrl;
                 document.getElementById('imagePreview').classList.remove('d-none');
             } else {
@@ -482,10 +485,8 @@
             document.getElementById('imagePreview').classList.add('d-none');
         }
 
-        // Form submission with AJAX
         document.getElementById('ngendevImageForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
             const formData = new FormData(this);
             const url = this.action;
             const method = document.getElementById('formMethod').value;
@@ -501,19 +502,14 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 success: function(response) {
-                    // Reload the table
                     loadImages(1, searchTerm);
-
-                    // Reset form
                     resetForm();
-
-                    // Show success message
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
                         text: method === 'POST' ? 'Image added successfully!' :
                             'Image updated successfully!',
-                        timer: 2000,
+                        timer: 20000,
                         showConfirmButton: false
                     });
                 },
