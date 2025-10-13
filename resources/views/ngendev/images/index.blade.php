@@ -152,7 +152,10 @@
                 <h1 class="page-title"><i class="bi bi-robot me-2"></i>Ngendev Images Management</h1>
                 <p class="page-subtitle">Manage all Ngendev images in the system</p>
             </div>
-            <div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
+                    <i class="bi bi-arrow-up-down me-2"></i>Indexing
+                </button>
                 <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span
                         id="totalCount">{{ $images->total() }}</span> Images</span>
             </div>
@@ -338,9 +341,58 @@
         </div>
     </div>
 
+    <!-- Indexing Modal -->
+    <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="indexingModalLabel">
+                        <i class="bi bi-arrow-up-down me-2"></i>Image Indexing
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="categorySelect" class="form-label">Select Category</label>
+                                <select class="form-select" id="categorySelect">
+                                    <option value="">Choose a category...</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->category_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Drag and drop images to reorder them. The new order will be saved automatically.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="imagesContainer" class="row" style="min-height: 200px;">
+                        <div class="col-12 text-center text-muted py-5">
+                            <i class="bi bi-image fs-1"></i>
+                            <p class="mt-2">Select a category to view and reorder images</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveOrderBtn" style="display: none;">
+                        <i class="bi bi-save me-2"></i>Save Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
         let searchTimeout = null;
@@ -523,5 +575,189 @@
                 }
             });
         });
+
+        // Indexing Modal Functionality
+        let sortableInstance = null;
+        let currentCategoryId = null;
+
+        document.getElementById('categorySelect').addEventListener('change', function() {
+            const categoryId = this.value;
+            if (categoryId) {
+                loadCategoryImages(categoryId);
+                currentCategoryId = categoryId;
+            } else {
+                document.getElementById('imagesContainer').innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <i class="bi bi-image fs-1"></i>
+                        <p class="mt-2">Select a category to view and reorder images</p>
+                    </div>
+                `;
+                document.getElementById('saveOrderBtn').style.display = 'none';
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                    sortableInstance = null;
+                }
+            }
+        });
+
+        function loadCategoryImages(categoryId) {
+            $.ajax({
+                url: "{{ route('ngendev.images.indexing') }}",
+                type: 'GET',
+                data: { category_id: categoryId },
+                success: function(response) {
+                    if (response.images && response.images.length > 0) {
+                        displayImages(response.images);
+                        initializeSortable();
+                        document.getElementById('saveOrderBtn').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('imagesContainer').innerHTML = `
+                            <div class="col-12 text-center text-muted py-5">
+                                <i class="bi bi-image fs-1"></i>
+                                <p class="mt-2">No images found for this category</p>
+                            </div>
+                        `;
+                        document.getElementById('saveOrderBtn').style.display = 'none';
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error loading images:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Failed to load images for this category.'
+                    });
+                }
+            });
+        }
+
+        function displayImages(images) {
+            const container = document.getElementById('imagesContainer');
+            container.innerHTML = '';
+
+            images.forEach((image, index) => {
+                const imageHtml = `
+                    <div class="col-md-3 mb-3" data-image-id="${image.id}">
+                        <div class="card sortable-item" style="cursor: move;">
+                            <div class="card-body p-2">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">${index + 1}</span>
+                                    <small class="text-muted">ID: ${image.id}</small>
+                                </div>
+                                ${image.image_url ?
+                                    `<img src="${image.image_url}"
+                                         class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
+                                         alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                         style="height: 120px; display: none;">
+                                        <i class="bi bi-image text-muted fs-4"></i>
+                                    </div>` :
+                                    `<div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                         style="height: 120px;">
+                                        <i class="bi bi-image text-muted fs-4"></i>
+                                     </div>`
+                                }
+                                <div class="mt-2">
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                        ${image.ai_prompt ? image.ai_prompt.substring(0, 50) + '...' : 'No prompt'}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += imageHtml;
+            });
+        }
+
+        function initializeSortable() {
+            if (sortableInstance) {
+                sortableInstance.destroy();
+            }
+
+            const container = document.getElementById('imagesContainer');
+            sortableInstance = new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag',
+                onEnd: function(evt) {
+                    // Update order numbers
+                    updateOrderNumbers();
+                }
+            });
+        }
+
+        function updateOrderNumbers() {
+            const items = document.querySelectorAll('#imagesContainer .col-md-3');
+            items.forEach((item, index) => {
+                const badge = item.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = index + 1;
+                }
+            });
+        }
+
+        document.getElementById('saveOrderBtn').addEventListener('click', function() {
+            if (!currentCategoryId) return;
+
+            const items = document.querySelectorAll('#imagesContainer .col-md-3');
+            const orderData = [];
+
+            items.forEach((item, index) => {
+                const imageId = item.getAttribute('data-image-id');
+                orderData.push({
+                    id: imageId,
+                    sort_order: index + 1
+                });
+            });
+
+            $.ajax({
+                url: "{{ route('ngendev.images.updateOrder') }}",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    category_id: currentCategoryId,
+                    order: orderData
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Image order updated successfully!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    // Reload the main table
+                    loadImages(1, document.getElementById('searchInput').value);
+                },
+                error: function(xhr) {
+                    console.error('Error saving order:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Failed to save image order.'
+                    });
+                }
+            });
+        });
+
+        // Add CSS for sortable
+        const style = document.createElement('style');
+        style.textContent = `
+            .sortable-ghost {
+                opacity: 0.4;
+            }
+            .sortable-chosen {
+                transform: scale(1.05);
+            }
+            .sortable-drag {
+                transform: rotate(5deg);
+            }
+            .sortable-item:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 @endsection

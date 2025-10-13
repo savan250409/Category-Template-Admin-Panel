@@ -16,7 +16,7 @@ class NgendevImageController extends Controller
     public function index(Request $request)
     {
         $categories = NgendevCategory::all();
-        $query = NgendevImage::with('category')->latest();
+        $query = NgendevImage::with('category')->orderBy('sort_order', 'asc')->orderBy('id', 'desc');
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -136,5 +136,96 @@ class NgendevImageController extends Controller
         $image->delete();
 
         return redirect()->route('ngendev.images.index')->with('success', 'Selected image deleted successfully!');
+    }
+
+    public function indexing(Request $request)
+    {
+        $categoryId = $request->get('category_id');
+
+        if (!$categoryId) {
+            return response()->json(['images' => []]);
+        }
+
+        $images = NgendevImage::with('category')->where('category_id', $categoryId)->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+
+        // If no images have sort_order set, initialize them
+        if ($images->count() > 0 && $images->where('sort_order', 0)->count() > 0) {
+            foreach ($images as $index => $image) {
+                if ($image->sort_order == 0) {
+                    $image->update(['sort_order' => $index + 1]);
+                }
+            }
+            // Refresh the collection
+            $images = NgendevImage::with('category')->where('category_id', $categoryId)->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        }
+
+        // Transform the images to include proper image URLs
+        $transformedImages = $images->map(function ($image) {
+            $imageData = $image->toArray();
+
+            // Build the correct image URL
+            if ($image->image_path && $image->category) {
+                $imageData['image_url'] = asset('upload/ngendev/images/' . $image->category->category_name . '/category_image/' . $image->image_path);
+            } else {
+                $imageData['image_url'] = null;
+            }
+
+            return $imageData;
+        });
+
+        return response()->json(['images' => $transformedImages]);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_categories,id',
+            'order' => 'required|array',
+            'order.*.id' => 'required|exists:ngendev_images,id',
+            'order.*.sort_order' => 'required|integer|min:1',
+        ]);
+
+        $categoryId = $request->category_id;
+        $orderData = $request->order;
+
+        foreach ($orderData as $item) {
+            NgendevImage::where('id', $item['id'])
+                ->where('category_id', $categoryId)
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Image order updated successfully!']);
+    }
+    public function addSortOrderColumn()
+    {
+        $tableName = 'ngendev_images';
+        $columnName = 'sort_order';
+
+        // Check if column exists
+        $columnExists = Schema::hasColumn($tableName, $columnName);
+
+        if (!$columnExists) {
+            // Add the column dynamically
+            DB::statement("ALTER TABLE {$tableName} ADD COLUMN {$columnName} INT DEFAULT 0 AFTER ai_model");
+        }
+
+        // Fill sort_order per category
+        $categories = \App\Models\NgendevCategory::all();
+
+        foreach ($categories as $category) {
+            $images = \App\Models\NgendevImage::where('category_id', $category->id)->orderBy('id', 'asc')->get();
+
+            $i = 1;
+            foreach ($images as $image) {
+                $image->sort_order = $i;
+                $image->save();
+                $i++;
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'sort_order column added and populated successfully for all images.',
+        ]);
     }
 }

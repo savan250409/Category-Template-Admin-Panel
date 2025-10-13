@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Models\AiImageCategory;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,11 +16,12 @@ class CategoryController extends Controller
         $babyAiSetting = AiImageBabyPhotoSetting::first();
         $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
 
-        $categories = Subcategory::select('category_name')->distinct()->pluck('category_name');
+        // Get only active categories from AiImageCategory table
+        $activeCategories = AiImageCategory::where('status', 1)->pluck('name');
 
         $response = [];
 
-        foreach ($categories as $category) {
+        foreach ($activeCategories as $category) {
             $subcategories = Subcategory::where('category_name', $category)
                 ->orderBy('id', 'desc')
                 ->get(['id', 'title', 'category_name', 'category_thumbnail_image']);
@@ -72,10 +74,26 @@ class CategoryController extends Controller
         $mainCategory = $request->main_category;
         $subCategoryName = $request->category_name;
 
+        // Check if the main category is active
+        $category = AiImageCategory::where('name', $mainCategory)->first();
+
+        if (!$category || $category->status != 1) {
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'This category is not active',
+                    'main_category' => $mainCategory,
+                    'subcategories' => [],
+                ],
+                403,
+            ); // 403 Forbidden
+        }
+
         // Get Baby AI setting
         $babyAiSetting = AiImageBabyPhotoSetting::first();
         $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
 
+        // Get subcategory
         $subcategories = Subcategory::where('category_name', $mainCategory)
             ->where('title', $subCategoryName)
             ->get(['id', 'title', 'description', 'images', 'category_name']);
@@ -94,6 +112,7 @@ class CategoryController extends Controller
             );
         }
 
+        // Format images
         $subcategories->transform(function ($subcat) {
             $images = json_decode($subcat->images, true) ?? [];
             $formattedImages = [];

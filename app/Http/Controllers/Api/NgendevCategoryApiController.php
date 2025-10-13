@@ -259,8 +259,9 @@ class NgendevCategoryApiController extends Controller
             $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
             $images = NgendevImage::where('category_id', $category->id)
-                ->select('id', 'ai_prompt', 'image_path')
-                ->orderBy('id', 'desc') // latest first
+                ->select('id', 'ai_prompt', 'image_path') // removed sort_order
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'asc')
                 ->get();
 
             $images->transform(function ($image) use ($encodedCategory) {
@@ -292,7 +293,7 @@ class NgendevCategoryApiController extends Controller
         // 🔥 Add Trending's last record at the end of Latest category
         if ($trending && $trending['items']->isNotEmpty()) {
             $trendingLastRecord = $trending['items']->first(); // latest record
-            $latestImages->push($trendingLastRecord); // add to end
+            $latestImages->push($trendingLastRecord);
         }
 
         $latestCategory = [
@@ -345,15 +346,17 @@ class NgendevCategoryApiController extends Controller
         if ($data['category_id'] == 0) {
             // Fetch all categories
             $categories = NgendevCategory::orderBy('id', 'asc')->get();
-
-            // Separate trending category
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
             $categories = $categories->reject(fn($cat) => $cat->category_name === 'Trending');
 
-            // Fetch latest image per category (excluding Trending)
+            // Latest images
             $latestImages = collect();
             foreach ($categories as $category) {
-                $latestImage = NgendevImage::where('category_id', $category->id)->select('id', 'ai_prompt', 'image_path', 'category_id')->orderBy('id', 'desc')->first();
+                $latestImage = NgendevImage::where('category_id', $category->id)
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id') // removed sort_order
+                    ->orderBy('sort_order', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->first();
 
                 if ($latestImage) {
                     $encodedCategory = str_replace(' ', '%20', $category->category_name);
@@ -365,9 +368,13 @@ class NgendevCategoryApiController extends Controller
                 }
             }
 
-            // Add Trending category last (static)
+            // Add Trending last
             if ($trendingCategory) {
-                $trendingImage = NgendevImage::where('category_id', $trendingCategory->id)->select('id', 'ai_prompt', 'image_path', 'category_id')->orderBy('id', 'desc')->first();
+                $trendingImage = NgendevImage::where('category_id', $trendingCategory->id)
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id') // removed sort_order
+                    ->orderBy('sort_order', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->first();
 
                 if ($trendingImage) {
                     $encodedTrending = str_replace(' ', '%20', $trendingCategory->category_name);
@@ -387,7 +394,7 @@ class NgendevCategoryApiController extends Controller
             ]);
         }
 
-        // When category_id != 0
+        // category_id != 0
         $category = NgendevCategory::find($data['category_id']);
         if (!$category) {
             return response()->json(
@@ -403,7 +410,11 @@ class NgendevCategoryApiController extends Controller
 
         $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
-        $images = NgendevImage::where('category_id', $data['category_id'])->select('id', 'image_path', 'ai_prompt')->orderBy('id', 'desc')->get();
+        $images = NgendevImage::where('category_id', $data['category_id'])
+            ->select('id', 'image_path', 'ai_prompt') // removed sort_order
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
 
         if ($images->isEmpty()) {
             return response()->json(

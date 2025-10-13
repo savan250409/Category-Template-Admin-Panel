@@ -9,6 +9,7 @@ use App\Http\Controllers\NgendevImageController;
 use App\Http\Controllers\NgendevCategoryController;
 use App\Http\Controllers\AiImageBabyPhotoSettingController;
 use App\Http\Controllers\AiImageNgdSettingController;
+use App\Http\Controllers\AiImageCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +79,8 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::get('/images/{id}/edit', [NgendevImageController::class, 'edit'])->name('images.edit');
             Route::put('/images/{id}', [NgendevImageController::class, 'update'])->name('images.update');
             Route::delete('/images/{id}', [NgendevImageController::class, 'destroy'])->name('images.destroy');
+            Route::get('/images-indexing', [NgendevImageController::class, 'indexing'])->name('images.indexing');
+            Route::post('/images-update-order', [NgendevImageController::class, 'updateOrder'])->name('images.updateOrder');
         });
 
     // Ngendev Categories Routes
@@ -121,4 +124,5 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::put('/{id}', [AiImageNgdSettingController::class, 'update'])->name('update');
             Route::delete('/{id}', [AiImageNgdSettingController::class, 'destroy'])->name('destroy');
         });
+    Route::post('/ai-image-categories/toggle-status', [AiImageCategoryController::class, 'toggleStatus'])->name('ai-image-categories.toggle-status');
 });

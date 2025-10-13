@@ -11,7 +11,7 @@ class NgendevImage extends Model
 
     protected $table = 'ngendev_images';
 
-    protected $fillable = ['category_id', 'image_path', 'ai_prompt', 'ai_model'];
+    protected $fillable = ['category_id', 'image_path', 'ai_prompt', 'ai_model', 'sort_order'];
 
     public function category()
     {

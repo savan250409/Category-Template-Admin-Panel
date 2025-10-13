@@ -83,20 +83,27 @@
                 AI Image Module
             </li>
 
-            {{-- AI Image Baby Photo (Static Categories) --}}
             @php
+                use App\Models\AiImageCategory;
+
                 $currentRoute = request()->route()->getName();
                 $currentSubId = request()->route('id');
                 $isSubRoute = str_starts_with($currentRoute ?? '', 'subcategories.');
 
-                // Check if any static category route is active
+                // Fetch categories from DB
+                $categories = AiImageCategory::orderBy('id')->get();
+                $allSubs = $allSubs ?? [];
+
+                // Initialize $isBabyPhotoActive
                 $isBabyPhotoActive = false;
                 foreach ($categories as $cat) {
                     $subActive =
-                        $isSubRoute && $currentRoute === 'subcategories.form' && request('category_name') === $cat;
+                        $isSubRoute &&
+                        $currentRoute === 'subcategories.form' &&
+                        request('category_name') === $cat->name;
                     $activeSub =
                         $isSubRoute && $currentRoute === 'subcategories.show'
-                            ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                            ? collect($allSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
                             : null;
                     if ($subActive || $activeSub) {
                         $isBabyPhotoActive = true;
@@ -104,14 +111,13 @@
                     }
                 }
 
-                // Check if baby photo setting is active
                 $isBabyPhotoSettingActive = request()->routeIs('ai-image-baby-photo-setting.index');
                 $isBabyPhotoActive = $isBabyPhotoActive || $isBabyPhotoSettingActive;
             @endphp
 
             <li class="nav-item mb-1">
                 <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                {{ $isBabyPhotoActive ? 'bg-secondary' : '' }}"
+        {{ $isBabyPhotoActive ? 'bg-secondary' : '' }}"
                     href="javascript:void(0);" data-target="#babyPhotoCollapse" style="transition: all 0.2s;">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-image-fill me-2 text-info"></i>
@@ -120,11 +126,10 @@
                     <i class="bi bi-chevron-down small chevron-icon"></i>
                 </a>
 
-                {{-- Static Categories Submenu --}}
                 <ul id="babyPhotoCollapse" class="submenu-list nav flex-column ps-4 mt-2"
                     style="display: {{ $isBabyPhotoActive ? 'block' : 'none' }};">
 
-                    {{-- AI Image Baby Photo Setting --}}
+                    {{-- Baby Photo Setting --}}
                     <li class="nav-item mb-1">
                         <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('ai-image-baby-photo-setting.index') ? 'active bg-primary text-white' : 'text-light' }}"
                             href="{{ route('ai-image-baby-photo-setting.index') }}" style="transition: all 0.2s;">
@@ -135,39 +140,38 @@
 
                     @foreach ($categories as $cat)
                         @php
-                            $catId = 'cat-' . Str::slug($cat, '-');
+                            $catId = 'cat-' . Str::slug($cat->name, '-');
                             $subActive =
                                 $isSubRoute &&
                                 $currentRoute === 'subcategories.form' &&
-                                request('category_name') === $cat;
+                                request('category_name') === $cat->name;
                             $activeSub =
                                 $isSubRoute && $currentRoute === 'subcategories.show'
-                                    ? collect($allSubs[$cat] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                                    ? collect($allSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
                                     : null;
                             $isOpen = $subActive || $activeSub;
                         @endphp
 
                         <li class="nav-item mb-1">
-                            {{-- Category --}}
                             <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                                {{ $isOpen ? 'bg-secondary' : '' }}"
+                    {{ $isOpen ? 'bg-secondary' : '' }}"
                                 href="javascript:void(0);" data-target="#{{ $catId }}"
                                 style="transition: all 0.2s;">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-folder-fill me-2 text-warning"></i>
-                                    <span class="fw-semibold">{{ $cat }}</span>
+                                    <span class="fw-semibold">{{ $cat->name }}</span>
                                 </div>
                                 <i class="bi bi-chevron-down small chevron-icon"></i>
                             </a>
 
-                            {{-- Subcategories --}}
                             <ul id="{{ $catId }}" class="submenu-list nav flex-column ps-4 mt-2"
-                                style="display: {{ $isOpen ? 'block' : 'none' }};">
+                                style="display: {{ $isOpen ? 'block' : 'none' }}">
+
                                 {{-- Add Subcategory --}}
                                 <li class="mb-1">
-                                    <a href="{{ route('subcategories.form', ['category_name' => $cat]) }}"
+                                    <a href="{{ route('subcategories.form', ['category_name' => $cat->name]) }}"
                                         class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                            {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                                {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
                                         style="transition: all 0.2s;">
                                         <i class="bi bi-plus-circle me-2"></i>
                                         <span>Add Subcategory</span>
@@ -175,24 +179,62 @@
                                 </li>
 
                                 {{-- Existing Subcategories --}}
-                                @foreach ($allSubs[$cat] ?? [] as $sub)
+                                @foreach ($allSubs[$cat->name] ?? [] as $sub)
                                     <li class="mb-1">
                                         <a href="{{ route('subcategories.show', $sub->id) }}"
                                             class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                                {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
-                                                    ? 'active bg-primary text-white'
-                                                    : 'text-light' }}"
-                                            style="transition: all 0.2s;">
+                                    {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
+                                        ? 'active bg-primary text-white'
+                                        : 'text-light' }}">
                                             <i class="bi bi-circle me-2"></i>
                                             <span>{{ $sub->title }}</span>
                                         </a>
                                     </li>
                                 @endforeach
+
+                                {{-- Toggle button --}}
+                                <li class="mb-1 mt-1 d-flex align-items-center px-2 py-1 rounded-2">
+                                    <span class="text-light me-2">{{ $cat->status ? 'Published' : 'Draft' }}</span>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle-status" type="checkbox"
+                                            data-name="{{ $cat->name }}" {{ $cat->status ? 'checked' : '' }}>
+                                    </div>
+                                </li>
                             </ul>
                         </li>
                     @endforeach
                 </ul>
             </li>
+
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script>
+                $(document).on('change', '.toggle-status', function() {
+                    let categoryName = $(this).data('name');
+                    let status = $(this).is(':checked') ? 1 : 0;
+
+                    $.ajax({
+                        url: "{{ route('ai-image-categories.toggle-status') }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            name: categoryName,
+                            status: status
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                // Update label text next to toggle
+                                let label = $('input[data-name="' + categoryName + '"]').closest('li').find(
+                                    'span').first();
+                                label.text(res.status ? 'Published' : 'Draft');
+                            }
+                        },
+                        error: function(err) {
+                            console.log('Error updating status', err);
+                        }
+                    });
+                });
+            </script>
+
 
             {{-- AI Image NGD (NGD Module) --}}
             @php
