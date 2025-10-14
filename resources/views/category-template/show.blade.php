@@ -38,20 +38,33 @@
                             </div>
                         </div>
 
-                        @if ($imageUrls && count($imageUrls))
+                        @if ($subcategory->images && count(json_decode($subcategory->images, true)) > 0)
+                            @php $imagesArray = json_decode($subcategory->images, true); @endphp
                             <div class="mb-4">
                                 <h6 class="text-uppercase text-muted mb-2">Images</h6>
                                 <div class="row">
-                                    @foreach ($imageUrls as $img)
+                                    @foreach ($imagesArray as $index => $img)
                                         <div class="col-md-4 mb-3">
-                                            <div class="card shadow-sm">
-                                                <img src="{{ $img['url'] }}" class="card-img-top"
-                                                    style="height:200px; object-fit:cover;" alt="Image">
-                                                @if (!empty($img['prompt']))
-                                                    <div class="card-body">
-                                                        <p class="mb-0 text-muted">{{ $img['prompt'] }}</p>
-                                                    </div>
-                                                @endif
+                                            <div class="card shadow-sm position-relative image-card">
+                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                    class="card-img-top" style="height:200px; object-fit:cover;"
+                                                    alt="Image">
+
+                                                <button
+                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
+                                                    data-url="{{ route('subcategories.deleteImage', ['subcategoryId' => $subcategory->id, 'file' => $img['file']]) }}">
+                                                    <i class="bi bi-x text-white"></i>
+                                                </button>
+
+                                                <div class="card-body p-2">
+                                                    {{-- @if (!empty($img['prompt']))
+                                                        <p class="mb-1 text-muted">{{ $img['prompt'] }}</p>
+                                                    @endif --}}
+                                                    @if (!empty($img['image_title']))
+                                                        <p class="mb-0 text-primary fw-semibold">{{ $img['image_title'] }}
+                                                        </p>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -73,7 +86,7 @@
                                 method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-outline-secondary" onclick="confirmDelete()">
+                                <button type="button" class="btn btn-outline-secondary" id="deleteSubcategoryBtn">
                                     <i class="bi bi-trash"></i> Delete Subcategory
                                 </button>
                             </form>
@@ -89,7 +102,6 @@
         </div>
     </div>
 
-    {{-- ======================= Edit Modal ======================= --}}
     <div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -102,14 +114,12 @@
                     enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        {{-- Category Name --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Category Name</label>
                             <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
                             <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">
                         </div>
 
-                        {{-- Title --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Subcategory Title <span
                                     class="text-danger">*</span></label>
@@ -117,13 +127,11 @@
                                 required>
                         </div>
 
-                        {{-- Description --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea name="description" class="form-control" rows="4">{{ $subcategory->description }}</textarea>
                         </div>
 
-                        {{-- Thumbnail --}}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Thumbnail Image</label>
                             @if ($subcategory->category_thumbnail_image)
@@ -140,53 +148,6 @@
                             @endif
                             <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
                         </div>
-
-                        {{-- Existing Images --}}
-                        @if ($subcategory->images && count(json_decode($subcategory->images, true)) > 0)
-                            @php $imagesArray = json_decode($subcategory->images, true); @endphp
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Edit Existing Images & Prompts</label>
-                                <div class="row">
-                                    @foreach ($imagesArray as $index => $img)
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card p-2">
-                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                    class="img-fluid rounded mb-2"
-                                                    style="height:120px; object-fit:cover;">
-
-                                                {{-- Prompt Edit --}}
-                                                <label class="small text-muted">Prompt</label>
-                                                <input type="text" name="existing_prompts[{{ $img['file'] }}]"
-                                                    value="{{ $img['prompt'] ?? '' }}" class="form-control mb-2"
-                                                    placeholder="Enter prompt">
-
-                                                {{-- Replace Image --}}
-                                                <label class="small text-muted">Replace Image</label>
-                                                <input type="file" name="replace_images[{{ $img['file'] }}]"
-                                                    accept="image/*" class="form-control mb-2">
-
-                                                {{-- Remove Checkbox --}}
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        name="remove_images[]" value="{{ $img['file'] }}"
-                                                        id="removeImage{{ $index }}">
-                                                    <label class="form-check-label"
-                                                        for="removeImage{{ $index }}">Remove this image</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        {{-- Add New Images --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Add New Images & Prompts</label>
-                            <div id="newImagesWrapper"></div>
-                            <button type="button" id="addImageBtn" class="btn btn-outline-primary btn-sm mt-2">+ Add
-                                Image</button>
-                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -198,41 +159,84 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const wrapper = document.getElementById('newImagesWrapper');
-            const addBtn = document.getElementById('addImageBtn');
-
-            addBtn.addEventListener('click', function() {
-                const div = document.createElement('div');
-                div.classList.add('d-flex', 'gap-2', 'align-items-start', 'mb-2');
-                div.innerHTML = `
-                    <div class="flex-grow-1">
-                        <label class="small text-muted">Image</label>
-                        <input type="file" name="images[]" accept="image/*" class="form-control" required>
-                    </div>
-                    <div class="flex-grow-1">
-                        <label class="small text-muted">Prompt</label>
-                        <input type="text" name="prompts[]" placeholder="Enter prompt" class="form-control">
-                    </div>
-                    <div class="d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm remove-new">X</button>
-                    </div>
-                `;
-                wrapper.appendChild(div);
-            });
-
-            wrapper.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-new')) {
-                    e.target.closest('div').remove();
+        document.getElementById('deleteSubcategoryBtn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will delete the subcategory and all its images!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm').submit();
                 }
             });
         });
 
-        function confirmDelete() {
-            if (confirm('Are you sure you want to delete this subcategory? This action cannot be undone.')) {
-                document.getElementById('deleteForm').submit();
-            }
-        }
+        document.querySelectorAll('.delete-image-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This will delete this image!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
     </script>
+
+    <style>
+        /* Hover effect for image cards */
+        .image-card {
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Delete button styles */
+        .delete-image-btn {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            background-color: #dc3545 !important;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .image-card:hover .delete-image-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .delete-image-btn:hover {
+            background-color: #c82333 !important;
+            transform: scale(1.1);
+        }
+
+        .delete-image-btn i {
+            font-size: 14px;
+            line-height: 1;
+        }
+    </style>
+
 @endsection

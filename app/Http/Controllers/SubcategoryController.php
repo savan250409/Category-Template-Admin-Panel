@@ -222,4 +222,31 @@ class SubcategoryController extends Controller
 
         return redirect()->route('subcategories.show', $subcategory->id)->with('success', 'Subcategory images & details saved successfully!');
     }
+
+    public function deleteImage($subcategoryId, $file)
+    {
+        $subcategory = Subcategory::findOrFail($subcategoryId);
+        $images = json_decode($subcategory->images, true) ?? [];
+
+        $found = false;
+        foreach ($images as $key => $img) {
+            if ($img['file'] === $file) {
+                $imagePath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $file);
+                if (File::exists($imagePath)) {
+                    File::delete($imagePath);
+                }
+                unset($images[$key]);
+                $found = true;
+                break;
+            }
+        }
+
+        if ($found) {
+            $subcategory->images = json_encode(array_values($images));
+            $subcategory->save();
+            return redirect()->route('subcategories.show', $subcategory->id)->with('success', 'Image deleted successfully!');
+        }
+
+        return redirect()->route('subcategories.show', $subcategory->id)->with('error', 'Image not found!');
+    }
 }

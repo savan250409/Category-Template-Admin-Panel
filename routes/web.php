@@ -67,6 +67,7 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::post('save/{id?}', [SubcategoryController::class, 'save'])->name('save');
             Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
             Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
+             Route::get('image/delete/{subcategoryId}/{file}', [SubcategoryController::class, 'deleteImage'])->name('deleteImage');
         });
 
     // Ngendev Images Routes
