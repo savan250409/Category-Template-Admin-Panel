@@ -86,7 +86,7 @@ class CategoryController extends Controller
                     'subcategories' => [],
                 ],
                 403,
-            ); // 403 Forbidden
+            );
         }
 
         // Get Baby AI setting
@@ -112,7 +112,7 @@ class CategoryController extends Controller
             );
         }
 
-        // Format images
+        // Format images including image_title and name_change
         $subcategories->transform(function ($subcat) {
             $images = json_decode($subcat->images, true) ?? [];
             $formattedImages = [];
@@ -123,11 +123,15 @@ class CategoryController extends Controller
             foreach ($images as $img) {
                 $file = $img['file'] ?? null;
                 $prompt = $img['prompt'] ?? '';
+                $imageTitle = $img['image_title'] ?? '';
+                $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
                 if ($file) {
                     $formattedImages[] = [
                         'url' => "{$categoryName}/{$subcatTitle}/{$file}",
                         'prompt' => $prompt,
+                        'image_title' => $imageTitle,
+                        'name_change' => $nameChange,
                     ];
                 }
             }
