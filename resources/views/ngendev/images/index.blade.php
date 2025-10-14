@@ -144,6 +144,22 @@
             color: #858796;
             margin-bottom: 1.5rem;
         }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .sortable-chosen {
+            transform: scale(1.05);
+        }
+
+        .sortable-drag {
+            transform: rotate(5deg);
+        }
+
+        .sortable-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -544,6 +560,15 @@
             const method = document.getElementById('formMethod').value;
             const searchTerm = document.getElementById('searchInput').value;
 
+            Swal.fire({
+                title: method === 'POST' ? 'Adding Image...' : 'Updating Image...',
+                text: 'Please wait while we process your request',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -556,17 +581,19 @@
                 success: function(response) {
                     loadImages(1, searchTerm);
                     resetForm();
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
                         text: method === 'POST' ? 'Image added successfully!' :
                             'Image updated successfully!',
-                        timer: 20000,
+                        timer: 2000,
                         showConfirmButton: false
                     });
                 },
                 error: function(xhr) {
                     console.error('Error:', xhr.responseText);
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
@@ -576,7 +603,6 @@
             });
         });
 
-        // Indexing Modal Functionality
         let sortableInstance = null;
         let currentCategoryId = null;
 
@@ -601,10 +627,21 @@
         });
 
         function loadCategoryImages(categoryId) {
+            document.getElementById('imagesContainer').innerHTML = `
+                <div class="col-12 text-center text-muted py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading images...</p>
+                </div>
+            `;
+
             $.ajax({
                 url: "{{ route('ngendev.images.indexing') }}",
                 type: 'GET',
-                data: { category_id: categoryId },
+                data: {
+                    category_id: categoryId
+                },
                 success: function(response) {
                     if (response.images && response.images.length > 0) {
                         displayImages(response.images);
@@ -646,16 +683,16 @@
                                 </div>
                                 ${image.image_url ?
                                     `<img src="${image.image_url}"
-                                         class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
-                                         alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                         style="height: 120px; display: none;">
-                                        <i class="bi bi-image text-muted fs-4"></i>
-                                    </div>` :
+                                             class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
+                                             alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                             style="height: 120px; display: none;">
+                                            <i class="bi bi-image text-muted fs-4"></i>
+                                        </div>` :
                                     `<div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                         style="height: 120px;">
-                                        <i class="bi bi-image text-muted fs-4"></i>
-                                     </div>`
+                                             style="height: 120px;">
+                                            <i class="bi bi-image text-muted fs-4"></i>
+                                         </div>`
                                 }
                                 <div class="mt-2">
                                     <small class="text-muted d-block" style="font-size: 0.75rem;">
@@ -682,7 +719,6 @@
                 chosenClass: 'sortable-chosen',
                 dragClass: 'sortable-drag',
                 onEnd: function(evt) {
-                    // Update order numbers
                     updateOrderNumbers();
                 }
             });
@@ -712,6 +748,15 @@
                 });
             });
 
+            Swal.fire({
+                title: 'Saving Order...',
+                text: 'Please wait while we update the image order',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 url: "{{ route('ngendev.images.updateOrder') }}",
                 type: 'POST',
@@ -728,7 +773,6 @@
                         timer: 2000,
                         showConfirmButton: false
                     });
-                    // Reload the main table
                     loadImages(1, document.getElementById('searchInput').value);
                 },
                 error: function(xhr) {
@@ -741,23 +785,5 @@
                 }
             });
         });
-
-        // Add CSS for sortable
-        const style = document.createElement('style');
-        style.textContent = `
-            .sortable-ghost {
-                opacity: 0.4;
-            }
-            .sortable-chosen {
-                transform: scale(1.05);
-            }
-            .sortable-drag {
-                transform: rotate(5deg);
-            }
-            .sortable-item:hover {
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 @endsection
