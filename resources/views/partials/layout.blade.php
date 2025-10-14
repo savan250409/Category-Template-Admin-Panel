@@ -88,24 +88,41 @@
 
                 $currentRoute = request()->route()->getName();
                 $currentSubId = request()->route('id');
-                $isSubRoute = str_starts_with($currentRoute ?? '', 'subcategories.');
+                $currentPath = request()->path();
 
-                // Fetch categories from DB
+                $isSubRoute =
+                    str_starts_with($currentRoute ?? '', 'subcategories.') ||
+                    str_contains($currentPath, 'subcategories/subcategory') ||
+                    str_contains($currentPath, 'subcategories/subcategories');
+
                 $categories = AiImageCategory::orderBy('id')->get();
                 $allSubs = $allSubs ?? [];
 
-                // Initialize $isBabyPhotoActive
                 $isBabyPhotoActive = false;
+
                 foreach ($categories as $cat) {
+                    $subs = $allSubs[$cat->name] ?? [];
+
+                    // Check if subcategory form is open
                     $subActive =
                         $isSubRoute &&
                         $currentRoute === 'subcategories.form' &&
                         request('category_name') === $cat->name;
+
+                    // Check if show page of this subcategory
                     $activeSub =
                         $isSubRoute && $currentRoute === 'subcategories.show'
-                            ? collect($allSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                            ? collect($subs)->first(fn($s) => $currentSubId == $s->id)
                             : null;
-                    if ($subActive || $activeSub) {
+
+                    // Check if add-details page of this subcategory
+                    $isSubcategoryRoute = str_contains($currentPath, "subcategories/subcategory/{$currentSubId}");
+                    $isSubcategoryDetailsRoute = str_contains(
+                        $currentPath,
+                        "subcategories/subcategories/{$currentSubId}/add-details",
+                    );
+
+                    if ($subActive || $activeSub || $isSubcategoryRoute || $isSubcategoryDetailsRoute) {
                         $isBabyPhotoActive = true;
                         break;
                     }
@@ -114,6 +131,7 @@
                 $isBabyPhotoSettingActive = request()->routeIs('ai-image-baby-photo-setting.index');
                 $isBabyPhotoActive = $isBabyPhotoActive || $isBabyPhotoSettingActive;
             @endphp
+
 
             <li class="nav-item mb-1">
                 <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light

@@ -38,8 +38,8 @@
                             </div>
                         </div>
 
-                        @if ($subcategory->images && count(json_decode($subcategory->images, true)) > 0)
-                            @php $imagesArray = json_decode($subcategory->images, true); @endphp
+                        @php $imagesArray = json_decode($subcategory->images, true) ?? []; @endphp
+                        @if (count($imagesArray) > 0)
                             <div class="mb-4">
                                 <h6 class="text-uppercase text-muted mb-2">Images</h6>
                                 <div class="row">
@@ -57,9 +57,6 @@
                                                 </button>
 
                                                 <div class="card-body p-2">
-                                                    {{-- @if (!empty($img['prompt']))
-                                                        <p class="mb-1 text-muted">{{ $img['prompt'] }}</p>
-                                                    @endif --}}
                                                     @if (!empty($img['image_title']))
                                                         <p class="mb-0 text-primary fw-semibold">{{ $img['image_title'] }}
                                                         </p>
@@ -110,7 +107,7 @@
                     <h5 class="modal-title">Edit Subcategory</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('subcategories.save', $subcategory->id) }}" method="POST"
+                <form action="{{ route('subcategories.saveDetails', $subcategory->id) }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
@@ -148,6 +145,50 @@
                             @endif
                             <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
                         </div>
+
+                        @if (count($imagesArray) > 0)
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Edit Existing Images</label>
+                                <div class="row">
+                                    @foreach ($imagesArray as $index => $img)
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card p-2">
+                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                    class="img-fluid rounded mb-2"
+                                                    style="height:120px; object-fit:cover;">
+
+                                                <label class="small text-muted">Prompt</label>
+                                                <input type="text" name="existing_prompts[{{ $img['file'] }}]"
+                                                    value="{{ $img['prompt'] ?? '' }}" class="form-control mb-2">
+
+                                                <label class="small text-muted">Image Title</label>
+                                                <input type="text" name="existing_image_title[{{ $img['file'] }}]"
+                                                    value="{{ $img['image_title'] ?? '' }}" class="form-control mb-2">
+
+                                                <div class="form-check form-switch mb-2">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="existing_name_change[{{ $img['file'] }}]" value="1"
+                                                        {{ !empty($img['name_change']) ? 'checked' : '' }}>
+                                                    <label class="form-check-label">Enable Name Change</label>
+                                                </div>
+
+                                                <label class="small text-muted">Replace Image</label>
+                                                <input type="file" name="replace_images[{{ $img['file'] }}]"
+                                                    accept="image/*" class="form-control mb-2">
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="remove_images[]" value="{{ $img['file'] }}"
+                                                        id="removeImage{{ $index }}">
+                                                    <label class="form-check-label"
+                                                        for="removeImage{{ $index }}">Remove this image</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="modal-footer">
@@ -198,7 +239,6 @@
     </script>
 
     <style>
-        /* Hover effect for image cards */
         .image-card {
             transition: all 0.3s ease;
         }
@@ -208,7 +248,6 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
-        /* Delete button styles */
         .delete-image-btn {
             opacity: 0;
             transform: scale(0.8);
