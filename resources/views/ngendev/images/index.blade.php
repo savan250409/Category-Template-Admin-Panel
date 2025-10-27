@@ -333,12 +333,50 @@
                                         </li>
                                     @endif
 
-                                    @foreach ($images->getUrlRange(1, $images->lastPage()) as $page => $url)
-                                        <li class="page-item {{ $page == $images->currentPage() ? 'active' : '' }}">
-                                            <a class="page-link ajax-pagination"
-                                                href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
-                                        </li>
-                                    @endforeach
+                                    @php
+                                        $currentPage = $images->currentPage();
+                                        $lastPage = $images->lastPage();
+                                    @endphp
+
+                                    @if ($lastPage <= 8)
+                                        @foreach ($images->getUrlRange(1, $lastPage) as $page => $url)
+                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
+                                                <a class="page-link ajax-pagination"
+                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
+                                            </li>
+                                        @endforeach
+                                    @else
+                                        @php
+                                            $start = max(1, $currentPage - 3);
+                                            $end = min($lastPage, $start + 7);
+                                            if ($end - $start < 7) {
+                                                $start = max(1, $end - 7);
+                                            }
+                                        @endphp
+
+                                        @if ($start > 1)
+                                            <li class="page-item">
+                                                <a class="page-link ajax-pagination"
+                                                    href="{{ $images->url(1) }}&search={{ request('search') }}">1</a>
+                                            </li>
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        @endif
+
+                                        @foreach ($images->getUrlRange($start, $end) as $page => $url)
+                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
+                                                <a class="page-link ajax-pagination"
+                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
+                                            </li>
+                                        @endforeach
+
+                                        @if ($end < $lastPage)
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                            <li class="page-item">
+                                                <a class="page-link ajax-pagination"
+                                                    href="{{ $images->url($lastPage) }}&search={{ request('search') }}">{{ $lastPage }}</a>
+                                            </li>
+                                        @endif
+                                    @endif
 
                                     @if ($images->hasMorePages())
                                         <li class="page-item">
@@ -355,9 +393,9 @@
                 @endif
             </div>
         </div>
+
     </div>
 
-    <!-- Indexing Modal -->
     <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -683,16 +721,16 @@
                                 </div>
                                 ${image.image_url ?
                                     `<img src="${image.image_url}"
-                                             class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
-                                             alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                             style="height: 120px; display: none;">
-                                            <i class="bi bi-image text-muted fs-4"></i>
-                                        </div>` :
+                                                 class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
+                                                 alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                                 style="height: 120px; display: none;">
+                                                <i class="bi bi-image text-muted fs-4"></i>
+                                            </div>` :
                                     `<div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                             style="height: 120px;">
-                                            <i class="bi bi-image text-muted fs-4"></i>
-                                         </div>`
+                                                 style="height: 120px;">
+                                                <i class="bi bi-image text-muted fs-4"></i>
+                                             </div>`
                                 }
                                 <div class="mt-2">
                                     <small class="text-muted d-block" style="font-size: 0.75rem;">
