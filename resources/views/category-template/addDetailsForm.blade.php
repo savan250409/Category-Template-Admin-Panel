@@ -15,13 +15,11 @@
                             enctype="multipart/form-data">
                             @csrf
 
-                            {{-- Description --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Description</label>
                                 <textarea name="description" rows="4" class="form-control">{{ old('description', $subcategory->description) }}</textarea>
                             </div>
 
-                            {{-- Existing Images --}}
                             @if ($subcategory->images)
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Existing Images</label>
@@ -66,7 +64,6 @@
                                 </div>
                             @endif
 
-                            {{-- Add New Images --}}
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Add New Images</label>
                                 <div id="newImagesWrapper"></div>
@@ -111,7 +108,7 @@
             <div class="flex-grow-1">
                 <label class="small text-muted">Name Change</label>
                 <div class="form-check form-switch mb-1">
-                    <input class="form-check-input" type="checkbox" name="name_change_row[]" value="1">
+                    <input class="form-check-input" type="checkbox" name="name_change[]" value="1">
                     <label class="form-check-label">Enable</label>
                 </div>
             </div>
@@ -122,7 +119,6 @@
                 wrapper.appendChild(div);
             });
 
-            // Remove dynamic image row
             wrapper.addEventListener('click', function(e) {
                 if (e.target.classList.contains('remove-new')) {
                     e.target.closest('div').remove();
