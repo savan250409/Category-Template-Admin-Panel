@@ -218,6 +218,16 @@
                         <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="6" placeholder="Enter prompt" required></textarea>
                     </div>
                     <div class="col-md-3 mb-3">
+                        <div class="mb-3">
+                            <label for="no_of_image" class="form-label">No of Image</label>
+                            <input type="number" class="form-control" id="no_of_image" name="no_of_image" value="1" min="1" required>
+                        </div>
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="name_change" name="name_change" value="1">
+                            <label class="form-check-label" for="name_change">Name Change</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <label for="image" class="form-label">Image</label>
                         <input type="file" class="form-control" id="image" name="image" accept="image/*"
                             onchange="previewImage(this)">
@@ -264,6 +274,8 @@
                                         <th>Model</th>
                                         <th>Image</th>
                                         <th>Prompt</th>
+                                        <th>No Of Image</th>
+                                        <th>Name Change</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -286,6 +298,14 @@
                                                     {{ $img->ai_prompt }}
                                                 </div>
                                             </td>
+                                            <td>{{ $img->no_of_image }}</td>
+                                            <td>
+                                                @if($img->name_change)
+                                                    <span class="badge bg-success">Yes</span>
+                                                @else
+                                                    <span class="badge bg-secondary">No</span>
+                                                @endif
+                                            </td>
                                             <td class="text-end">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="action-btn edit-btn"
@@ -293,6 +313,8 @@
                                                         data-category="{{ $img->category_id }}"
                                                         data-model="{{ $img->ai_model }}"
                                                         data-prompt="{{ $img->ai_prompt }}"
+                                                        data-noofimage="{{ $img->no_of_image }}"
+                                                        data-namechange="{{ $img->name_change }}"
                                                         data-image="{{ $img->image_path }}" onclick="editImage(this)">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
@@ -529,6 +551,8 @@
             const category = button.getAttribute('data-category');
             const model = button.getAttribute('data-model') || 'Ngendev Image';
             const prompt = button.getAttribute('data-prompt');
+            const noOfImage = button.getAttribute('data-noofimage');
+            const nameChange = button.getAttribute('data-namechange');
             const imagePath = button.getAttribute('data-image');
 
             document.getElementById('formTitle').innerHTML =
@@ -543,6 +567,8 @@
             document.getElementById('category_id').value = category;
             document.getElementById('ai_model').value = model;
             document.getElementById('ai_prompt').value = prompt;
+            document.getElementById('no_of_image').value = noOfImage;
+            document.getElementById('name_change').checked = (nameChange == 1);
 
             if (imagePath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
@@ -588,6 +614,8 @@
             document.getElementById('formMethod').value = 'POST';
             document.getElementById('editId').value = '';
             document.getElementById('ngendevImageForm').reset();
+            document.getElementById('no_of_image').value = 1;
+            document.getElementById('name_change').checked = false;
             document.getElementById('imagePreview').classList.add('d-none');
         }
 

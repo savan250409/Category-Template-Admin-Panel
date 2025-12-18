@@ -13,36 +13,36 @@ use Illuminate\Support\Facades\DB;
 
 class NgendevImageController extends Controller
 {
-     public function index(Request $request)
-{
-    $categories = NgendevCategory::all();
-    $query = NgendevImage::with('category')->orderBy('sort_order', 'asc')->orderBy('id', 'desc');
+    public function index(Request $request)
+    {
+        $categories = NgendevCategory::all();
+        $query = NgendevImage::with('category')->orderBy('sort_order', 'asc')->orderBy('id', 'desc');
 
-    if ($search = $request->get('search')) {
-        $query->where(function ($q) use ($search) {
-            $q->where('ai_prompt', 'like', "%{$search}%")
-                ->orWhere('ai_model', 'like', "%{$search}%")
-                ->orWhereHas('category', function ($q2) use ($search) {
-                    $q2->where('category_name', 'like', "%{$search}%");
-                });
-        });
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ai_prompt', 'like', "%{$search}%")
+                    ->orWhere('ai_model', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q2) use ($search) {
+                        $q2->where('category_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $images = $query->paginate(10)->appends(['search' => $request->get('search')]);
+
+        if ($request->ajax()) {
+            $table = view('ngendev.images.index', compact('images', 'categories'))->renderSections()['table'];
+            $pagination = view('ngendev.images.index', compact('images', 'categories'))->renderSections()['pagination'];
+
+            return response()->json([
+                'table' => $table,
+                'pagination' => $pagination,
+                'total' => $images->total(),
+            ]);
+        }
+
+        return view('ngendev.images.index', compact('categories', 'images'));
     }
-
-    $images = $query->paginate(10)->appends(['search' => $request->get('search')]);
-
-    if ($request->ajax()) {
-        $table = view('ngendev.images.index', compact('images', 'categories'))->renderSections()['table'];
-        $pagination = view('ngendev.images.index', compact('images', 'categories'))->renderSections()['pagination'];
-
-        return response()->json([
-            'table' => $table,
-            'pagination' => $pagination,
-            'total' => $images->total(),
-        ]);
-    }
-
-    return view('ngendev.images.index', compact('categories', 'images'));
-}
 
     public function store(Request $request)
     {
@@ -73,7 +73,9 @@ class NgendevImageController extends Controller
         NgendevImage::create([
             'category_id' => $request->category_id,
             'ai_prompt' => $request->ai_prompt,
-            'ai_model' => $request->ai_model ?? 'AI Image',
+            'ai_model' => $request->ai_model,
+            'no_of_image' => $request->no_of_image,
+            'name_change' => $request->has('name_change') ? 1 : 0,
             'image_path' => $imageName,
         ]);
 
@@ -86,7 +88,9 @@ class NgendevImageController extends Controller
             'category_id' => 'required|exists:ngendev_categories,id',
             'ai_prompt' => 'required|string|max:1000',
             'ai_model' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'no_of_image' => 'required|integer|min:1',
+            'name_change' => 'boolean',
         ]);
 
         $image = NgendevImage::findOrFail($id);
@@ -115,7 +119,9 @@ class NgendevImageController extends Controller
         $image->update([
             'category_id' => $request->category_id,
             'ai_prompt' => $request->ai_prompt,
-            'ai_model' => $request->ai_model ?? $image->ai_model,
+            'ai_model' => $request->ai_model,
+            'no_of_image' => $request->no_of_image,
+            'name_change' => $request->has('name_change') ? 1 : 0,
             'image_path' => $imagePath,
         ]);
 
