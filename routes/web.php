@@ -67,7 +67,7 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::post('save/{id?}', [SubcategoryController::class, 'save'])->name('save');
             Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
             Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
-             Route::get('image/delete/{subcategoryId}/{file}', [SubcategoryController::class, 'deleteImage'])->name('deleteImage');
+            Route::get('image/delete/{subcategoryId}/{file}', [SubcategoryController::class, 'deleteImage'])->name('deleteImage');
         });
 
     // Ngendev Images Routes
@@ -89,6 +89,8 @@ Route::middleware(['admin_auth'])->group(function () {
         ->name('ngendev.')
         ->group(function () {
             Route::get('/categories', [NgendevCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories-indexing', [NgendevCategoryController::class, 'indexing'])->name('categories.indexing');
+            Route::post('/categories-update-order', [NgendevCategoryController::class, 'updateOrder'])->name('categories.updateOrder');
             Route::get('/categories/create', [NgendevCategoryController::class, 'create'])->name('categories.create');
             Route::post('/categories', [NgendevCategoryController::class, 'store'])->name('categories.store');
             Route::get('/categories/{id}/edit', [NgendevCategoryController::class, 'edit'])->name('categories.edit');

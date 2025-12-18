@@ -11,7 +11,7 @@ class NgendevCategory extends Model
 
     protected $table = 'ngendev_categories';
 
-    protected $fillable = ['category_name', 'category_image'];
+    protected $fillable = ['category_name', 'category_image', 'sort_order'];
 
     public function images()
     {

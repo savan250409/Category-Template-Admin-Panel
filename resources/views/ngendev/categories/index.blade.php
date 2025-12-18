@@ -125,6 +125,9 @@
                     <i class="bi bi-collection"></i> Total: <span id="total-categories">{{ $categories->total() }}</span>
                     Categories
                 </span>
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
+                    <i class="bi bi-arrow-up-down me-2"></i>Indexing
+                </button>
                 <a href="{{ route('ngendev.categories.create') }}" class="btn btn-primary"><i
                         class="bi bi-plus-lg me-2"></i>Add Category</a>
             </div>
@@ -144,110 +147,45 @@
             </div>
         @endif
 
-        <div class="main-card">
+        <div class="main-card position-relative">
             <div id="table-content">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center">
-                        <label class="me-2">Show</label>
-                        <select id="per-page-select" class="form-select w-auto">
-                            <option value="5" {{ $categories->perPage() == 5 ? 'selected' : '' }}>5</option>
-                            <option value="10" {{ $categories->perPage() == 10 ? 'selected' : '' }}>10</option>
-                            <option value="20" {{ $categories->perPage() == 20 ? 'selected' : '' }}>20</option>
-                            <option value="30" {{ $categories->perPage() == 30 ? 'selected' : '' }}>30</option>
-                        </select>
-                        <label class="ms-2">entries</label>
-                    </div>
-                    <form id="search-form" class="d-flex align-items-center">
-                        <div class="input-group">
-                            <input type="text" id="search-input" name="search" value="{{ $search }}"
-                                class="form-control" placeholder="Search category...">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-                        </div>
-                    </form>
+                @include('ngendev.categories.table')
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Indexing Modal -->
+    <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="indexingModalLabel">
+                        <i class="bi bi-arrow-up-down me-2"></i>Category Indexing
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                @if ($categories->isEmpty())
-                    <div class="empty-state">
-                        <div class="empty-state-icon"><i class="bi bi-tags"></i></div>
-                        <h4 class="empty-state-title">No Categories Found</h4>
-                        <p class="empty-state-text">Get started by adding your first category</p>
-                        <a href="{{ route('ngendev.categories.create') }}" class="btn btn-primary"><i
-                                class="bi bi-plus-lg me-2"></i>Add Category</a>
-                    </div>
-                @else
-                    <div class="table-responsive">
-                        <table class="data-table" id="categoriesTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Image</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($categories as $category)
-                                    <tr>
-                                        <td>{{ $category->category_name }}</td>
-                                        <td>
-                                            @if ($category->category_image)
-                                                @php $images = json_decode($category->category_image, true); @endphp
-                                                @foreach ((array) $images as $img)
-                                                    <img src="{{ asset('upload/ngendev/images/' . $category->category_name . '/category_thumbnail_image/' . $img) }}"
-                                                        class="category-image">
-                                                @endforeach
-                                            @else
-                                                <span class="text-muted">No image</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-end">
-                                            <div class="d-flex justify-content-end gap-2">
-                                                <a href="{{ route('ngendev.categories.edit', $category->id) }}"
-                                                    class="action-btn edit-btn" data-bs-toggle="tooltip" title="Edit"><i
-                                                        class="bi bi-pencil"></i></a>
-                                                <button type="button" class="action-btn delete-btn"
-                                                    data-id="{{ $category->id }}"
-                                                    data-name="{{ $category->category_name }}" data-bs-toggle="tooltip"
-                                                    title="Delete"><i class="bi bi-trash"></i></button>
-
-                                                <form id="deleteForm-{{ $category->id }}"
-                                                    action="{{ route('ngendev.categories.destroy', $category->id) }}"
-                                                    method="POST" class="d-none">
-                                                    @csrf @method('DELETE')
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Drag and drop categories to reorder them. The new order will be saved automatically.
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div>
-                            Showing <strong>{{ $categories->firstItem() }}</strong> to
-                            <strong>{{ $categories->lastItem() }}</strong> of <strong>{{ $categories->total() }}</strong>
-                            entries
+                    <div id="categoriesContainer" class="list-group" style="min-height: 200px;">
+                        <div class="col-12 text-center text-muted py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading categories...</p>
                         </div>
-                        <ul class="pagination mb-0">
-                            <li class="page-item {{ $categories->onFirstPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="javascript:void(0)"
-                                    data-page="{{ $categories->currentPage() - 1 }}">Previous</a>
-                            </li>
-                            @for ($i = 1; $i <= $categories->lastPage(); $i++)
-                                <li class="page-item {{ $i == $categories->currentPage() ? 'active' : '' }}">
-                                    <a class="page-link" href="javascript:void(0)"
-                                        data-page="{{ $i }}">{{ $i }}</a>
-                                </li>
-                            @endfor
-                            <li
-                                class="page-item {{ $categories->currentPage() == $categories->lastPage() ? 'disabled' : '' }}">
-                                <a class="page-link" href="javascript:void(0)"
-                                    data-page="{{ $categories->currentPage() + 1 }}">Next</a>
-                            </li>
-                        </ul>
                     </div>
-                @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveOrderBtn">
+                        <i class="bi bi-save me-2"></i>Save Order
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -272,13 +210,15 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         let selectedCategoryId = null;
         let currentPage = 1;
         let currentPerPage = {{ $perPage }};
         let currentSearch = '{{ $search }}';
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Auto dismiss alerts after 5 sec
             ['success-alert', 'error-alert'].forEach(id => {
                 const alertEl = document.getElementById(id);
@@ -290,19 +230,19 @@
             });
 
             // Delete
-            $(document).on('click', '.delete-btn', function() {
+            $(document).on('click', '.delete-btn', function () {
                 selectedCategoryId = $(this).data('id');
                 $('#categoryToDelete').text($(this).data('name'));
                 new bootstrap.Modal(document.getElementById('deleteModal')).show();
             });
-            $('#confirmDelete').on('click', function() {
+            $('#confirmDelete').on('click', function () {
                 if (selectedCategoryId) {
                     document.getElementById(`deleteForm-${selectedCategoryId}`).submit();
                 }
             });
 
             // Search
-            $('#search-form').on('submit', function(e) {
+            $('#search-form').on('submit', function (e) {
                 e.preventDefault();
                 currentSearch = $('#search-input').val();
                 currentPage = 1;
@@ -310,14 +250,14 @@
             });
 
             // Per Page
-            $('#per-page-select').on('change', function() {
+            $('#per-page-select').on('change', function () {
                 currentPerPage = $(this).val();
                 currentPage = 1;
                 loadTableData();
             });
 
             // Pagination click
-            $(document).on('click', '.pagination .page-link', function(e) {
+            $(document).on('click', '.pagination .page-link', function (e) {
                 e.preventDefault();
                 const page = $(this).data('page');
                 if (page) {
@@ -327,9 +267,14 @@
             });
 
             function loadTableData() {
-                $('#table-content').html(
+                // Remove existing overlay if any
+                $('.loading-overlay').remove();
+
+                // Append overlay
+                $('#table-content').append(
                     '<div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>'
                 );
+
                 $.ajax({
                     url: '{{ route('ngendev.categories.index') }}',
                     data: {
@@ -338,26 +283,178 @@
                         search: currentSearch,
                         ajax: true
                     },
-                    success: function(res) {
-                        const html = $(res).find('#table-content').html();
-                        $('#table-content').html(html);
+                    success: function (res) {
+                        $('#table-content').html(res);
 
                         // Update total
-                        const total = $(res).find('#total-categories').text();
-                        $('#total-categories').text(total);
+                        const total = $('#table-content').find('#total-count-hidden').text();
+                        if (total) {
+                            $('#total-categories').text(total);
+                        }
 
                         // Tooltips
                         const tooltipTriggerList = [].slice.call(document.querySelectorAll(
                             '[data-bs-toggle="tooltip"]'));
                         tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
                     },
-                    error: function() {
-                        $('#table-content').html(
-                            '<div class="alert alert-danger">Error loading data. Please try again.</div>'
+                    error: function () {
+                        $('.loading-overlay').remove(); // Remove overlay on error
+                        $('#table-content').prepend(
+                            '<div class="alert alert-danger alert-dismissible fade show">Error loading data. Please try again.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'
                         );
                     }
                 });
             }
+
+            // Indexing Logic
+            let sortableInstance = null;
+            const indexingModal = document.getElementById('indexingModal');
+
+            indexingModal.addEventListener('show.bs.modal', function () {
+                loadCategoriesForIndexing();
+            });
+
+            function loadCategoriesForIndexing() {
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = `
+                                <div class="col-12 text-center text-muted py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading categories...</p>
+                                </div>
+                            `;
+
+                $.ajax({
+                    url: "{{ route('ngendev.categories.indexing') }}",
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.categories && response.categories.length > 0) {
+                            displayCategories(response.categories);
+                            initializeSortable();
+                        } else {
+                            container.innerHTML = `
+                                            <div class="col-12 text-center text-muted py-5">
+                                                <i class="bi bi-tags fs-1"></i>
+                                                <p class="mt-2">No categories found</p>
+                                            </div>
+                                        `;
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Error loading categories:', xhr.responseText);
+                        container.innerHTML = `
+                                         <div class="col-12 text-center text-danger py-5">
+                                            <i class="bi bi-exclamation-triangle fs-1"></i>
+                                            <p class="mt-2">Error loading categories</p>
+                                        </div>
+                                    `;
+                    }
+                });
+            }
+
+            function displayCategories(categories) {
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = '';
+
+                categories.forEach((category, index) => {
+                    // console.log(category);
+                    const categoryHtml = `
+                                    <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                                            <span class="fw-bold me-2">${index + 1}.</span>
+                                            <span>${category.category_name}</span>
+                                        </div>
+                                        <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
+                                    </div>
+                                `;
+                    container.innerHTML += categoryHtml;
+                });
+            }
+
+            function initializeSortable() {
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                }
+
+                const container = document.getElementById('categoriesContainer');
+                sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    onEnd: function (evt) {
+                        updateOrderNumbers();
+                    }
+                });
+            }
+
+            function updateOrderNumbers() {
+                const items = document.querySelectorAll('#categoriesContainer .list-group-item');
+                items.forEach((item, index) => {
+                    const numberSpan = item.querySelector('.fw-bold');
+                    if (numberSpan) {
+                        numberSpan.textContent = (index + 1) + '.';
+                    }
+                });
+            }
+
+            document.getElementById('saveOrderBtn').addEventListener('click', function () {
+                const items = document.querySelectorAll('#categoriesContainer .list-group-item');
+                const orderData = [];
+
+                items.forEach((item, index) => {
+                    const id = item.getAttribute('data-id');
+                    orderData.push({
+                        id: id,
+                        sort_order: index + 1
+                    });
+                });
+
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+
+                $.ajax({
+                    url: "{{ route('ngendev.categories.updateOrder') }}",
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        order: orderData
+                    },
+                    success: function (response) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+
+                        if (response.success) {
+                            // Close modal
+                            const modal = bootstrap.Modal.getInstance(indexingModal);
+                            modal.hide();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                window.location.href = response.redirect_url;
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        console.error('Error saving order:', xhr.responseText);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message || 'Something went wrong!'
+                        });
+                    }
+                });
+            });
+
         });
     </script>
 @endsection

@@ -15,7 +15,10 @@ class NgendevCategoryApiController extends Controller
         $ngdAiSetting = AiImageNgdSetting::first();
         $ngdAiModel = $ngdAiSetting ? $ngdAiSetting->model : null;
 
-        $categories = NgendevCategory::select('id', 'category_name')->orderBy('id', 'desc')->get();
+        $categories = NgendevCategory::select('id', 'category_name', 'sort_order')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->get();
 
         if ($categories->isEmpty()) {
             return response()->json(

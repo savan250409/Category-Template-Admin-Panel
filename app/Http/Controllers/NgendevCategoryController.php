@@ -20,7 +20,11 @@ class NgendevCategoryController extends Controller
             $query->where('category_name', 'like', '%' . $search . '%');
         }
 
-        $categories = $query->latest()->paginate($perPage)->withQueryString();
+        $categories = $query->orderBy('sort_order', 'asc')->latest()->paginate($perPage)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('ngendev.categories.table', compact('categories', 'perPage', 'search'));
+        }
 
         return view('ngendev.categories.index', compact('categories', 'perPage', 'search'));
     }
@@ -151,5 +155,36 @@ class NgendevCategoryController extends Controller
         $category->delete();
 
         return redirect()->route('ngendev.categories.index')->with('success', 'Category and all images deleted successfully!');
+    }
+
+    public function indexing(Request $request)
+    {
+        if (!$request->ajax()) {
+            return redirect()->route('ngendev.categories.index');
+        }
+
+        $categories = NgendevCategory::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        return response()->json([
+            'categories' => $categories
+        ]);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*.id' => 'required|exists:ngendev_categories,id',
+            'order.*.sort_order' => 'required|integer|min:0',
+        ]);
+
+        foreach ($request->order as $item) {
+            NgendevCategory::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category order updated successfully!',
+            'redirect_url' => route('ngendev.categories.index'),
+        ]);
     }
 }
