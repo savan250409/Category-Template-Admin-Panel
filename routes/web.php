@@ -96,6 +96,7 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::get('/categories/{id}/edit', [NgendevCategoryController::class, 'edit'])->name('categories.edit');
             Route::put('/categories/{id}', [NgendevCategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
+            Route::post('/categories/update-status', [NgendevCategoryController::class, 'updateStatus'])->name('categories.updateStatus');
         });
 
     /*

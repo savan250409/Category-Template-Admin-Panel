@@ -16,6 +16,7 @@ class NgendevCategoryApiController extends Controller
         $ngdAiModel = $ngdAiSetting ? $ngdAiSetting->model : null;
 
         $categories = NgendevCategory::select('id', 'category_name', 'sort_order')
+            ->where('status', 1)
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
             ->get();
@@ -124,7 +125,7 @@ class NgendevCategoryApiController extends Controller
 
         if ($data['category_id'] == 0) {
             // Fetch all categories
-            $categories = NgendevCategory::orderBy('id', 'asc')->get();
+            $categories = NgendevCategory::where('status', 1)->orderBy('id', 'asc')->get();
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
             $categories = $categories->reject(fn($cat) => $cat->category_name === 'Trending');
 
@@ -178,7 +179,7 @@ class NgendevCategoryApiController extends Controller
         }
 
         // category_id != 0
-        $category = NgendevCategory::find($data['category_id']);
+        $category = NgendevCategory::where('id', $data['category_id'])->where('status', 1)->first();
         if (!$category) {
             return response()->json(
                 [

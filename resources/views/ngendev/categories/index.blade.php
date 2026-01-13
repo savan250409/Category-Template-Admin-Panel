@@ -317,13 +317,13 @@
             function loadCategoriesForIndexing() {
                 const container = document.getElementById('categoriesContainer');
                 container.innerHTML = `
-                                <div class="col-12 text-center text-muted py-5">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
+                                    <div class="col-12 text-center text-muted py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Loading categories...</p>
                                     </div>
-                                    <p class="mt-2">Loading categories...</p>
-                                </div>
-                            `;
+                                `;
 
                 $.ajax({
                     url: "{{ route('ngendev.categories.indexing') }}",
@@ -334,21 +334,21 @@
                             initializeSortable();
                         } else {
                             container.innerHTML = `
-                                            <div class="col-12 text-center text-muted py-5">
-                                                <i class="bi bi-tags fs-1"></i>
-                                                <p class="mt-2">No categories found</p>
-                                            </div>
-                                        `;
+                                                <div class="col-12 text-center text-muted py-5">
+                                                    <i class="bi bi-tags fs-1"></i>
+                                                    <p class="mt-2">No categories found</p>
+                                                </div>
+                                            `;
                         }
                     },
                     error: function (xhr) {
                         console.error('Error loading categories:', xhr.responseText);
                         container.innerHTML = `
-                                         <div class="col-12 text-center text-danger py-5">
-                                            <i class="bi bi-exclamation-triangle fs-1"></i>
-                                            <p class="mt-2">Error loading categories</p>
-                                        </div>
-                                    `;
+                                             <div class="col-12 text-center text-danger py-5">
+                                                <i class="bi bi-exclamation-triangle fs-1"></i>
+                                                <p class="mt-2">Error loading categories</p>
+                                            </div>
+                                        `;
                     }
                 });
             }
@@ -360,15 +360,15 @@
                 categories.forEach((category, index) => {
                     // console.log(category);
                     const categoryHtml = `
-                                    <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-grip-vertical me-2 text-muted"></i>
-                                            <span class="fw-bold me-2">${index + 1}.</span>
-                                            <span>${category.category_name}</span>
+                                        <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                                                <span class="fw-bold me-2">${index + 1}.</span>
+                                                <span>${category.category_name}</span>
+                                            </div>
+                                            <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
                                         </div>
-                                        <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
-                                    </div>
-                                `;
+                                    `;
                     container.innerHTML += categoryHtml;
                 });
             }
@@ -450,6 +450,56 @@
                             icon: 'error',
                             title: 'Error',
                             text: xhr.responseJSON?.message || 'Something went wrong!'
+                        });
+                    }
+                });
+            });
+
+            // Status Toggle
+            $(document).on('change', '.status-toggle', function () {
+                const id = $(this).data('id');
+                const isChecked = $(this).is(':checked');
+                const status = isChecked ? 1 : 0;
+                const badge = $(`#status-badge-${id}`);
+
+                $.ajax({
+                    url: "{{ route('ngendev.categories.updateStatus') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        status: status
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            if (isChecked) {
+                                badge.removeClass('bg-danger').addClass('bg-success').text('Active');
+                            } else {
+                                badge.removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                            }
+
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: res.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        // Revert on error
+                        $(`#status-${id}`).prop('checked', !isChecked);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update status'
                         });
                     }
                 });

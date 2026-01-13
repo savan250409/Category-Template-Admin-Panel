@@ -38,6 +38,7 @@ class NgendevCategoryController extends Controller
     {
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name',
+            'status' => 'boolean',
             'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
@@ -65,6 +66,7 @@ class NgendevCategoryController extends Controller
 
         NgendevCategory::create([
             'category_name' => $request->category_name,
+            'status' => $request->has('status') ? $request->status : 1, // Default to 1 (Active)
             'category_image' => json_encode($images),
         ]);
 
@@ -83,6 +85,7 @@ class NgendevCategoryController extends Controller
 
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name,' . $id,
+            'status' => 'boolean',
             'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
@@ -90,8 +93,8 @@ class NgendevCategoryController extends Controller
         $newName = $request->category_name;
 
         // Rename folder if category name changed
-        $oldFolder = public_path('upload/ngendev/images/' . str_replace(' ', '_', $oldName));
-        $newFolder = public_path('upload/ngendev/images/' . str_replace(' ', '_', $newName));
+        $oldFolder = public_path('upload/ngendev/images/' . $oldName);
+        $newFolder = public_path('upload/ngendev/images/' . $newName);
 
         if ($oldName !== $newName && File::exists($oldFolder)) {
             File::move($oldFolder, $newFolder);
@@ -129,6 +132,7 @@ class NgendevCategoryController extends Controller
 
         $category->update([
             'category_name' => $newName,
+            'status' => $request->has('status') ? $request->status : 0, // Handles unchecked checkbox
             'category_image' => json_encode($images),
         ]);
 
@@ -186,5 +190,19 @@ class NgendevCategoryController extends Controller
             'message' => 'Category order updated successfully!',
             'redirect_url' => route('ngendev.categories.index'),
         ]);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:ngendev_categories,id',
+            'status' => 'required|boolean',
+        ]);
+
+        $category = NgendevCategory::find($request->id);
+        $category->status = $request->status;
+        $category->save();
+
+        return response()->json(['success' => true, 'message' => 'Status updated successfully!']);
     }
 }

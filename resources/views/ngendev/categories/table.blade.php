@@ -33,6 +33,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Image</th>
+                    <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -50,6 +51,17 @@
                             @else
                                 <span class="text-muted">No image</span>
                             @endif
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input status-toggle" type="checkbox" role="switch"
+                                    id="status-{{ $category->id }}" data-id="{{ $category->id }}"
+                                    {{ $category->status ? 'checked' : '' }}>
+                                <label class="form-check-label" for="status-{{ $category->id }}">
+                                    <span class="badge {{ $category->status ? 'bg-success' : 'bg-danger' }}"
+                                        id="status-badge-{{ $category->id }}">{{ $category->status ? 'Active' : 'Inactive' }}</span>
+                                </label>
+                            </div>
                         </td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">

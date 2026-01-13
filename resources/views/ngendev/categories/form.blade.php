@@ -77,6 +77,15 @@
                         placeholder="Enter category name">
                 </div>
 
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="status" name="status" value="1"
+                            {{ (isset($category) && $category->status) || !isset($category) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="status">Active</label>
+                    </div>
+                </div>
+
                 <div class="mb-4">
                     <label for="category_image" class="form-label">Category Image(s)</label>
                     <input type="file" class="form-control" id="category_image" name="category_image[]" accept="image/*"
