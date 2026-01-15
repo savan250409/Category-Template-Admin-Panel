@@ -53,6 +53,77 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function getAllCategoriesV2()
+    {
+        // Baby AI model
+        $babyAiSetting = AiImageBabyPhotoSetting::first();
+        $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
+
+        // Active categories
+        $activeCategories = AiImageCategory::where('status', 1)->pluck('name');
+
+        $response = [];
+
+        foreach ($activeCategories as $category) {
+
+            $subcategories = Subcategory::where('category_name', $category)
+                ->orderBy('id', 'desc')
+                ->get([
+                    'id',
+                    'title',
+                    'category_name',
+                    'category_thumbnail_image',
+                    'images'
+                ]);
+
+            $formattedSubcategories = $subcategories->map(function ($subcat) {
+
+                $categoryName = trim($subcat->category_name);
+                $subcatTitle = trim($subcat->title);
+
+                // Thumbnail path
+                $thumbnailPath = $subcat->category_thumbnail_image
+                    ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+                    : null;
+
+                // Decode images
+                $images = json_decode($subcat->images, true) ?? [];
+
+                // Total images count
+                $totalCount = count($images);
+
+                // Random image
+                $subcategoryImage = null;
+                if (!empty($images)) {
+                    $randomImage = collect($images)->random();
+                    if (isset($randomImage['file'])) {
+                        $subcategoryImage = "{$categoryName}/{$subcatTitle}/{$randomImage['file']}";
+                    }
+                }
+
+                return [
+                    'id' => $subcat->id,
+                    'title' => $subcat->title,
+                    'thumbnail' => $thumbnailPath,
+                    'total_count' => $totalCount,
+                    'subcategories_image' => $subcategoryImage,
+                ];
+            });
+
+            $response[] = [
+                'category_name' => $category,
+                'subcategories' => $formattedSubcategories,
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Categories retrieved successfully',
+            'model' => $babyAiModel,
+            'data' => $response,
+        ]);
+    }
+
     public function getSubcategoriesByCategory(Request $request)
     {
         $validator = \Validator::make($request->all(), [
@@ -149,6 +220,31 @@ class CategoryController extends Controller
             'main_category' => $mainCategory,
             'category_name' => $subCategoryName,
             'subcategories' => $subcategories,
+        ]);
+    }
+    public function trending()
+    {
+        $trendingSubcategories = Subcategory::where('trending', 1)->get();
+
+        $data = $trendingSubcategories->map(function ($subcat) {
+            $categoryName = trim($subcat->category_name);
+            $subcatTitle = trim($subcat->title);
+            $thumbnailPath = $subcat->category_thumbnail_image
+                ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+                : null;
+
+            return [
+                'main_category_name' => $categoryName,
+                'name' => $subcatTitle,
+                'thumbnail' => $thumbnailPath,
+                'description' => $subcat->description,
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Trending subcategories retrieved successfully',
+            'data' => $data,
         ]);
     }
 }

@@ -44,6 +44,7 @@ class SubcategoryController extends Controller
         $subcategory->category_name = $request->category_name;
         $subcategory->title = $request->title;
         $subcategory->description = $request->description;
+        $subcategory->trending = $request->has('trending') ? 1 : 0;
 
         $categoryFolder = $request->category_name;
         $subcategoryFolder = $request->title;
@@ -290,134 +291,136 @@ class SubcategoryController extends Controller
     //     return redirect()->route('subcategories.show', $subcategory->id)->with('success', 'Subcategory images & details saved successfully!');
     // }
 
-  public function saveDetails(Request $request, $id)
-{
-    $subcategory = Subcategory::findOrFail($id);
+    public function saveDetails(Request $request, $id)
+    {
+        $subcategory = Subcategory::findOrFail($id);
 
-    $request->validate([
-        'description' => 'nullable|string',
-        'category_thumbnail_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
-        'images.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
-        'prompts.*' => 'nullable|string|max:2555',
-        'image_title.*' => 'nullable|string|max:255',
-        'name_change_row.*' => 'nullable|boolean',
-        'existing_prompts.*' => 'nullable|string|max:2555',
-        'existing_image_title.*' => 'nullable|string|max:255',
-        'remove_images' => 'nullable|array',
-    ]);
+        $request->validate([
+            'description' => 'nullable|string',
+            'category_thumbnail_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'images.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'prompts.*' => 'nullable|string|max:2555',
+            'image_title.*' => 'nullable|string|max:255',
+            'name_change_row.*' => 'nullable|boolean',
+            'existing_prompts.*' => 'nullable|string|max:2555',
+            'existing_image_title.*' => 'nullable|string|max:255',
+            'remove_images' => 'nullable|array',
+        ]);
 
-    // Keep track of old values for safe cleanup
-    $oldCategory   = $subcategory->getOriginal('category_name');
-    $oldTitle      = $subcategory->getOriginal('title');
-    $oldThumbnail  = $subcategory->getOriginal('category_thumbnail_image');
+        // Keep track of old values for safe cleanup
+        $oldCategory = $subcategory->getOriginal('category_name');
+        $oldTitle = $subcategory->getOriginal('title');
+        $oldThumbnail = $subcategory->getOriginal('category_thumbnail_image');
 
-    // Update simple fields
-    $subcategory->description = $request->description;
+        // Update simple fields
+        $subcategory->description = $request->description;
+        $subcategory->trending = $request->has('trending') ? 1 : 0;
 
-    // Current resolved folders
-    $categoryFolder    = $subcategory->category_name;
-    $subcategoryFolder = $subcategory->title;
+        // Current resolved folders
+        $categoryFolder = $subcategory->category_name;
+        $subcategoryFolder = $subcategory->title;
 
-    $uploadFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}");
-    $thumbFolder  = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
+        $uploadFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}");
+        $thumbFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
 
-    // Ensure folders exist
-    if (!is_dir($uploadFolder)) {
-        @mkdir($uploadFolder, 0755, true);
-    }
-    if (!is_dir($thumbFolder)) {
-        @mkdir($thumbFolder, 0755, true);
-    }
+        // Ensure folders exist
+        if (!is_dir($uploadFolder)) {
+            @mkdir($uploadFolder, 0755, true);
+        }
+        if (!is_dir($thumbFolder)) {
+            @mkdir($thumbFolder, 0755, true);
+        }
 
-    // === THUMBNAIL: Auto-replace old on upload ===
-    if ($request->hasFile('category_thumbnail_image')) {
-        $file = $request->file('category_thumbnail_image');
-        if ($file->isValid()) {
-            $baseName    = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension   = $file->getClientOriginalExtension();
-            $generated   = \Illuminate\Support\Str::slug($baseName) ?: 'thumbnail';
-            $newFileName = $generated . '-' . time() . '-' . \Illuminate\Support\Str::random(6) . '.' . $extension;
+        // === THUMBNAIL: Auto-replace old on upload ===
+        if ($request->hasFile('category_thumbnail_image')) {
+            $file = $request->file('category_thumbnail_image');
+            if ($file->isValid()) {
+                $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $generated = \Illuminate\Support\Str::slug($baseName) ?: 'thumbnail';
+                $newFileName = $generated . '-' . time() . '-' . \Illuminate\Support\Str::random(6) . '.' . $extension;
 
-            // Delete any old thumbnail in both the previous and current paths
-            if (!empty($oldThumbnail)) {
-                $oldThumbInOldPath = public_path("upload/{$oldCategory}/{$oldTitle}/category_thumbnail/{$oldThumbnail}");
-                $oldThumbInNewPath = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail/{$oldThumbnail}");
+                // Delete any old thumbnail in both the previous and current paths
+                if (!empty($oldThumbnail)) {
+                    $oldThumbInOldPath = public_path("upload/{$oldCategory}/{$oldTitle}/category_thumbnail/{$oldThumbnail}");
+                    $oldThumbInNewPath = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail/{$oldThumbnail}");
 
-                if (file_exists($oldThumbInOldPath)) {
-                    @unlink($oldThumbInOldPath);
+                    if (file_exists($oldThumbInOldPath)) {
+                        @unlink($oldThumbInOldPath);
+                    }
+                    if (file_exists($oldThumbInNewPath)) {
+                        @unlink($oldThumbInNewPath);
+                    }
                 }
-                if (file_exists($oldThumbInNewPath)) {
-                    @unlink($oldThumbInNewPath);
+
+                // Move new thumbnail
+                $file->move($thumbFolder, $newFileName);
+                $subcategory->category_thumbnail_image = $newFileName;
+            }
+        }
+
+        // === GALLERY IMAGES ===
+        $imagesData = $subcategory->images ? json_decode($subcategory->images, true) : [];
+
+        // Remove selected gallery images
+        if ($request->filled('remove_images')) {
+            foreach ($imagesData as $key => $img) {
+                if (in_array($img['file'], $request->remove_images)) {
+                    $path = $uploadFolder . '/' . $img['file'];
+                    if (file_exists($path)) {
+                        @unlink($path);
+                    }
+                    unset($imagesData[$key]);
                 }
             }
-
-            // Move new thumbnail
-            $file->move($thumbFolder, $newFileName);
-            $subcategory->category_thumbnail_image = $newFileName;
+            $imagesData = array_values($imagesData);
         }
-    }
 
-    // === GALLERY IMAGES ===
-    $imagesData = $subcategory->images ? json_decode($subcategory->images, true) : [];
-
-    // Remove selected gallery images
-    if ($request->filled('remove_images')) {
-        foreach ($imagesData as $key => $img) {
-            if (in_array($img['file'], $request->remove_images)) {
-                $path = $uploadFolder . '/' . $img['file'];
-                if (file_exists($path)) {
-                    @unlink($path);
+        // Update existing gallery image meta
+        if (is_array($imagesData)) {
+            foreach ($imagesData as &$img) {
+                $fileName = $img['file'];
+                if (isset($request->existing_prompts[$fileName])) {
+                    $img['prompt'] = $request->existing_prompts[$fileName];
                 }
-                unset($imagesData[$key]);
+                if (isset($request->existing_image_title[$fileName])) {
+                    $img['image_title'] = $request->existing_image_title[$fileName];
+                }
+                $img['name_change'] = isset($request->existing_name_change[$fileName]);
+            }
+            unset($img);
+        }
+
+        // Add new gallery images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $imgFile) {
+                if (!$imgFile || !$imgFile->isValid())
+                    continue;
+
+                $originalName = $imgFile->getClientOriginalName();
+                $prompt = $request->prompts[$index] ?? '';
+                $imageTitle = $request->image_title[$index] ?? '';
+                $nameChange = $request->name_change_row[$index] ?? false;
+
+                $imgFile->move($uploadFolder, $originalName);
+
+                $imagesData[] = [
+                    'file' => $originalName,
+                    'prompt' => $prompt,
+                    'image_title' => $imageTitle,
+                    'name_change' => $nameChange ? true : false,
+                ];
             }
         }
-        $imagesData = array_values($imagesData);
+
+        $subcategory->images = !empty($imagesData) ? json_encode(array_values($imagesData)) : null;
+
+        $subcategory->save();
+
+        return redirect()
+            ->route('subcategories.show', $subcategory->id)
+            ->with('success', 'Subcategory details saved. Thumbnail updated.');
     }
-
-    // Update existing gallery image meta
-    if (is_array($imagesData)) {
-        foreach ($imagesData as &$img) {
-            $fileName = $img['file'];
-            if (isset($request->existing_prompts[$fileName])) {
-                $img['prompt'] = $request->existing_prompts[$fileName];
-            }
-            if (isset($request->existing_image_title[$fileName])) {
-                $img['image_title'] = $request->existing_image_title[$fileName];
-            }
-            $img['name_change'] = isset($request->existing_name_change[$fileName]);
-        }
-        unset($img);
-    }
-
-    // Add new gallery images
-    if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $index => $imgFile) {
-            if (!$imgFile || !$imgFile->isValid()) continue;
-
-            $originalName = $imgFile->getClientOriginalName();
-            $prompt       = $request->prompts[$index]      ?? '';
-            $imageTitle   = $request->image_title[$index]  ?? '';
-            $nameChange   = $request->name_change_row[$index] ?? false;
-
-            $imgFile->move($uploadFolder, $originalName);
-
-            $imagesData[] = [
-                'file'        => $originalName,
-                'prompt'      => $prompt,
-                'image_title' => $imageTitle,
-                'name_change' => $nameChange ? true : false,
-            ];
-        }
-    }
-
-    $subcategory->images = !empty($imagesData) ? json_encode(array_values($imagesData)) : null;
-
-    $subcategory->save();
-
-    return redirect()
-        ->route('subcategories.show', $subcategory->id)
-        ->with('success', 'Subcategory details saved. Thumbnail updated.');
-}
 
 
 
@@ -446,5 +449,14 @@ class SubcategoryController extends Controller
         }
 
         return redirect()->route('subcategories.show', $subcategory->id)->with('error', 'Image not found!');
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $subcategory = Subcategory::findOrFail($request->id);
+        $subcategory->trending = $request->trending;
+        $subcategory->save();
+
+        return response()->json(['success' => true]);
     }
 }

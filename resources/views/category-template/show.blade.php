@@ -33,6 +33,17 @@
                                 <p class="fw-semibold">{{ $subcategory->category_name }}</p>
                             </div>
                             <div class="col-12 mb-3">
+                                <h6 class="text-uppercase text-muted mb-1">Trending Status</h6>
+                                <p>
+                                    <span class="badge cursor-pointer {{ $subcategory->trending ? 'bg-success' : 'bg-secondary' }}" 
+                                          id="trendingStatusBadge" 
+                                          onclick="toggleTrendingStatus({{ $subcategory->id }}, {{ $subcategory->trending }})"
+                                          style="cursor: pointer;">
+                                        {{ $subcategory->trending ? 'Trending' : 'Not Trending' }}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-12 mb-3">
                                 <h6 class="text-uppercase text-muted mb-1">Description</h6>
                                 <p>{{ $subcategory->description ?? 'No description yet.' }}</p>
                             </div>
@@ -115,6 +126,13 @@
                             <label class="form-label fw-semibold">Category Name</label>
                             <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
                             <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">
+                        </div>
+
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-semibold me-3 mb-0">Trending</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="trendingSwitchModal" name="trending" value="1" {{ old('trending', $subcategory->trending ?? 0) ? 'checked' : '' }} style="width: 3em; height: 1.5em;">
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -236,6 +254,59 @@
                 });
             });
         });
+        function toggleTrendingStatus(id, currentStatus) {
+            let newStatus = currentStatus ? 0 : 1;
+            let badge = document.getElementById('trendingStatusBadge');
+
+            fetch('{{ route('subcategories.updateStatus') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    id: id,
+                    trending: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    if (newStatus) {
+                        badge.classList.remove('bg-secondary');
+                        badge.classList.add('bg-success');
+                        badge.innerText = 'Trending';
+                        badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 1)`);
+                    } else {
+                        badge.classList.remove('bg-success');
+                        badge.classList.add('bg-secondary');
+                        badge.innerText = 'Not Trending';
+                        badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 0)`);
+                    }
+                    
+                    // Show success toast or alert
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                    
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Trending status updated successfully'
+                    });
+                } else {
+                    Swal.fire('Error', 'Failed to update status', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Something went wrong', 'error');
+            });
+        }
     </script>
 
     <style>

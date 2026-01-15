@@ -27,7 +27,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('/getAllCategories', [CategoryController::class, 'getAllCategories']);
+    Route::get('/v2/getAllCategories', [CategoryController::class, 'getAllCategoriesv2']);
     Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
+    Route::get('/trending', [CategoryController::class, 'trending']);
 
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);

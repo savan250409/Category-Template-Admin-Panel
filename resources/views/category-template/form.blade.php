@@ -40,6 +40,13 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-semibold me-3 mb-0">Trending</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="trendingSwitch" name="trending" value="1" {{ old('trending', $subcategory->trending ?? 0) ? 'checked' : '' }} style="width: 3em; height: 1.5em;">
+                                </div>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Subcategory Name <span

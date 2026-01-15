@@ -68,6 +68,7 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
             Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
             Route::get('image/delete/{subcategoryId}/{file}', [SubcategoryController::class, 'deleteImage'])->name('deleteImage');
+            Route::post('update-status', [SubcategoryController::class, 'updateStatus'])->name('updateStatus');
         });
 
     // Ngendev Images Routes
