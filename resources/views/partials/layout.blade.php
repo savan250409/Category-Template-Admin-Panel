@@ -96,7 +96,7 @@
                     str_contains($currentPath, 'subcategories/subcategories');
 
                 $categories = AiImageCategory::orderBy('id')->get();
-                $allSubs = $allSubs ?? [];
+                $allSubs = $allSubs ?? \App\Models\Subcategory::select('id', 'title', 'category_name')->get()->groupBy('category_name');
 
                 $isBabyPhotoActive = false;
 
@@ -112,8 +112,8 @@
                     // Check if show page of this subcategory
                     $activeSub =
                         $isSubRoute && $currentRoute === 'subcategories.show'
-                            ? collect($subs)->first(fn($s) => $currentSubId == $s->id)
-                            : null;
+                        ? collect($subs)->first(fn($s) => $currentSubId == $s->id)
+                        : null;
 
                     // Check if add-details page of this subcategory
                     $isSubcategoryRoute = str_contains($currentPath, "subcategories/subcategory/{$currentSubId}");
@@ -132,11 +132,10 @@
                 $isBabyPhotoActive = $isBabyPhotoActive || $isBabyPhotoSettingActive;
             @endphp
 
-
             <li class="nav-item mb-1">
                 <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-        {{ $isBabyPhotoActive ? 'bg-secondary' : '' }}"
-                    href="javascript:void(0);" data-target="#babyPhotoCollapse" style="transition: all 0.2s;">
+        {{ $isBabyPhotoActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#babyPhotoCollapse"
+                    style="transition: all 0.2s;">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-image-fill me-2 text-info"></i>
                         <span class="fw-semibold">AI Image Baby Photo</span>
@@ -159,21 +158,25 @@
                     @foreach ($categories as $cat)
                         @php
                             $catId = 'cat-' . Str::slug($cat->name, '-');
+                            
+                            $isImageOrigin = !request()->has('origin') || request('origin') === 'image';
+
                             $subActive =
                                 $isSubRoute &&
                                 $currentRoute === 'subcategories.form' &&
                                 request('category_name') === $cat->name;
+
                             $activeSub =
                                 $isSubRoute && $currentRoute === 'subcategories.show'
-                                    ? collect($allSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
-                                    : null;
-                            $isOpen = $subActive || $activeSub;
+                                ? collect($allSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                                : null;
+
+                            $isOpen = ($subActive || $activeSub) && $isImageOrigin;
                         @endphp
 
                         <li class="nav-item mb-1">
                             <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                    {{ $isOpen ? 'bg-secondary' : '' }}"
-                                href="javascript:void(0);" data-target="#{{ $catId }}"
+                                {{ $isOpen ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#{{ $catId }}"
                                 style="transition: all 0.2s;">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-folder-fill me-2 text-warning"></i>
@@ -187,9 +190,8 @@
 
                                 {{-- Add Subcategory --}}
                                 <li class="mb-1">
-                                    <a href="{{ route('subcategories.form', ['category_name' => $cat->name]) }}"
-                                        class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                {{ $subActive ? 'active bg-primary text-white' : 'text-light' }}"
+                                    <a href="{{ route('subcategories.form', ['category_name' => $cat->name, 'origin' => 'image']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                            {{ $subActive && $isImageOrigin ? 'active bg-primary text-white' : 'text-light' }}"
                                         style="transition: all 0.2s;">
                                         <i class="bi bi-plus-circle me-2"></i>
                                         <span>Add Subcategory</span>
@@ -198,16 +200,15 @@
 
                                 {{-- Existing Subcategories --}}
                                 @foreach ($allSubs[$cat->name] ?? [] as $sub)
-                                    <li class="mb-1">
-                                        <a href="{{ route('subcategories.show', $sub->id) }}"
-                                            class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                    {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id
-                                        ? 'active bg-primary text-white'
-                                        : 'text-light' }}">
-                                            <i class="bi bi-circle me-2"></i>
-                                            <span>{{ $sub->title }}</span>
-                                        </a>
-                                    </li>
+                                                    <li class="mb-1">
+                                                        <a href="{{ route('subcategories.show', ['id' => $sub->id, 'origin' => 'image']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                                                                                            {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id && $isImageOrigin
+                                    ? 'active bg-primary text-white'
+                                    : 'text-light' }}">
+                                                            <i class="bi bi-circle me-2"></i>
+                                                            <span>{{ $sub->title }}</span>
+                                                        </a>
+                                                    </li>
                                 @endforeach
 
                                 {{-- Toggle button --}}
@@ -226,19 +227,27 @@
 
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script>
-                $(document).on('change', '.toggle-status', function() {
+                $(document).on('change', '.toggle-status', function () {
                     let categoryName = $(this).data('name');
                     let status = $(this).is(':checked') ? 1 : 0;
+                    // Determine which route to call based on the data-type attribute (added to inputs) or context.
+                    // For simplicity, we can inspect the section header or use a specific class.
+                    // Or, we can update the JS to handle both.
+
+                    let url = "{{ route('ai-image-categories.toggle-status') }}";
+                    if ($(this).hasClass('video-category')) {
+                        url = "{{ route('ai-video-categories.toggle-status') }}";
+                    }
 
                     $.ajax({
-                        url: "{{ route('ai-image-categories.toggle-status') }}",
+                        url: url,
                         type: 'POST',
                         data: {
                             _token: "{{ csrf_token() }}",
                             name: categoryName,
                             status: status
                         },
-                        success: function(res) {
+                        success: function (res) {
                             if (res.success) {
                                 // Update label text next to toggle
                                 let label = $('input[data-name="' + categoryName + '"]').closest('li').find(
@@ -246,12 +255,143 @@
                                 label.text(res.status ? 'Published' : 'Draft');
                             }
                         },
-                        error: function(err) {
+                        error: function (err) {
                             console.log('Error updating status', err);
                         }
                     });
                 });
             </script>
+
+            {{-- AI Baby Video Module --}}
+            @php
+                use App\Models\AiVideoCategory;
+
+                $videoCategories = AiVideoCategory::orderBy('id')->get();
+                // Reuse existing $allSubs or existing logic if needed but it depends on 'category_name' matching.
+
+                $isBabyVideoActive = false;
+
+                foreach ($videoCategories as $cat) {
+                    $subs = $allVideoSubs[$cat->name] ?? [];
+
+                    // Check if subcategory form is open
+                    $subActive =
+                        $isSubRoute &&
+                        $currentRoute === 'subcategories.form' &&
+                        request('category_name') === $cat->name;
+
+                    // Check if show page of this subcategory
+                    $activeSub =
+                        $isSubRoute && $currentRoute === 'subcategories.show'
+                        ? collect($subs)->first(fn($s) => $currentSubId == $s->id)
+                        : null;
+
+                    if ($subActive || $activeSub) {
+                        $isBabyVideoActive = true;
+                        break;
+                    }
+                }
+
+                $isBabyVideoSettingActive = request()->routeIs('ai-baby-video-module-setting.index');
+                $isBabyVideoActive = $isBabyVideoActive || $isBabyVideoSettingActive;
+            @endphp
+
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                AI Video Module
+            </li>
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+            {{ $isBabyVideoActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#babyVideoCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-camera-video-fill me-2 text-warning"></i>
+                        <span class="fw-semibold">AI Baby Video Module</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                <ul id="babyVideoCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isBabyVideoActive ? 'block' : 'none' }};">
+
+                    {{-- Baby Video Setting --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('ai-baby-video-module-setting.index') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-baby-video-module-setting.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-gear me-2"></i>
+                            <span>AI Baby Video Setting</span>
+                        </a>
+                    </li>
+
+                    @foreach ($videoCategories as $cat)
+                        @php
+                            $catId = 'vid-cat-' . Str::slug($cat->name, '-');
+                            
+                            $isVideoOrigin = request('origin') === 'video';
+
+                            $subActive =
+                                $isSubRoute &&
+                                $currentRoute === 'subcategories.form' &&
+                                request('category_name') === $cat->name;
+                                
+                            $activeSub =
+                                $isSubRoute && $currentRoute === 'subcategories.show'
+                                ? collect($allVideoSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
+                                : null;
+                                
+                            $isOpen = ($subActive || $activeSub) && $isVideoOrigin;
+                        @endphp
+
+                        <li class="nav-item mb-1">
+                            <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                                {{ $isOpen ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#{{ $catId }}"
+                                style="transition: all 0.2s;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-folder-fill me-2 text-info"></i>
+                                    <span class="fw-semibold">{{ $cat->name }}</span>
+                                </div>
+                                <i class="bi bi-chevron-down small chevron-icon"></i>
+                            </a>
+
+                            <ul id="{{ $catId }}" class="submenu-list nav flex-column ps-4 mt-2"
+                                style="display: {{ $isOpen ? 'block' : 'none' }}">
+
+                                {{-- Add Subcategory --}}
+                                <li class="mb-1">
+                                    <a href="{{ route('subcategories.form', ['category_name' => $cat->name, 'origin' => 'video']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                            {{ $subActive && $isVideoOrigin ? 'active bg-primary text-white' : 'text-light' }}"
+                                        style="transition: all 0.2s;">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        <span>Add Subcategory</span>
+                                    </a>
+                                </li>
+
+                                {{-- Existing Subcategories --}}
+                                @foreach ($allVideoSubs[$cat->name] ?? [] as $sub)
+                                                    <li class="mb-1">
+                                                        <a href="{{ route('subcategories.show', ['id' => $sub->id, 'origin' => 'video']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
+                                                                                                            {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id && $isVideoOrigin
+                                    ? 'active bg-primary text-white'
+                                    : 'text-light' }}">
+                                                            <i class="bi bi-circle me-2"></i>
+                                                            <span>{{ $sub->title }}</span>
+                                                        </a>
+                                                    </li>
+                                @endforeach
+
+                                {{-- Toggle button --}}
+                                <li class="mb-1 mt-1 d-flex align-items-center px-2 py-1 rounded-2">
+                                    <span class="text-light me-2">{{ $cat->status ? 'Published' : 'Draft' }}</span>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle-status video-category" type="checkbox"
+                                            data-name="{{ $cat->name }}" {{ $cat->status ? 'checked' : '' }}>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    @endforeach
+                </ul>
+            </li>
 
 
             {{-- AI Image NGD (NGD Module) --}}
@@ -264,8 +404,8 @@
 
             <li class="nav-item mb-1">
                 <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                {{ $isNGDActive ? 'bg-secondary' : '' }}"
-                    href="javascript:void(0);" data-target="#ngdCollapse" style="transition: all 0.2s;">
+                {{ $isNGDActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#ngdCollapse"
+                    style="transition: all 0.2s;">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-robot me-2 text-success"></i>
                         <span class="fw-semibold">AI Image NGD</span>
@@ -380,8 +520,7 @@
                 </li>
 
                 <li class="nav-item dropdown pe-3">
-                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#"
-                        data-bs-toggle="dropdown">
+                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
                         <img src="{{ asset('NiceAdmin/images/icon/logo-2023 copy.png') }}" alt="Profile"
                             class="rounded-circle" />
                         <span class="d-none d-md-block dropdown-toggle ps-2">NGD Admin</span>
@@ -400,8 +539,7 @@
                                 <i class="bi bi-box-arrow-right"></i>
                                 <span>Log Out</span>
                             </a>
-                            <form id="logout-form" action="{{ url('logout') }}" method="POST"
-                                style="display: none;">
+                            <form id="logout-form" action="{{ url('logout') }}" method="POST" style="display: none;">
                                 @csrf
                             </form>
                         </li>
@@ -439,7 +577,7 @@
 
     <!-- existing sidebar toggle state -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const sidebar = document.getElementById("sidebar");
             const header = document.getElementById("header");
             const main = document.querySelector(".main");
@@ -450,7 +588,7 @@
                 main.classList.add("full");
             }
 
-            toggleBtn.addEventListener("click", function(e) {
+            toggleBtn.addEventListener("click", function (e) {
                 e.preventDefault();
                 sidebar.classList.toggle("closed");
                 main.classList.toggle("full");
@@ -460,9 +598,9 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll('.collapse-toggle').forEach(function(toggle) {
-                toggle.addEventListener('click', function(e) {
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll('.collapse-toggle').forEach(function (toggle) {
+                toggle.addEventListener('click', function (e) {
                     e.preventDefault();
 
                     const targetId = this.getAttribute('data-target');
@@ -494,7 +632,7 @@
     </script>
 
     <script>
-        (function() {
+        (function () {
             function normalizePath(href) {
                 try {
                     const url = new URL(href, location.origin);
@@ -522,11 +660,11 @@
                 localStorage.setItem('sidebar_active_path', path);
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 restoreSidebarState();
 
                 document.querySelectorAll('#sidebar-nav a.nav-link:not(.collapse-toggle)').forEach(link => {
-                    link.addEventListener('click', function(e) {
+                    link.addEventListener('click', function (e) {
                         saveActiveLinkByElement(link);
                     });
                 });

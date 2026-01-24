@@ -12,7 +12,7 @@
                             <i class="bi {{ $subcategory->id ? 'bi-pencil-square' : 'bi-plus-circle' }}"></i>
                             {{ $subcategory->id ? 'Edit Subcategory' : 'Add Subcategory' }}
                         </h4>
-                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('subcategories.index', ['origin' => request('origin')]) }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Back
                         </a>
                     </div>
@@ -22,6 +22,7 @@
                             action="{{ $subcategory->id ? route('subcategories.save', $subcategory->id) : route('subcategories.save') }}"
                             method="POST" enctype="multipart/form-data">
                             @csrf
+                            <input type="hidden" name="origin" value="{{ request('origin') }}">
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Category Name <span
@@ -61,7 +62,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Subcategory Thumbnail Image
+                                <label class="form-label fw-semibold">Subcategory Thumbnail {{ request('origin') === 'video' ? 'Video' : 'Image' }}
                                     {{ $subcategory->id ? '' : '*' }}</label>
                                 @if ($subcategory->id && $subcategory->category_thumbnail_image)
                                     <div class="mb-2">
@@ -86,7 +87,7 @@
                                 <button type="submit" class="btn btn-success px-4">
                                     <i class="bi bi-check-circle"></i> {{ $subcategory->id ? 'Update' : 'Save' }}
                                 </button>
-                                <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary px-4">
+                                <a href="{{ route('subcategories.index', ['origin' => request('origin')]) }}" class="btn btn-outline-secondary px-4">
                                     <i class="bi bi-x-circle"></i> Cancel
                                 </a>
                             </div>

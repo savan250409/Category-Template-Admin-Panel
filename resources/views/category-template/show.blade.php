@@ -35,10 +35,11 @@
                             <div class="col-12 mb-3">
                                 <h6 class="text-uppercase text-muted mb-1">Trending Status</h6>
                                 <p>
-                                    <span class="badge cursor-pointer {{ $subcategory->trending ? 'bg-success' : 'bg-secondary' }}" 
-                                          id="trendingStatusBadge" 
-                                          onclick="toggleTrendingStatus({{ $subcategory->id }}, {{ $subcategory->trending }})"
-                                          style="cursor: pointer;">
+                                    <span
+                                        class="badge cursor-pointer {{ $subcategory->trending ? 'bg-success' : 'bg-secondary' }}"
+                                        id="trendingStatusBadge"
+                                        onclick="toggleTrendingStatus({{ $subcategory->id }}, {{ $subcategory->trending }})"
+                                        style="cursor: pointer;">
                                         {{ $subcategory->trending ? 'Trending' : 'Not Trending' }}
                                     </span>
                                 </p>
@@ -49,27 +50,42 @@
                             </div>
                         </div>
 
-                        @php $imagesArray = json_decode($subcategory->images, true) ?? []; @endphp
+                        @php
+                            $is_video = request('origin') === 'video';
+                            $dataJson = $is_video ? $subcategory->videos : $subcategory->images;
+                            $imagesArray = json_decode($dataJson, true) ?? [];
+                        @endphp
                         @if (count($imagesArray) > 0)
                             <div class="mb-4">
-                                <h6 class="text-uppercase text-muted mb-2">Images</h6>
+                                <h6 class="text-uppercase text-muted mb-2">
+                                    {{ request('origin') === 'video' ? 'Videos' : 'Images' }}
+                                </h6>
                                 <div class="row">
                                     @foreach ($imagesArray as $index => $img)
                                         <div class="col-md-4 mb-3">
                                             <div class="card shadow-sm position-relative image-card">
-                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                    class="card-img-top" style="height:200px; object-fit:cover;"
-                                                    alt="Image">
+                                                @if(request('origin') === 'video')
+                                                    <video class="card-img-top" style="height:200px; object-fit:cover;" controls>
+                                                        <source
+                                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                            type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                @else
+                                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                        class="card-img-top" style="height:200px; object-fit:cover;" alt="Image">
+                                                @endif
 
                                                 <button
                                                     class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
-                                                    data-url="{{ route('subcategories.deleteImage', ['subcategoryId' => $subcategory->id, 'file' => $img['file']]) }}">
+                                                    data-url="{{ route('subcategories.deleteImage', ['subcategoryId' => $subcategory->id, 'file' => $img['file'], 'origin' => request('origin')]) }}">
                                                     <i class="bi bi-x text-white"></i>
                                                 </button>
 
                                                 <div class="card-body p-2">
-                                                    @if (!empty($img['image_title']))
-                                                        <p class="mb-0 text-primary fw-semibold">{{ $img['image_title'] }}
+                                                    @if (!empty($img['video_title']) || !empty($img['image_title']))
+                                                        <p class="mb-0 text-primary fw-semibold">
+                                                            {{ $img['video_title'] ?? $img['image_title'] }}
                                                         </p>
                                                     @endif
                                                 </div>
@@ -81,8 +97,10 @@
                         @endif
 
                         <div class="d-flex gap-2">
-                            <a href="{{ route('subcategories.addDetailsForm', $subcategory->id) }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Add Images & Description
+                            <a href="{{ route('subcategories.addDetailsForm', ['id' => $subcategory->id, 'origin' => request('origin')]) }}"
+                                class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add
+                                {{ request('origin') === 'video' ? 'Videos' : 'Images' }} & Description
                             </a>
 
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
@@ -90,7 +108,8 @@
                                 <i class="bi bi-pencil-square"></i> Edit Subcategory
                             </button>
 
-                            <form id="deleteForm" action="{{ route('subcategories.destroy', $subcategory->id) }}"
+                            <form id="deleteForm"
+                                action="{{ route('subcategories.destroy', ['id' => $subcategory->id, 'origin' => request('origin')]) }}"
                                 method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
@@ -102,8 +121,8 @@
                     </div>
 
                     <div class="card-footer bg-light d-flex justify-content-between align-items-center rounded-bottom p-3">
-                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary"><i
-                                class="bi bi-arrow-left"></i> Back</a>
+                        <a href="{{ route('subcategories.index', ['origin' => request('origin')]) }}"
+                            class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
                     </div>
                 </div>
             </div>
@@ -121,6 +140,7 @@
                 <form action="{{ route('subcategories.saveDetails', $subcategory->id) }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="origin" value="{{ request('origin') }}">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Category Name</label>
@@ -131,24 +151,27 @@
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-semibold me-3 mb-0">Trending</label>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="trendingSwitchModal" name="trending" value="1" {{ old('trending', $subcategory->trending ?? 0) ? 'checked' : '' }} style="width: 3em; height: 1.5em;">
+                                <input class="form-check-input" type="checkbox" id="trendingSwitchModal" name="trending"
+                                    value="1" {{ old('trending', $subcategory->trending ?? 0) ? 'checked' : '' }}
+                                    style="width: 3em; height: 1.5em;">
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Subcategory Title <span
                                     class="text-danger">*</span></label>
-                            <input type="text" name="title" class="form-control" value="{{ $subcategory->title }}"
-                                required>
+                            <input type="text" name="title" class="form-control" value="{{ $subcategory->title }}" required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="4">{{ $subcategory->description }}</textarea>
+                            <textarea name="description" class="form-control"
+                                rows="4">{{ $subcategory->description }}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Thumbnail Image</label>
+                            <label class="form-label fw-semibold">Thumbnail
+                                {{ request('origin') === 'video' ? 'Video' : 'Image' }}</label>
                             @if ($subcategory->category_thumbnail_image)
                                 <div class="mb-2">
                                     <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
@@ -166,40 +189,53 @@
 
                         @if (count($imagesArray) > 0)
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Edit Existing Images</label>
+                                <label class="form-label fw-semibold">Edit Existing
+                                    {{ request('origin') === 'video' ? 'Videos' : 'Images' }}</label>
                                 <div class="row">
                                     @foreach ($imagesArray as $index => $img)
                                         <div class="col-md-6 mb-3">
                                             <div class="card p-2">
-                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                    class="img-fluid rounded mb-2"
-                                                    style="height:120px; object-fit:cover;">
+                                                @if(request('origin') === 'video')
+                                                    <video class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;"
+                                                        controls>
+                                                        <source
+                                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                            type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
+                                                    </video>
+                                                @else
+                                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                        class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;">
+                                                @endif
 
                                                 <label class="small text-muted">Prompt</label>
                                                 <input type="text" name="existing_prompts[{{ $img['file'] }}]"
                                                     value="{{ $img['prompt'] ?? '' }}" class="form-control mb-2">
 
-                                                <label class="small text-muted">Image Title</label>
-                                                <input type="text" name="existing_image_title[{{ $img['file'] }}]"
-                                                    value="{{ $img['image_title'] ?? '' }}" class="form-control mb-2">
+                                                <label
+                                                    class="small text-muted">{{ request('origin') === 'video' ? 'Video' : 'Image' }}
+                                                    Title</label>
+                                                <input type="text"
+                                                    name="{{ request('origin') === 'video' ? 'existing_video_title' : 'existing_image_title' }}[{{ $img['file'] }}]"
+                                                    value="{{ $img['video_title'] ?? ($img['image_title'] ?? '') }}"
+                                                    class="form-control mb-2">
 
                                                 <div class="form-check form-switch mb-2">
                                                     <input class="form-check-input" type="checkbox"
-                                                        name="existing_name_change[{{ $img['file'] }}]" value="1"
-                                                        {{ !empty($img['name_change']) ? 'checked' : '' }}>
+                                                        name="existing_name_change[{{ $img['file'] }}]" value="1" {{ !empty($img['name_change']) ? 'checked' : '' }}>
                                                     <label class="form-check-label">Enable Name Change</label>
                                                 </div>
 
-                                                <label class="small text-muted">Replace Image</label>
+                                                <label class="small text-muted">Replace
+                                                    {{ request('origin') === 'video' ? 'Video' : 'Image' }}</label>
                                                 <input type="file" name="replace_images[{{ $img['file'] }}]"
-                                                    accept="image/*" class="form-control mb-2">
+                                                    accept="{{ request('origin') === 'video' ? 'video/*' : 'image/*' }}"
+                                                    class="form-control mb-2">
 
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        name="remove_images[]" value="{{ $img['file'] }}"
-                                                        id="removeImage{{ $index }}">
-                                                    <label class="form-check-label"
-                                                        for="removeImage{{ $index }}">Remove this image</label>
+                                                    <input class="form-check-input" type="checkbox" name="remove_images[]"
+                                                        value="{{ $img['file'] }}" id="removeImage{{ $index }}">
+                                                    <label class="form-check-label" for="removeImage{{ $index }}">Remove this
+                                                        {{ request('origin') === 'video' ? 'video' : 'image' }}</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -220,10 +256,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.getElementById('deleteSubcategoryBtn').addEventListener('click', function() {
+        document.getElementById('deleteSubcategoryBtn').addEventListener('click', function () {
             Swal.fire({
                 title: 'Are you sure?',
-                text: "This will delete the subcategory and all its images!",
+                text: "This will delete the subcategory and all its {{ request('origin') === 'video' ? 'videos' : 'images' }}!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -237,11 +273,11 @@
         });
 
         document.querySelectorAll('.delete-image-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const url = this.getAttribute('data-url');
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: "This will delete this image!",
+                    text: "This will delete this {{ request('origin') === 'video' ? 'video' : 'image' }}!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
@@ -266,46 +302,47 @@
                 },
                 body: JSON.stringify({
                     id: id,
-                    trending: newStatus
+                    trending: newStatus,
+                    origin: '{{ request('origin') }}'
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update UI
-                    if (newStatus) {
-                        badge.classList.remove('bg-secondary');
-                        badge.classList.add('bg-success');
-                        badge.innerText = 'Trending';
-                        badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 1)`);
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI
+                        if (newStatus) {
+                            badge.classList.remove('bg-secondary');
+                            badge.classList.add('bg-success');
+                            badge.innerText = 'Trending';
+                            badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 1)`);
+                        } else {
+                            badge.classList.remove('bg-success');
+                            badge.classList.add('bg-secondary');
+                            badge.innerText = 'Not Trending';
+                            badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 0)`);
+                        }
+
+                        // Show success toast or alert
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Trending status updated successfully'
+                        });
                     } else {
-                        badge.classList.remove('bg-success');
-                        badge.classList.add('bg-secondary');
-                        badge.innerText = 'Not Trending';
-                        badge.setAttribute('onclick', `toggleTrendingStatus(${id}, 0)`);
+                        Swal.fire('Error', 'Failed to update status', 'error');
                     }
-                    
-                    // Show success toast or alert
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                    
-                    Toast.fire({
-                        icon: 'success',
-                        title: 'Trending status updated successfully'
-                    });
-                } else {
-                    Swal.fire('Error', 'Failed to update status', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Something went wrong', 'error');
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Something went wrong', 'error');
+                });
         }
     </script>
 

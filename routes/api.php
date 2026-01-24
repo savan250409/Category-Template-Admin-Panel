@@ -9,6 +9,7 @@ use App\Http\Controllers\SyncController;
 use App\Models\Admin;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\NgendevCategoryApiController;
+use App\Http\Controllers\Api\VideoCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,12 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/v2/getAllCategories', [CategoryController::class, 'getAllCategoriesv2']);
     Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
     Route::get('/trending', [CategoryController::class, 'trending']);
+
+    // Video Module API
+    Route::get('/video/getAllCategories', [VideoCategoryController::class, 'getAllCategories']);
+    Route::get('/video/v2/getAllCategories', [VideoCategoryController::class, 'getAllCategoriesV2']);
+    Route::post('/video/getSubcategoriesByCategory', [VideoCategoryController::class, 'getSubcategoriesByCategory']);
+    Route::get('/video/trending', [VideoCategoryController::class, 'trending']);
 
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);

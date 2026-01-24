@@ -7,28 +7,40 @@
             <div class="col-lg-10">
                 <div class="card shadow-lg border-0 rounded-3">
                     <div class="card-header bg-gradient-primary text-black">
-                        Add Images & Description for {{ $subcategory->title }}
+                        Add {{ request('origin') === 'video' ? 'Videos' : 'Images' }} & Description for {{ $subcategory->title }}
                     </div>
 
                     <div class="card-body p-4">
                         <form action="{{ route('subcategories.saveDetails', $subcategory->id) }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
+                            <input type="hidden" name="origin" value="{{ request('origin') }}">
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Description</label>
                                 <textarea name="description" rows="4" class="form-control">{{ old('description', $subcategory->description) }}</textarea>
                             </div>
 
-                            @if ($subcategory->images)
+                            @if ((request('origin') === 'video' && $subcategory->videos) || (request('origin') !== 'video' && $subcategory->images))
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">Existing Images</label>
+                                    <label class="form-label fw-semibold">Existing {{ request('origin') === 'video' ? 'Videos' : 'Images' }}</label>
                                     <div class="row g-3" id="existingImagesWrapper">
-                                        @foreach (json_decode($subcategory->images, true) as $img)
+                                        @php
+                                            $existingData = request('origin') === 'video' ? $subcategory->videos : $subcategory->images;
+                                            $existingItems = json_decode($existingData, true) ?? [];
+                                        @endphp
+                                        @foreach ($existingItems as $img)
                                             <div class="col-md-4 image-block">
                                                 <div class="card">
-                                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                        class="card-img-top" alt="Image">
+                                                    @if(request('origin') === 'video')
+                                                        <video class="card-img-top" style="height:200px; object-fit:cover;" controls>
+                                                            <source src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}" type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
+                                                            Your browser does not support the video tag.
+                                                        </video>
+                                                    @else
+                                                        <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                            class="card-img-top" alt="Image">
+                                                    @endif
                                                     <div class="card-body p-2">
                                                         <div class="mb-1">
                                                             <label class="small text-muted">Prompt</label>
@@ -38,10 +50,10 @@
                                                                 class="form-control form-control-sm">
                                                         </div>
                                                         <div class="mb-1">
-                                                            <label class="small text-muted">Image Title</label>
+                                                            <label class="small text-muted">{{ request('origin') === 'video' ? 'Video' : 'Image' }} Title</label>
                                                             <input type="text"
-                                                                name="existing_image_title[{{ $img['file'] }}]"
-                                                                value="{{ $img['image_title'] ?? '' }}"
+                                                                name="{{ request('origin') === 'video' ? 'existing_video_title' : 'existing_image_title' }}[{{ $img['file'] }}]"
+                                                                value="{{ $img['video_title'] ?? ($img['image_title'] ?? '') }}"
                                                                 class="form-control form-control-sm">
                                                         </div>
                                                         <div class="form-check form-switch mb-1">
@@ -65,10 +77,10 @@
                             @endif
 
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Add New Images</label>
+                                <label class="form-label fw-semibold">Add New {{ request('origin') === 'video' ? 'Videos' : 'Images' }}</label>
                                 <div id="newImagesWrapper"></div>
                                 <button type="button" id="addImageBtn" class="btn btn-outline-primary btn-sm mt-2">+ Add
-                                    Image</button>
+                                    {{ request('origin') === 'video' ? 'Video' : 'Image' }}</button>
                             </div>
 
                             <div class="d-flex justify-content-end gap-2">
@@ -85,6 +97,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const origin = '{{ request('origin') }}';
             const wrapper = document.getElementById('newImagesWrapper');
             const addBtn = document.getElementById('addImageBtn');
 
@@ -92,18 +105,18 @@
                 const div = document.createElement('div');
                 div.classList.add('d-flex', 'gap-2', 'align-items-start', 'mb-2');
 
-                div.innerHTML = `
+                 div.innerHTML = `
             <div class="flex-grow-1">
-                <label class="small text-muted">Image</label>
-                <input type="file" name="images[]" accept="image/*" class="form-control" required>
+                <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'}</label>
+                <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : 'image/*'}" class="form-control" required>
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">Prompt</label>
                 <input type="text" name="prompts[]" placeholder="Enter prompt" class="form-control">
             </div>
             <div class="flex-grow-1">
-                <label class="small text-muted">Image Title</label>
-                <input type="text" name="image_title[]" placeholder="Enter image title" class="form-control">
+                <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'} Title</label>
+                <input type="text" name="${origin === 'video' ? 'video_title' : 'image_title'}[]" placeholder="Enter ${origin === 'video' ? 'video' : 'image'} title" class="form-control">
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">Name Change</label>

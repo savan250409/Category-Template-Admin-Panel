@@ -130,4 +130,21 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/{id}', [AiImageNgdSettingController::class, 'destroy'])->name('destroy');
         });
     Route::post('/ai-image-categories/toggle-status', [AiImageCategoryController::class, 'toggleStatus'])->name('ai-image-categories.toggle-status');
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Baby Video Module Setting Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('ai-baby-video-module-setting')
+        ->name('ai-baby-video-module-setting.')
+        ->group(function () {
+            Route::get('/', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'destroy'])->name('destroy');
+        });
+    Route::post('/ai-video-categories/toggle-status', [\App\Http\Controllers\AiVideoCategoryController::class, 'toggleStatus'])->name('ai-video-categories.toggle-status');
 });

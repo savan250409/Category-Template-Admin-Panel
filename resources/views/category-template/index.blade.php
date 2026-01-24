@@ -1,221 +1,154 @@
 @extends('partials.layout')
-@section('title', $subcategory->title)
+@section('title', 'Subcategories')
 @section('container')
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow-lg border-0 rounded-4">
-                    <div
-                        class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3 px-4 rounded-top">
-                        <h4 class="mb-0" style="color:black">
-                            <i class="bi bi-folder2-open fs-4"></i> {{ $subcategory->title }}
-                        </h4>
-                        <span class="badge bg-light text-dark fw-semibold">{{ $subcategory->category_name }}</span>
+
+    <div class="container mt-4" style="padding: 0 2rem">
+        <div class="pagetitle">
+            <h1>Subcategories</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Subcategories</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h5 class="card-title">Manage Subcategories</h5>
+                        <a href="{{ route('subcategories.form', ['origin' => request('origin')]) }}"
+                            class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Add New
+                        </a>
                     </div>
-                    @if ($subcategory->category_thumbnail_image)
-                        <div class="text-center mt-3">
-                            <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
-                                class="img-fluid rounded shadow-sm" style="max-height:200px;" alt="Category Thumbnail">
-                        </div>
+
+                    @if (session('success'))
+                        <div class="alert alert-success mt-3" id="flash-message">{{ session('success') }}</div>
                     @endif
-                    <div class="card-body p-4">
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Title</h6>
-                                <p class="fw-semibold">{{ $subcategory->title }}</p>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Category</h6>
-                                <p class="fw-semibold">{{ $subcategory->category_name }}</p>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <h6 class="text-uppercase text-muted mb-1">Description</h6>
-                                <p>{{ $subcategory->description ?? 'No description yet.' }}</p>
-                            </div>
-                        </div>
-                        @php $imagesArray = json_decode($subcategory->images, true) ?? []; @endphp
-                        @if (count($imagesArray) > 0)
-                            <div class="mb-4">
-                                <h6 class="text-uppercase text-muted mb-2">Images</h6>
-                                <div class="row">
-                                    @foreach ($imagesArray as $index => $img)
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card shadow-sm position-relative image-card">
-                                                <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                    class="card-img-top" style="height:200px; object-fit:cover;"
-                                                    alt="Image">
-                                                <button
-                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn"
-                                                    data-url="{{ route('subcategories.deleteImage', ['subcategoryId' => $subcategory->id, 'file' => $img['file']]) }}">
-                                                    <i class="bi bi-x text-white"></i>
-                                                </button>
-                                                <div class="card-body p-2">
-                                                    @if (!empty($img['image_title']))
-                                                        <p class="mb-0 text-primary fw-semibold">{{ $img['image_title'] }}
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                            </div>
+                    @if (session('error'))
+                        <div class="alert alert-danger mt-3" id="flash-message">{{ session('error') }}</div>
+                    @endif
+
+                    <table class="table table-bordered mt-3">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th>Category</th>
+                                <th>Subcategory</th>
+                                <th>Trending</th>
+                                <th width="25%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($subcategories as $sub)
+                                <tr>
+                                    <td>{{ $sub->id }}</td>
+                                    <td>{{ $sub->category_name }}</td>
+                                    <td>{{ $sub->title }}</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input toggle-trending" type="checkbox"
+                                                data-id="{{ $sub->id }}" {{ $sub->trending ? 'checked' : '' }}>
                                         </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('subcategories.addDetailsForm', $subcategory->id) }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Add Images & Description
-                            </a>
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#editSubcategoryModal">
-                                <i class="bi bi-pencil-square"></i> Edit Subcategory
-                            </button>
-                            <form id="deleteForm" action="{{ route('subcategories.destroy', $subcategory->id) }}"
-                                method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-outline-secondary" id="deleteSubcategoryBtn">
-                                    <i class="bi bi-trash"></i> Delete Subcategory
-                                </button>
-                            </form>
-                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('subcategories.show', ['id' => $sub->id, 'origin' => request('origin')]) }}"
+                                            class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{{ route('subcategories.form', ['id' => $sub->id, 'origin' => request('origin')]) }}"
+                                            class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <form
+                                            action="{{ route('subcategories.destroy', ['id' => $sub->id, 'origin' => request('origin')]) }}"
+                                            method="POST" class="d-inline delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="btn btn-sm btn-outline-secondary deleteBtn">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center">No records found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-end">
+                        {{ $subcategories->appends(['origin' => request('origin')])->links('pagination::bootstrap-4') }}
                     </div>
-                    <div class="card-footer bg-light d-flex justify-content-between align-items-center rounded-bottom p-3">
-                        <a href="{{ route('subcategories.index') }}" class="btn btn-outline-secondary"><i
-                                class="bi bi-arrow-left"></i> Back</a>
-                    </div>
+
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editSubcategoryModal" tabindex="-1" aria-labelledby="editSubcategoryModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Subcategory</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('subcategories.save', $subcategory->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Category Name</label>
-                            <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
-                            <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Subcategory Title <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" name="title" class="form-control" value="{{ $subcategory->title }}"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="4">{{ $subcategory->description }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Thumbnail Image</label>
-                            @if ($subcategory->category_thumbnail_image)
-                                <div class="mb-2">
-                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
-                                        class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="remove_thumbnail"
-                                            id="removeThumbnail" value="1">
-                                        <label class="form-check-label" for="removeThumbnail">Remove current
-                                            thumbnail</label>
-                                    </div>
-                                </div>
-                            @endif
-                            <input type="file" name="category_thumbnail_image" accept="image/*" class="form-control">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Update</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @section('scripts')
+        <script>
+            // Auto-hide flash messages
+            setTimeout(() => {
+                const flash = document.getElementById('flash-message');
+                if (flash) flash.style.display = 'none';
+            }, 5000);
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.getElementById('deleteSubcategoryBtn').addEventListener('click', function() {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "This will delete the subcategory and all its images!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('deleteForm').submit();
-                }
-            });
-        });
-
-        document.querySelectorAll('.delete-image-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const url = this.getAttribute('data-url');
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This will delete this image!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = url;
-                    }
+            // Delete Confirmation
+            document.querySelectorAll('.deleteBtn').forEach(button => {
+                button.addEventListener('click', function () {
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.closest('form').submit();
+                        }
+                    })
                 });
             });
-        });
-    </script>
 
-    <style>
-        .image-card {
-            transition: all 0.3s ease;
-        }
+            // Trending Toggle
+            document.querySelectorAll('.toggle-trending').forEach(toggle => {
+                toggle.addEventListener('change', function () {
+                    let id = this.dataset.id;
+                    let trending = this.checked ? 1 : 0;
 
-        .image-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+                    fetch("{{ route('subcategories.updateStatus') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            id: id,
+                            trending: trending,
+                            origin: '{{ request('origin') }}'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // success toast?
+                            } else {
+                                alert('Something went wrong');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                });
+            });
+        </script>
+    @endsection
 
-        .delete-image-btn {
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.3s ease;
-            background-color: #dc3545 !important;
-            border: none;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .image-card:hover .delete-image-btn {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .delete-image-btn:hover {
-            background-color: #c82333 !important;
-            transform: scale(1.1);
-        }
-
-        .delete-image-btn i {
-            font-size: 14px;
-            line-height: 1;
-        }
-    </style>
 @endsection
