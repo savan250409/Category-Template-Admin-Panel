@@ -34,7 +34,7 @@
                                                 <div class="card">
                                                     @if(request('origin') === 'video')
                                                         <video class="card-img-top" style="height:200px; object-fit:cover;" controls>
-                                                            <source src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}" type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
+                                                            <source src="{{ asset('upload/AI Baby Video/' . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $img['file']) }}" type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
                                                             Your browser does not support the video tag.
                                                         </video>
                                                     @else
@@ -103,12 +103,14 @@
 
             addBtn.addEventListener('click', function() {
                 const div = document.createElement('div');
-                div.classList.add('d-flex', 'gap-2', 'align-items-start', 'mb-2');
+                div.classList.add('d-flex', 'gap-2', 'align-items-start', 'mb-2', 'image-row');
 
                  div.innerHTML = `
             <div class="flex-grow-1">
                 <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'}</label>
-                <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : 'image/*'}" class="form-control" required>
+                <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : 'image/*'}" class="form-control file-input" required>
+                ${origin === 'video' ? '<input type="hidden" name="video_thumbnails[]" class="thumbnail-input">' : ''}
+                ${origin === 'video' ? '<div class="mt-1"><img class="thumbnail-preview" style="max-height: 50px; display:none;"></div>' : ''}
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">Prompt</label>
@@ -134,9 +136,61 @@
 
             wrapper.addEventListener('click', function(e) {
                 if (e.target.classList.contains('remove-new')) {
-                    e.target.closest('div').remove();
+                    e.target.closest('.image-row').remove();
                 }
             });
+
+             // Thumbnail generation event delegation
+             wrapper.addEventListener('change', function(e) {
+                if (e.target.classList.contains('file-input') && e.target.accept.includes('video')) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        generateThumbnail(file, e.target);
+                    }
+                }
+            });
+
+            function generateThumbnail(file, inputElement) {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = URL.createObjectURL(file);
+                video.muted = true;
+                video.playsInline = true;
+
+                // Load metadata to get duration
+                video.onloadedmetadata = function() {
+                     // Seek to 1 second or 25% of duration if short
+                    let seekTime = 1.0;
+                    if (video.duration < 1.0) seekTime = 0.0; 
+                    video.currentTime = seekTime;
+                };
+
+                video.onseeked = function() {
+                     // Create canvas
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Convert to base64
+                    const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // Find sibling input and preview
+                    const parent = inputElement.closest('div');
+                    const thumbInput = parent.querySelector('.thumbnail-input');
+                    const thumbPreview = parent.querySelector('.thumbnail-preview');
+
+                    if (thumbInput) thumbInput.value = dataURL;
+                    if (thumbPreview) {
+                        thumbPreview.src = dataURL;
+                        thumbPreview.style.display = 'block';
+                    }
+
+                    // Cleanup
+                    URL.revokeObjectURL(video.src);
+                };
+            }
         });
     </script>
 

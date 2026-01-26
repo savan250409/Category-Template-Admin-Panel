@@ -66,13 +66,16 @@ class SubcategoryController extends Controller
         $subcategory->description = $request->description;
         $subcategory->trending = $request->has('trending') ? 1 : 0;
 
+        $is_video = $request->get('origin') === 'video';
+        $pathPrefix = $is_video ? 'upload/AI Baby Video/' : 'upload/';
+
         $categoryFolder = $request->category_name;
         $subcategoryFolder = $request->title;
 
         // Handle folder rename if category or title changed
         if ($id && $oldTitle && ($oldTitle !== $request->title || $oldCategory !== $request->category_name)) {
-            $oldFolder = public_path('upload/' . $oldCategory . '/' . $oldTitle);
-            $newFolder = public_path('upload/' . $categoryFolder . '/' . $subcategoryFolder);
+            $oldFolder = public_path($pathPrefix . $oldCategory . '/' . $oldTitle);
+            $newFolder = public_path($pathPrefix . $categoryFolder . '/' . $subcategoryFolder);
             $newFolderParent = dirname($newFolder);
 
             if (!is_dir($newFolderParent)) {
@@ -85,7 +88,7 @@ class SubcategoryController extends Controller
         }
 
         // Create thumbnail folder if it doesn't exist
-        $thumbFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
+        $thumbFolder = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
         if (!is_dir($thumbFolder)) {
             mkdir($thumbFolder, 0755, true);
         }
@@ -100,7 +103,7 @@ class SubcategoryController extends Controller
 
             // Remove old thumbnail if exists
             if ($id && $oldThumbnail) {
-                $oldThumbPath = public_path('upload/' . $categoryFolder . '/' . $subcategoryFolder . '/category_thumbnail/' . $oldThumbnail);
+                $oldThumbPath = public_path($pathPrefix . $oldCategory . '/' . $oldTitle . '/category_thumbnail/' . $oldThumbnail);
                 if (file_exists($oldThumbPath)) {
                     unlink($oldThumbPath);
                 }
@@ -111,7 +114,7 @@ class SubcategoryController extends Controller
         } elseif ($request->remove_thumbnail && $id) {
             // Remove thumbnail if checkbox is checked
             if ($subcategory->category_thumbnail_image) {
-                $currentThumbPath = public_path('upload/' . $categoryFolder . '/' . $subcategoryFolder . '/category_thumbnail/' . $subcategory->category_thumbnail_image);
+                $currentThumbPath = public_path($pathPrefix . $categoryFolder . '/' . $subcategoryFolder . '/category_thumbnail/' . $subcategory->category_thumbnail_image);
                 if (file_exists($currentThumbPath)) {
                     unlink($currentThumbPath);
                 }
@@ -142,12 +145,15 @@ class SubcategoryController extends Controller
         $subcategory = $model::findOrFail($id);
 
         $is_video = $request->get('origin') === 'video';
+        $pathPrefix = $is_video ? 'AI Baby Video/' : '';
         $dataJson = $is_video ? $subcategory->videos : $subcategory->images;
         $imagesArray = json_decode($dataJson, true) ?? [];
 
-        $imageUrls = array_map(function ($img) use ($subcategory) {
+        $imageUrls = array_map(function ($img) use ($subcategory, $pathPrefix, $is_video) {
+            $basePath = 'upload/' . $pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/';
+            $fileUrl = $is_video ? asset($basePath . 'video/' . ($img['file'] ?? '')) : asset($basePath . ($img['file'] ?? ''));
             return [
-                'url' => asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . ($img['file'] ?? '')),
+                'url' => $fileUrl,
                 'prompt' => $img['prompt'] ?? '',
                 'image_title' => $img['image_title'] ?? '',
                 'name_change' => $img['name_change'] ?? false,
@@ -161,7 +167,9 @@ class SubcategoryController extends Controller
     {
         $model = $this->getModel($request);
         $subcategory = $model::findOrFail($id);
-        $folderPath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title);
+        $is_video = $request->get('origin') === 'video';
+        $pathPrefix = $is_video ? 'upload/AI Baby Video/' : 'upload/';
+        $folderPath = public_path($pathPrefix . $subcategory->category_name . '/' . $subcategory->title);
         if (File::exists($folderPath)) {
             File::deleteDirectory($folderPath);
         }
@@ -338,6 +346,8 @@ class SubcategoryController extends Controller
         $subcategory = $model::findOrFail($id);
 
         $is_video = $request->get('origin') === 'video';
+        $pathPrefix = $is_video ? 'upload/AI Baby Video/' : 'upload/';
+
         $titleField = $is_video ? 'video_title' : 'image_title';
         $existingTitleField = $is_video ? 'existing_video_title' : 'existing_image_title';
 
@@ -368,15 +378,28 @@ class SubcategoryController extends Controller
         $categoryFolder = $subcategory->category_name;
         $subcategoryFolder = $subcategory->title;
 
-        $uploadFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}");
-        $thumbFolder = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
+        // Base folders
+        $baseFolder = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}");
+        $catThumbFolder = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
+
+        // Video specific folders
+        $videoFolder = $is_video ? public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/video") : $baseFolder;
+        $videoThumbFolder = $is_video ? public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/video thumbnail") : $baseFolder;
 
         // Ensure folders exist
-        if (!is_dir($uploadFolder)) {
-            @mkdir($uploadFolder, 0755, true);
+        if (!is_dir($baseFolder)) {
+            @mkdir($baseFolder, 0755, true);
         }
-        if (!is_dir($thumbFolder)) {
-            @mkdir($thumbFolder, 0755, true);
+        if (!is_dir($catThumbFolder)) {
+            @mkdir($catThumbFolder, 0755, true);
+        }
+        if ($is_video) {
+            if (!is_dir($videoFolder)) {
+                @mkdir($videoFolder, 0755, true);
+            }
+            if (!is_dir($videoThumbFolder)) {
+                @mkdir($videoThumbFolder, 0755, true);
+            }
         }
 
         // === THUMBNAIL: Auto-replace old on upload ===
@@ -390,8 +413,8 @@ class SubcategoryController extends Controller
 
                 // Delete any old thumbnail in both the previous and current paths
                 if (!empty($oldThumbnail)) {
-                    $oldThumbInOldPath = public_path("upload/{$oldCategory}/{$oldTitle}/category_thumbnail/{$oldThumbnail}");
-                    $oldThumbInNewPath = public_path("upload/{$categoryFolder}/{$subcategoryFolder}/category_thumbnail/{$oldThumbnail}");
+                    $oldThumbInOldPath = public_path("{$pathPrefix}{$oldCategory}/{$oldTitle}/category_thumbnail/{$oldThumbnail}");
+                    $oldThumbInNewPath = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/category_thumbnail/{$oldThumbnail}");
 
                     if (file_exists($oldThumbInOldPath)) {
                         @unlink($oldThumbInOldPath);
@@ -402,7 +425,7 @@ class SubcategoryController extends Controller
                 }
 
                 // Move new thumbnail
-                $file->move($thumbFolder, $newFileName);
+                $file->move($catThumbFolder, $newFileName);
                 $subcategory->category_thumbnail_image = $newFileName;
             }
         }
@@ -415,9 +438,27 @@ class SubcategoryController extends Controller
         if ($request->filled('remove_images')) {
             foreach ($imagesData as $key => $img) {
                 if (in_array($img['file'], $request->remove_images)) {
-                    $path = $uploadFolder . '/' . $img['file'];
+
+                    if ($is_video) {
+                        $path = $videoFolder . '/' . $img['file'];
+                    } else {
+                        $path = $baseFolder . '/' . $img['file'];
+                    }
+
                     if (file_exists($path)) {
                         @unlink($path);
+                    }
+
+                    if (isset($img['thumbnail']) && $img['thumbnail']) {
+                        if ($is_video) {
+                            $thumbPath = $videoThumbFolder . '/' . $img['thumbnail'];
+                        } else {
+                            $thumbPath = $baseFolder . '/' . $img['thumbnail'];
+                        }
+
+                        if (file_exists($thumbPath)) {
+                            @unlink($thumbPath);
+                        }
                     }
                     unset($imagesData[$key]);
                 }
@@ -445,6 +486,8 @@ class SubcategoryController extends Controller
 
         // Add new gallery images
         if ($request->hasFile('images')) {
+            $thumbnails = $request->input('video_thumbnails', []);
+
             foreach ($request->file('images') as $index => $imgFile) {
                 if (!$imgFile || !$imgFile->isValid())
                     continue;
@@ -456,10 +499,33 @@ class SubcategoryController extends Controller
                 $imageTitle = $titles[$index] ?? '';
                 $nameChange = $request->name_change_row[$index] ?? false;
 
-                $imgFile->move($uploadFolder, $originalName);
+                if ($is_video) {
+                    $imgFile->move($videoFolder, $originalName);
+                } else {
+                    $imgFile->move($baseFolder, $originalName);
+                }
+
+                $thumbnailName = null;
+                // Process thumbnail if exists (for videos)
+                if ($is_video && isset($thumbnails[$index]) && !empty($thumbnails[$index])) {
+                    $base64Image = $thumbnails[$index];
+                    if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                        $data = substr($base64Image, strpos($base64Image, ',') + 1);
+                        $type = strtolower($type[1]); // jpg, png, etc
+                        $data = base64_decode($data);
+
+                        if ($data !== false) {
+                            $thumbFileName = pathinfo($originalName, PATHINFO_FILENAME) . '_thumb.' . $type;
+                            $thumbPath = $videoThumbFolder . '/' . $thumbFileName;
+                            file_put_contents($thumbPath, $data);
+                            $thumbnailName = $thumbFileName;
+                        }
+                    }
+                }
 
                 $imagesData[] = [
                     'file' => $originalName,
+                    'thumbnail' => $thumbnailName, // Add thumbnail field
                     'prompt' => $prompt,
                     $titleField => $imageTitle,
                     'name_change' => $nameChange ? true : false,
@@ -494,15 +560,33 @@ class SubcategoryController extends Controller
         $model = $this->getModel($request);
         $subcategory = $model::findOrFail($subcategoryId);
         $is_video = $request->get('origin') === 'video';
+        $pathPrefix = $is_video ? 'upload/AI Baby Video/' : 'upload/';
+
         $dataJson = $is_video ? $subcategory->videos : $subcategory->images;
         $images = json_decode($dataJson, true) ?? [];
 
         $found = false;
         foreach ($images as $key => $img) {
             if ($img['file'] === $file) {
-                $imagePath = public_path('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $file);
+                if ($is_video) {
+                    $imagePath = public_path($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $file);
+                } else {
+                    $imagePath = public_path($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/' . $file);
+                }
+
                 if (File::exists($imagePath)) {
                     File::delete($imagePath);
+                }
+                if (isset($img['thumbnail']) && $img['thumbnail']) {
+                    if ($is_video) {
+                        $thumbPath = public_path($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/video thumbnail/' . $img['thumbnail']);
+                    } else {
+                        $thumbPath = public_path($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['thumbnail']);
+                    }
+
+                    if (File::exists($thumbPath)) {
+                        File::delete($thumbPath);
+                    }
                 }
                 unset($images[$key]);
                 $found = true;

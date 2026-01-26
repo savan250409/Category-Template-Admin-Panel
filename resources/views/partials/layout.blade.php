@@ -80,7 +80,7 @@
 
             {{-- AI Image Module Header --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
-                AI Image Module
+                AI Baby Image Module
             </li>
 
             @php
@@ -297,7 +297,7 @@
             @endphp
 
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
-                AI Video Module
+                AI Baby Video Module
             </li>
 
             <li class="nav-item mb-1">
@@ -395,6 +395,10 @@
 
 
             {{-- AI Image NGD (NGD Module) --}}
+
+              <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+               AI Image NGD Module
+            </li>
             @php
                 $isNGDActive = request()->is('ngendev/categories*') || request()->is('ngendev/images*');
                 // Check if NGD setting is active

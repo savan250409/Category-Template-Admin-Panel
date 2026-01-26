@@ -17,7 +17,8 @@
 
                     @if ($subcategory->category_thumbnail_image)
                         <div class="text-center mt-3">
-                            <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                            @php $pathPrefix = request('origin') === 'video' ? 'upload/AI Baby Video/' : 'upload/'; @endphp
+                            <img src="{{ asset($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
                                 class="img-fluid rounded shadow-sm" style="max-height:200px;" alt="Category Thumbnail">
                         </div>
                     @endif
@@ -67,7 +68,7 @@
                                                 @if(request('origin') === 'video')
                                                     <video class="card-img-top" style="height:200px; object-fit:cover;" controls>
                                                         <source
-                                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                            src="{{ asset('upload/AI Baby Video/' . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $img['file']) }}"
                                                             type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
                                                         Your browser does not support the video tag.
                                                     </video>
@@ -174,7 +175,8 @@
                                 {{ request('origin') === 'video' ? 'Video' : 'Image' }}</label>
                             @if ($subcategory->category_thumbnail_image)
                                 <div class="mb-2">
-                                    <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                    @php $pathPrefix = request('origin') === 'video' ? 'upload/AI Baby Video/' : 'upload/'; @endphp
+                                    <img src="{{ asset($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
                                         class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="remove_thumbnail"
@@ -199,7 +201,7 @@
                                                     <video class="img-fluid rounded mb-2" style="height:120px; object-fit:cover;"
                                                         controls>
                                                         <source
-                                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
+                                                            src="{{ asset('upload/AI Baby Video/' . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $img['file']) }}"
                                                             type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
                                                     </video>
                                                 @else

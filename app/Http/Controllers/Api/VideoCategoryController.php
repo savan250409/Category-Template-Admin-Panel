@@ -30,7 +30,7 @@ class VideoCategoryController extends Controller
                 $categoryName = trim($subcat->category_name);
                 $subcatTitle = trim($subcat->title);
 
-                $thumbnailPath = $subcat->category_thumbnail_image ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}" : null;
+                $thumbnailPath = $subcat->category_thumbnail_image ? "AI Baby Video/{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}" : null;
 
                 return [
                     'id' => $subcat->id,
@@ -83,7 +83,7 @@ class VideoCategoryController extends Controller
 
                 // Thumbnail path
                 $thumbnailPath = $subcat->category_thumbnail_image
-                    ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+                    ? "AI Baby Video/{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
                     : null;
 
                 // Decode images
@@ -92,12 +92,12 @@ class VideoCategoryController extends Controller
                 // Total images count
                 $totalCount = count($images);
 
-                // Random image
-                $subcategoryImage = null;
+                // Random video thumbnail
+                $subcategoryVideoThumbnail = null;
                 if (!empty($images)) {
                     $randomImage = collect($images)->random();
-                    if (isset($randomImage['file'])) {
-                        $subcategoryImage = "{$categoryName}/{$subcatTitle}/{$randomImage['file']}";
+                    if (isset($randomImage['thumbnail']) && $randomImage['thumbnail']) {
+                        $subcategoryVideoThumbnail = "AI Baby Video/{$categoryName}/{$subcatTitle}/{$randomImage['thumbnail']}";
                     }
                 }
 
@@ -106,7 +106,7 @@ class VideoCategoryController extends Controller
                     'title' => $subcat->title,
                     'thumbnail' => $thumbnailPath,
                     'total_count' => $totalCount,
-                    'subcategories_image' => $subcategoryImage,
+                    'subcategories_video_thumbnail' => $subcategoryVideoThumbnail,
                 ];
             });
 
@@ -190,6 +190,7 @@ class VideoCategoryController extends Controller
 
             $categoryName = trim($subcat->category_name);
             $subcatTitle = trim($subcat->title);
+            $pathPrefix = "AI Baby Video/";
 
             foreach ($images as $img) {
                 $file = $img['file'] ?? null;
@@ -199,8 +200,15 @@ class VideoCategoryController extends Controller
                 $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
                 if ($file) {
+                    $thumbnailName = $img['thumbnail'] ?? null;
+                    $thumbnailUrl = null;
+                    if ($thumbnailName) {
+                        $thumbnailUrl = "{$pathPrefix}{$categoryName}/{$subcatTitle}/{$thumbnailName}";
+                    }
+
                     $formattedImages[] = [
-                        'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                        'url' => "{$pathPrefix}{$categoryName}/{$subcatTitle}/{$file}",
+                        'thumbnail' => $thumbnailUrl,
                         'prompt' => $prompt,
                         'video_title' => $videoTitle,
                         'name_change' => $nameChange,
@@ -232,7 +240,7 @@ class VideoCategoryController extends Controller
             $categoryName = trim($subcat->category_name);
             $subcatTitle = trim($subcat->title);
             $thumbnailPath = $subcat->category_thumbnail_image
-                ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+                ? "AI Baby Video/{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
                 : null;
 
             return [

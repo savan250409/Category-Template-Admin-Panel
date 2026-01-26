@@ -66,8 +66,11 @@
                                     {{ $subcategory->id ? '' : '*' }}</label>
                                 @if ($subcategory->id && $subcategory->category_thumbnail_image)
                                     <div class="mb-2">
+                                        @php
+                                            $pathPrefix = request('origin') === 'video' ? 'upload/AI Baby Video/' : 'upload/';
+                                        @endphp
                                         <img id="thumbnailPreview"
-                                            src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
+                                            src="{{ asset($pathPrefix . $subcategory->category_name . '/' . $subcategory->title . '/category_thumbnail/' . $subcategory->category_thumbnail_image) }}"
                                             class="img-fluid rounded" style="height:120px; object-fit:cover;">
                                     </div>
                                 @else
