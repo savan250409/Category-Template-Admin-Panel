@@ -92,12 +92,16 @@ class VideoCategoryController extends Controller
                 // Total images count
                 $totalCount = count($images);
 
-                // Random video thumbnail
+                // Random video thumbnail (DOMAIN REMOVED)
                 $subcategoryVideoThumbnail = null;
                 if (!empty($images)) {
                     $randomImage = collect($images)->random();
                     if (isset($randomImage['thumbnail']) && $randomImage['thumbnail']) {
-                        $subcategoryVideoThumbnail = "AI Baby Video/{$categoryName}/{$subcatTitle}/{$randomImage['thumbnail']}";
+                        $subcategoryVideoThumbnail =
+                            'AI Baby Video/' .
+                            $categoryName . '/' .
+                            $subcatTitle . '/video thumbnail/' .
+                            $randomImage['thumbnail'];
                     }
                 }
 
@@ -124,6 +128,7 @@ class VideoCategoryController extends Controller
         ]);
     }
 
+
     public function getSubcategoriesByCategory(Request $request)
     {
         $validator = \Validator::make($request->all(), [
@@ -138,7 +143,7 @@ class VideoCategoryController extends Controller
                     'message' => 'Validation error',
                     'errors' => $validator->errors(),
                 ],
-                422,
+                422
             );
         }
 
@@ -156,7 +161,7 @@ class VideoCategoryController extends Controller
                     'main_category' => $mainCategory,
                     'subcategories' => [],
                 ],
-                403,
+                403
             );
         }
 
@@ -179,35 +184,47 @@ class VideoCategoryController extends Controller
                     'category_name' => $subCategoryName,
                     'subcategories' => [],
                 ],
-                200,
+                200
             );
         }
 
-        // Format images including image_title and name_change
+        // Format images (DOMAIN REMOVED ONLY)
         $subcategories->transform(function ($subcat) {
+
             $images = json_decode($subcat->videos, true) ?? [];
             $formattedImages = [];
 
             $categoryName = trim($subcat->category_name);
             $subcatTitle = trim($subcat->title);
-            $pathPrefix = "AI Baby Video/";
 
             foreach ($images as $img) {
+
                 $file = $img['file'] ?? null;
                 $prompt = $img['prompt'] ?? '';
-                // Check for video_title, fallback to image_title
                 $videoTitle = $img['video_title'] ?? ($img['image_title'] ?? '');
                 $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
                 if ($file) {
-                    $thumbnailName = $img['thumbnail'] ?? null;
+
+                    // RELATIVE VIDEO PATH
+                    $videoUrl =
+                        'AI Baby Video/' .
+                        $categoryName . '/' .
+                        $subcatTitle . '/video/' .
+                        $file;
+
+                    // RELATIVE THUMBNAIL PATH
                     $thumbnailUrl = null;
-                    if ($thumbnailName) {
-                        $thumbnailUrl = "{$pathPrefix}{$categoryName}/{$subcatTitle}/{$thumbnailName}";
+                    if (!empty($img['thumbnail'])) {
+                        $thumbnailUrl =
+                            'AI Baby Video/' .
+                            $categoryName . '/' .
+                            $subcatTitle . '/video thumbnail/' .
+                            $img['thumbnail'];
                     }
 
                     $formattedImages[] = [
-                        'url' => "{$pathPrefix}{$categoryName}/{$subcatTitle}/{$file}",
+                        'url' => $videoUrl,
                         'thumbnail' => $thumbnailUrl,
                         'prompt' => $prompt,
                         'video_title' => $videoTitle,
@@ -231,6 +248,8 @@ class VideoCategoryController extends Controller
             'subcategories' => $subcategories,
         ]);
     }
+
+
 
     public function trending()
     {
