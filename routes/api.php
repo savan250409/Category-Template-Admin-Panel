@@ -43,3 +43,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
 });
+
+
+Route::get('getAllCategoryNames', [NgendevCategoryApiController::class, 'getAllCategoryNames']);

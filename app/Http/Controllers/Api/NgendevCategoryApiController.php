@@ -372,4 +372,25 @@ class NgendevCategoryApiController extends Controller
             'data' => $images,
         ]);
     }
+     public function getAllCategoryNames()
+{
+    $categories = NgendevCategory::select('id', 'category_name')
+        ->where('status', 1)
+        ->orderBy('id', 'desc') // DESCENDING
+        ->get();
+
+    if ($categories->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'No categories found',
+            'data' => [],
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Categories fetched successfully',
+        'data' => $categories,
+    ]);
+}
 }
