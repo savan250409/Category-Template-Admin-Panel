@@ -66,7 +66,7 @@ class NgendevCategoryController extends Controller
 
         NgendevCategory::create([
             'category_name' => $request->category_name,
-            'status' => $request->has('status') ? $request->status : 1, // Default to 1 (Active)
+            'status' => $request->has('status') ? 1 : 0,
             'category_image' => json_encode($images),
         ]);
 
