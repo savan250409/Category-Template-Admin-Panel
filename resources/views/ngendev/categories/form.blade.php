@@ -99,9 +99,17 @@
                                     <p class="mb-1">Current Images:</p>
                                     <div class="d-flex flex-wrap gap-2">
                                         @foreach ($images as $img)
-                                            <img src="{{ asset('upload/ngendev/images/' . str_replace(' ', '_', $category->category_name) . '/category_thumbnail_image/' . $img) }}"
-                                                class="category-image-preview">
-                                        @endforeach
+    <img
+        src="{{ asset(
+            'upload/ngendev/images/' .
+            rawurlencode($category->category_name) .
+            '/category_thumbnail_image/' .
+            rawurlencode($img)
+        ) }}"
+        class="category-image-preview"
+    >
+@endforeach
+
                                     </div>
                                 </div>
                             @endif
