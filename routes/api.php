@@ -29,6 +29,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::middleware('jwt.auth')->group(function () {
     Route::get('/getAllCategories', [CategoryController::class, 'getAllCategories']);
     Route::get('/v2/getAllCategories', [CategoryController::class, 'getAllCategoriesv2']);
+    Route::get('/v3/getAllCategories', [CategoryController::class, 'getAllCategoriesv3']);
     Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
     Route::get('/trending', [CategoryController::class, 'trending']);
 

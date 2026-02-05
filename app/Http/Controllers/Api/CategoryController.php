@@ -124,6 +124,98 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function getAllCategoriesV3()
+    {
+        // Baby AI model
+        $babyAiSetting = AiImageBabyPhotoSetting::first();
+        $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
+
+        // Active categories
+        $activeCategories = AiImageCategory::where('status', 1)->pluck('name');
+
+        $response = [];
+
+        foreach ($activeCategories as $category) {
+
+            $subcategories = Subcategory::where('category_name', $category)
+                ->orderBy('id', 'desc')
+                // Limit to 6 records
+                ->limit(4)
+                ->get([
+                    'id',
+                    'title',
+                    'category_name',
+                    'category_thumbnail_image',
+                    'images'
+                ]);
+
+            $formattedSubcategories = $subcategories->map(function ($subcat) {
+
+                $categoryName = trim($subcat->category_name);
+                $subcatTitle = trim($subcat->title);
+
+                // Thumbnail path
+                $thumbnailPath = $subcat->category_thumbnail_image
+                    ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+                    : null;
+
+                // Decode images
+                $images = json_decode($subcat->images, true) ?? [];
+                $formattedImages = [];
+
+                foreach ($images as $img) {
+                    $file = $img['file'] ?? null;
+                    $prompt = $img['prompt'] ?? '';
+                    $imageTitle = $img['image_title'] ?? '';
+                    $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
+
+                    if ($file) {
+                        $formattedImages[] = [
+                            'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                            'prompt' => $prompt,
+                            'image_title' => $imageTitle,
+                            'name_change' => $nameChange,
+                        ];
+                    }
+                }
+
+                if ($subcatTitle === 'Baby Month Milestone') {
+                    $uniqueMonthImages = [];
+                    foreach ($formattedImages as $img) {
+                        if (preg_match('/^(\d+)\s*Month/i', $img['image_title'], $matches)) {
+                            $month = (int) $matches[1];
+                            $uniqueMonthImages[$month] = $img;
+                        }
+                    }
+                    ksort($uniqueMonthImages);
+                    $formattedImages = array_values($uniqueMonthImages);
+                } else {
+                    // Limit to last 6 images
+                    $formattedImages = array_slice($formattedImages, -4);
+                }
+
+                return [
+                    'id' => $subcat->id,
+                    'title' => $subcat->title,
+                    'thumbnail' => $thumbnailPath,
+                    'images' => $formattedImages,
+                ];
+
+
+            });
+
+
+            $response = array_merge($response, $formattedSubcategories->toArray());
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Categories retrieved successfully',
+            'model' => $babyAiModel,
+            'data' => $response,
+        ]);
+    }
+
     public function getSubcategoriesByCategory(Request $request)
     {
         $validator = \Validator::make($request->all(), [
