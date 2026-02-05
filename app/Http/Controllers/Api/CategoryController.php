@@ -314,7 +314,99 @@ class CategoryController extends Controller
             'subcategories' => $subcategories,
         ]);
     }
-    public function trending()
+
+    public function getSubcategoriesByCategoryid(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'sub_category_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors(),
+                ],
+                422,
+            );
+        }
+
+        $subCategoryId = $request->sub_category_id;
+
+        // Get subcategory
+        $subCategory = Subcategory::where('id', $subCategoryId)->first(['id', 'title', 'description', 'images', 'category_name']);
+
+        if (!$subCategory) {
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'No data found for the given sub category id',
+                    'sub_category_id' => $subCategoryId,
+                    'data' => [],
+                ],
+                200,
+            );
+        }
+
+        $mainCategory = $subCategory->category_name;
+        $subCategoryName = $subCategory->title;
+
+        // Check if the main category is active
+        $category = AiImageCategory::where('name', $mainCategory)->first();
+
+        if (!$category || $category->status != 1) {
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => 'This category is not active',
+                    'main_category' => $mainCategory,
+                    'data' => [],
+                ],
+                403,
+            );
+        }
+
+        // Get Baby AI setting
+        $babyAiSetting = AiImageBabyPhotoSetting::first();
+        $babyAiModel = $babyAiSetting ? $babyAiSetting->model : null;
+
+        // Format images
+        $images = json_decode($subCategory->images, true) ?? [];
+        $formattedImages = [];
+
+        $categoryName = trim($subCategory->category_name);
+        $subcatTitle = trim($subCategory->title);
+
+        foreach ($images as $img) {
+            $file = $img['file'] ?? null;
+            $prompt = $img['prompt'] ?? '';
+            $imageTitle = $img['image_title'] ?? '';
+            $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
+
+            if ($file) {
+                $formattedImages[] = [
+                    'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                    'prompt' => $prompt,
+                    'image_title' => $imageTitle,
+                    'name_change' => $nameChange,
+                ];
+            }
+        }
+
+        $subCategory->images = $formattedImages;
+        unset($subCategory->category_name);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Subcategories retrieved successfully',
+            'model' => $babyAiModel,
+            'main_category' => $mainCategory,
+            'category_name' => $subCategoryName,
+            'subcategories' => [$subCategory],
+        ]);
+    }
+    public function trendingv2()
     {
         $trendingSubcategories = Subcategory::where('trending', 1)->get();
 
@@ -326,6 +418,7 @@ class CategoryController extends Controller
                 : null;
 
             return [
+                'id' => $subcat->id,
                 'main_category_name' => $categoryName,
                 'name' => $subcatTitle,
                 'thumbnail' => $thumbnailPath,
