@@ -70,10 +70,10 @@ class SubcategoryController extends Controller
         $pathPrefix = $is_video ? 'upload/AI Baby Video/' : 'upload/';
 
         $categoryFolder = $request->category_name;
-        $subcategoryFolder = $request->title;
+        $subcategoryFolder = $subcategory->title;
 
         // Handle folder rename if category or title changed
-        if ($id && $oldTitle && ($oldTitle !== $request->title || $oldCategory !== $request->category_name)) {
+        if ($id && $oldTitle && ($oldTitle !== $subcategory->title || $oldCategory !== $request->category_name)) {
             $oldFolder = public_path($pathPrefix . $oldCategory . '/' . $oldTitle);
             $newFolder = public_path($pathPrefix . $categoryFolder . '/' . $subcategoryFolder);
             $newFolderParent = dirname($newFolder);
@@ -374,11 +374,30 @@ class SubcategoryController extends Controller
         $subcategory->description = $request->description;
         $subcategory->trending = $request->has('trending') ? 1 : 0;
 
-        // Current resolved folders
+        // Update Title
+        $subcategory->title = $request->title;
+        $subcategory->save(); // Save immediately to update model state for folder logic
+
+        // Current resolved folders (New Values)
         $categoryFolder = $subcategory->category_name;
         $subcategoryFolder = $subcategory->title;
 
-        // Base folders
+        // Handle Folder Rename Logic for saveDetails
+        if ($oldTitle && $oldTitle !== $subcategory->title) {
+            $oldFolder = public_path($pathPrefix . $oldCategory . '/' . $oldTitle);
+            $newFolder = public_path($pathPrefix . $categoryFolder . '/' . $subcategoryFolder);
+            $newFolderParent = dirname($newFolder);
+
+            if (!is_dir($newFolderParent)) {
+                @mkdir($newFolderParent, 0755, true);
+            }
+
+            if (file_exists($oldFolder)) {
+                rename($oldFolder, $newFolder);
+            }
+        }
+
+        // Base folders (New Paths)
         $baseFolder = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}");
         $catThumbFolder = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/category_thumbnail");
 
