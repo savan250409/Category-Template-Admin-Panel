@@ -36,8 +36,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // Video Module API
     Route::get('/video/getAllCategories', [VideoCategoryController::class, 'getAllCategories']);
-    Route::get('/video/v2/getAllCategories', [VideoCategoryController::class, 'getAllCategoriesV2']);
-    Route::post('/video/getSubcategoriesByCategory', [VideoCategoryController::class, 'getSubcategoriesByCategory']);
+    Route::post('/video/getSubcategoriesByCategoryid', [VideoCategoryController::class, 'getSubcategoriesByCategoryid']);
     Route::get('/video/trending', [VideoCategoryController::class, 'trending']);
 
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
