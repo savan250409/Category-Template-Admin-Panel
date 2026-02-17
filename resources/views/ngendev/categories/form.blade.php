@@ -78,18 +78,17 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="status" class="form-label">Status</label>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="status" name="status" value="1"
-                            {{ isset($category) && $category->status ? 'checked' : '' }}>
-                        <label class="form-check-label" for="status">Active</label>
-                    </div>
+                    <label for="type" class="form-label">Type</label>
+                    <select class="form-select" id="type" name="type" required>
+                        <option value="Solo" {{ (old('type', $category->type ?? '') == 'Solo') ? 'selected' : '' }}>Solo</option>
+                        <option value="Couple" {{ (old('type', $category->type ?? '') == 'Couple') ? 'selected' : '' }}>Couple</option>
+                    </select>
                 </div>
 
                 <div class="mb-4">
                     <label for="category_image" class="form-label">Category Image(s)</label>
                     <input type="file" class="form-control" id="category_image" name="category_image[]" accept="image/*"
-                        multiple onchange="previewImage(this)">
+                        multiple onchange="previewImage(this)" {{ isset($category) ? '' : 'required' }}>
 
                     <div class="mt-3">
                         @if (isset($category) && $category->category_image)
@@ -109,7 +108,6 @@
         class="category-image-preview"
     >
 @endforeach
-
                                     </div>
                                 </div>
                             @endif
@@ -120,6 +118,17 @@
                             <div id="newImagePreviewList" class="d-flex flex-wrap gap-2"></div>
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="status" name="status" value="1"
+                            {{ old('status', $category->status ?? 1) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="status">Active Status</label>
+                    </div>
+                    <small class="text-muted" id="status-help">
+                        Solo categories are always active.
+                    </small>
                 </div>
 
                 <div class="d-grid">
@@ -154,5 +163,26 @@
                 previewContainer.classList.add('d-none');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeSelect = document.getElementById('type');
+            const statusCheck = document.getElementById('status');
+            const statusHelp = document.getElementById('status-help');
+
+            function updateStatusVisibility() {
+                if (typeSelect.value === 'Solo') {
+                    statusCheck.checked = true;
+                    statusCheck.disabled = true;
+                    statusHelp.style.display = 'block';
+                } else {
+                    statusCheck.disabled = false;
+                    statusHelp.style.display = 'none';
+                }
+            }
+
+            typeSelect.addEventListener('change', updateStatusVisibility);
+            
+            updateStatusVisibility();
+        });
     </script>
 @endsection

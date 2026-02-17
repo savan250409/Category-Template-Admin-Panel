@@ -125,6 +125,13 @@
                     <i class="bi bi-collection"></i> Total: <span id="total-categories">{{ $categories->total() }}</span>
                     Categories
                 </span>
+                <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+                    <label class="form-check-label me-2 fw-bold small text-secondary" for="couple-status-toggle">Couple
+                        Status:</label>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="couple-status-toggle" {{ isset($coupleActive) && $coupleActive ? 'checked' : '' }}>
+                    </div>
+                </div>
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
                     <i class="bi bi-arrow-up-down me-2"></i>Indexing
                 </button>
@@ -317,13 +324,13 @@
             function loadCategoriesForIndexing() {
                 const container = document.getElementById('categoriesContainer');
                 container.innerHTML = `
-                                    <div class="col-12 text-center text-muted py-5">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2">Loading categories...</p>
-                                    </div>
-                                `;
+                                            <div class="col-12 text-center text-muted py-5">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <p class="mt-2">Loading categories...</p>
+                                            </div>
+                                        `;
 
                 $.ajax({
                     url: "{{ route('ngendev.categories.indexing') }}",
@@ -334,21 +341,21 @@
                             initializeSortable();
                         } else {
                             container.innerHTML = `
-                                                <div class="col-12 text-center text-muted py-5">
-                                                    <i class="bi bi-tags fs-1"></i>
-                                                    <p class="mt-2">No categories found</p>
-                                                </div>
-                                            `;
+                                                        <div class="col-12 text-center text-muted py-5">
+                                                            <i class="bi bi-tags fs-1"></i>
+                                                            <p class="mt-2">No categories found</p>
+                                                        </div>
+                                                    `;
                         }
                     },
                     error: function (xhr) {
                         console.error('Error loading categories:', xhr.responseText);
                         container.innerHTML = `
-                                             <div class="col-12 text-center text-danger py-5">
-                                                <i class="bi bi-exclamation-triangle fs-1"></i>
-                                                <p class="mt-2">Error loading categories</p>
-                                            </div>
-                                        `;
+                                                     <div class="col-12 text-center text-danger py-5">
+                                                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                                                        <p class="mt-2">Error loading categories</p>
+                                                    </div>
+                                                `;
                     }
                 });
             }
@@ -360,15 +367,15 @@
                 categories.forEach((category, index) => {
                     // console.log(category);
                     const categoryHtml = `
-                                        <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-grip-vertical me-2 text-muted"></i>
-                                                <span class="fw-bold me-2">${index + 1}.</span>
-                                                <span>${category.category_name}</span>
-                                            </div>
-                                            <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
-                                        </div>
-                                    `;
+                                                <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                                                        <span class="fw-bold me-2">${index + 1}.</span>
+                                                        <span>${category.category_name}</span>
+                                                    </div>
+                                                    <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
+                                                </div>
+                                            `;
                     container.innerHTML += categoryHtml;
                 });
             }
@@ -490,6 +497,14 @@
                                 icon: 'success',
                                 title: res.message
                             });
+                        } else {
+                            // Revert if success is false
+                            $(`#status-${id}`).prop('checked', !isChecked);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: res.message
+                            });
                         }
                     },
                     error: function (xhr) {
@@ -500,6 +515,86 @@
                             icon: 'error',
                             title: 'Error',
                             text: 'Failed to update status'
+                        });
+                    }
+                });
+            });
+
+            // Global Couple Status Toggle
+            $('#couple-status-toggle').on('change', function () {
+                const isChecked = $(this).is(':checked');
+                const status = isChecked ? 1 : 0;
+
+                $.ajax({
+                    url: "{{ route('ngendev.categories.updateCoupleStatus') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        status: status
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: res.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        // Revert on error
+                        $('#couple-status-toggle').prop('checked', !isChecked);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update global couple status'
+                        });
+                    }
+                });
+            });
+
+            // Type Change
+            $(document).on('change', '.type-select', function () {
+                const id = $(this).data('id');
+                const type = $(this).val();
+
+                $.ajax({
+                    url: "{{ route('ngendev.categories.updateType') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        type: type
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: res.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update type'
                         });
                     }
                 });

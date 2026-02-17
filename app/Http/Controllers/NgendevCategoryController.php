@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\NgendevCategory;
 use App\Models\NgendevImage;
+use App\Models\AiImageNgdSetting;
 use Illuminate\Support\Facades\File;
 
 class NgendevCategoryController extends Controller
@@ -22,11 +23,13 @@ class NgendevCategoryController extends Controller
 
         $categories = $query->orderBy('sort_order', 'asc')->latest()->paginate($perPage)->withQueryString();
 
+        $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
+
         if ($request->ajax()) {
-            return view('ngendev.categories.table', compact('categories', 'perPage', 'search'));
+            return view('ngendev.categories.table', compact('categories', 'perPage', 'search', 'coupleActive'));
         }
 
-        return view('ngendev.categories.index', compact('categories', 'perPage', 'search'));
+        return view('ngendev.categories.index', compact('categories', 'perPage', 'search', 'coupleActive'));
     }
 
     public function create()
@@ -39,7 +42,9 @@ class NgendevCategoryController extends Controller
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name',
             'status' => 'boolean',
-            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'type' => 'required|in:Solo,Couple',
+            'category_image' => 'required',
+            'category_image.*' => 'image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
         $categoryFolder = $request->category_name;
@@ -64,9 +69,20 @@ class NgendevCategoryController extends Controller
             }
         }
 
+        $status = $request->has('status') ? 1 : 0;
+        if ($request->type === 'Solo') {
+            $status = 1;
+        } elseif ($request->type === 'Couple') {
+            $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
+            if (!$coupleActive) {
+                $status = 0;
+            }
+        }
+
         NgendevCategory::create([
             'category_name' => $request->category_name,
-            'status' => $request->has('status') ? 1 : 0,
+            'status' => $status,
+            'type' => $request->type,
             'category_image' => json_encode($images),
         ]);
 
@@ -86,6 +102,7 @@ class NgendevCategoryController extends Controller
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name,' . $id,
             'status' => 'boolean',
+            'type' => 'required|in:Solo,Couple',
             'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
         ]);
 
@@ -130,9 +147,20 @@ class NgendevCategoryController extends Controller
             $images = $category->category_image ? json_decode($category->category_image, true) : [];
         }
 
+        $status = $request->has('status') ? $request->status : 0; // Handles unchecked checkbox
+        if ($request->type === 'Solo') {
+            $status = 1;
+        } elseif ($request->type === 'Couple') {
+            $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
+            if (!$coupleActive) {
+                $status = 0;
+            }
+        }
+
         $category->update([
             'category_name' => $newName,
-            'status' => $request->has('status') ? $request->status : 0, // Handles unchecked checkbox
+            'status' => $status,
+            'type' => $request->type,
             'category_image' => json_encode($images),
         ]);
 
@@ -200,9 +228,60 @@ class NgendevCategoryController extends Controller
         ]);
 
         $category = NgendevCategory::find($request->id);
+
+        if ($category->type === 'Solo' && $request->status == 0) {
+            return response()->json(['success' => false, 'message' => 'Solo categories must be active!']);
+        }
+
+        if ($category->type === 'Couple' && $request->status == 1) {
+            $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
+            if (!$coupleActive) {
+                return response()->json(['success' => false, 'message' => 'Cannot activate category because global Couple Status is OFF!']);
+            }
+        }
+
         $category->status = $request->status;
         $category->save();
 
         return response()->json(['success' => true, 'message' => 'Status updated successfully!']);
+    }
+
+    public function updateType(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:ngendev_categories,id',
+            'type' => 'required|in:Solo,Couple',
+        ]);
+
+        $category = NgendevCategory::find($request->id);
+        $category->type = $request->type;
+
+        if ($request->type === 'Solo') {
+            $category->status = 1;
+        }
+
+        $category->save();
+
+        return response()->json(['success' => true, 'message' => 'Category type updated successfully!']);
+    }
+
+    public function updateCoupleStatus(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|boolean',
+        ]);
+
+        $setting = \App\Models\AiImageNgdSetting::first();
+
+        if (!$setting) {
+            $setting = new \App\Models\AiImageNgdSetting();
+        }
+
+        $setting->couple_active = (int) $request->status;
+        $setting->save();
+
+        NgendevCategory::where('type', 'Couple')->update(['status' => (int) $request->status]);
+
+        return response()->json(['success' => true, 'message' => 'Global couple status updated successfully!']);
     }
 }

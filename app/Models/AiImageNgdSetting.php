@@ -10,5 +10,5 @@ class AiImageNgdSetting extends Model
     use HasFactory;
 
     protected $table = 'ai_image_ngd_setting';
-    protected $fillable = ['model'];
+    protected $fillable = ['model', 'couple_active'];
 }

@@ -98,6 +98,8 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::put('/categories/{id}', [NgendevCategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{id}', [NgendevCategoryController::class, 'destroy'])->name('categories.destroy');
             Route::post('/categories/update-status', [NgendevCategoryController::class, 'updateStatus'])->name('categories.updateStatus');
+            Route::post('/categories/update-type', [NgendevCategoryController::class, 'updateType'])->name('categories.updateType');
+            Route::post('/categories/update-couple-status', [NgendevCategoryController::class, 'updateCoupleStatus'])->name('categories.updateCoupleStatus');
         });
 
     /*
