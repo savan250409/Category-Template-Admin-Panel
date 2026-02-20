@@ -46,7 +46,7 @@ class AiVideoCategoryController extends Controller
         if ($request->hasFile('category_image')) {
             $file = $request->file('category_image');
             $filename = $file->getClientOriginalName();
-            $relativePath = 'upload/Ai Baby Video/' . $request->category_name . '/category thumbanail';
+            $relativePath = 'upload/AI Baby Video/' . $request->category_name . '/category thumbanail';
             $path = public_path($relativePath);
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0777, true);
@@ -95,7 +95,7 @@ class AiVideoCategoryController extends Controller
 
             $file = $request->file('category_image');
             $filename = $file->getClientOriginalName();
-            $relativePath = 'upload/Ai Baby Video/' . $request->category_name . '/category thumbanail';
+            $relativePath = 'upload/AI Baby Video/' . $request->category_name . '/category thumbanail';
             $path = public_path($relativePath);
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0777, true);

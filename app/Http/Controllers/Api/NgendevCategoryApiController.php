@@ -123,6 +123,7 @@ class NgendevCategoryApiController extends Controller
             'data' => $sortedCategories->values(),
         ]);
     }
+
     public function getAiImageByCategoryId(Request $request)
     {
         $data = $request->json()->all();

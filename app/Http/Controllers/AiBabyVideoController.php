@@ -57,7 +57,7 @@ class AiBabyVideoController extends Controller
             $file = $request->file('video_path');
             $filename = $file->getClientOriginalName();
 
-            $videoRelativePath = 'upload/Ai Baby Video/' . $category->category_name . '/video';
+            $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
             $videoDestPath = public_path($videoRelativePath);
 
             if (!File::exists($videoDestPath)) {
@@ -74,7 +74,7 @@ class AiBabyVideoController extends Controller
                 $image = str_replace(' ', '+', $image);
                 $imageName = 'thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
 
-                $thumbRelativePath = 'upload/Ai Baby Video/' . $category->category_name . '/video thumbanail';
+                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
                 $thumbDestPath = public_path($thumbRelativePath);
                 if (!File::exists($thumbDestPath)) {
                     File::makeDirectory($thumbDestPath, 0777, true);
@@ -142,7 +142,7 @@ class AiBabyVideoController extends Controller
             $file = $request->file('video_path');
             $filename = $file->getClientOriginalName();
 
-            $videoRelativePath = 'upload/Ai Baby Video/' . $category->category_name . '/video';
+            $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
             $videoDestPath = public_path($videoRelativePath);
 
             if (!File::exists($videoDestPath)) {
@@ -159,7 +159,7 @@ class AiBabyVideoController extends Controller
                 $image = str_replace(' ', '+', $image);
                 $imageName = 'thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
 
-                $thumbRelativePath = 'upload/Ai Baby Video/' . $category->category_name . '/video thumbanail';
+                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
                 $thumbDestPath = public_path($thumbRelativePath);
                 if (!File::exists($thumbDestPath)) {
                     File::makeDirectory($thumbDestPath, 0777, true);
