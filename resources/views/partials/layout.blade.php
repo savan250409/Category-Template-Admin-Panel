@@ -230,9 +230,6 @@
                 $(document).on('change', '.toggle-status', function () {
                     let categoryName = $(this).data('name');
                     let status = $(this).is(':checked') ? 1 : 0;
-                    // Determine which route to call based on the data-type attribute (added to inputs) or context.
-                    // For simplicity, we can inspect the section header or use a specific class.
-                    // Or, we can update the JS to handle both.
 
                     let url = "{{ route('ai-image-categories.toggle-status') }}";
                     if ($(this).hasClass('video-category')) {
@@ -249,7 +246,6 @@
                         },
                         success: function (res) {
                             if (res.success) {
-                                // Update label text next to toggle
                                 let label = $('input[data-name="' + categoryName + '"]').closest('li').find(
                                     'span').first();
                                 label.text(res.status ? 'Published' : 'Draft');
@@ -264,36 +260,11 @@
 
             {{-- AI Baby Video Module --}}
             @php
-                use App\Models\AiVideoCategory;
-
-                $videoCategories = AiVideoCategory::orderBy('id')->get();
-                // Reuse existing $allSubs or existing logic if needed but it depends on 'category_name' matching.
-
-                $isBabyVideoActive = false;
-
-                foreach ($videoCategories as $cat) {
-                    $subs = $allVideoSubs[$cat->name] ?? [];
-
-                    // Check if subcategory form is open
-                    $subActive =
-                        $isSubRoute &&
-                        $currentRoute === 'subcategories.form' &&
-                        request('category_name') === $cat->name;
-
-                    // Check if show page of this subcategory
-                    $activeSub =
-                        $isSubRoute && $currentRoute === 'subcategories.show'
-                        ? collect($subs)->first(fn($s) => $currentSubId == $s->id)
-                        : null;
-
-                    if ($subActive || $activeSub) {
-                        $isBabyVideoActive = true;
-                        break;
-                    }
-                }
-
                 $isBabyVideoSettingActive = request()->routeIs('ai-baby-video-module-setting.index');
-                $isBabyVideoActive = $isBabyVideoActive || $isBabyVideoSettingActive;
+                $isBabyVideoCategoryActive = request()->routeIs('ai-baby-video.categories.*');
+                $isBabyVideoItemActive = request()->routeIs('ai-baby-video.videos.*');
+
+                $isBabyVideoActive = $isBabyVideoSettingActive || $isBabyVideoCategoryActive || $isBabyVideoItemActive;
             @endphp
 
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
@@ -323,73 +294,23 @@
                         </a>
                     </li>
 
-                    @foreach ($videoCategories as $cat)
-                        @php
-                            $catId = 'vid-cat-' . Str::slug($cat->name, '-');
-                            
-                            $isVideoOrigin = request('origin') === 'video';
+                    {{-- AI Video Category --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ $isBabyVideoCategoryActive ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-baby-video.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>AI Video Category</span>
+                        </a>
+                    </li>
 
-                            $subActive =
-                                $isSubRoute &&
-                                $currentRoute === 'subcategories.form' &&
-                                request('category_name') === $cat->name;
-                                
-                            $activeSub =
-                                $isSubRoute && $currentRoute === 'subcategories.show'
-                                ? collect($allVideoSubs[$cat->name] ?? [])->first(fn($s) => $currentSubId == $s->id)
-                                : null;
-                                
-                            $isOpen = ($subActive || $activeSub) && $isVideoOrigin;
-                        @endphp
-
-                        <li class="nav-item mb-1">
-                            <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
-                                {{ $isOpen ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#{{ $catId }}"
-                                style="transition: all 0.2s;">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-folder-fill me-2 text-info"></i>
-                                    <span class="fw-semibold">{{ $cat->name }}</span>
-                                </div>
-                                <i class="bi bi-chevron-down small chevron-icon"></i>
-                            </a>
-
-                            <ul id="{{ $catId }}" class="submenu-list nav flex-column ps-4 mt-2"
-                                style="display: {{ $isOpen ? 'block' : 'none' }}">
-
-                                {{-- Add Subcategory --}}
-                                <li class="mb-1">
-                                    <a href="{{ route('subcategories.form', ['category_name' => $cat->name, 'origin' => 'video']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                            {{ $subActive && $isVideoOrigin ? 'active bg-primary text-white' : 'text-light' }}"
-                                        style="transition: all 0.2s;">
-                                        <i class="bi bi-plus-circle me-2"></i>
-                                        <span>Add Subcategory</span>
-                                    </a>
-                                </li>
-
-                                {{-- Existing Subcategories --}}
-                                @foreach ($allVideoSubs[$cat->name] ?? [] as $sub)
-                                                    <li class="mb-1">
-                                                        <a href="{{ route('subcategories.show', ['id' => $sub->id, 'origin' => 'video']) }}" class="nav-link d-flex align-items-center px-2 py-1 rounded-2
-                                                                                                            {{ $isSubRoute && $currentRoute === 'subcategories.show' && $currentSubId == $sub->id && $isVideoOrigin
-                                    ? 'active bg-primary text-white'
-                                    : 'text-light' }}">
-                                                            <i class="bi bi-circle me-2"></i>
-                                                            <span>{{ $sub->title }}</span>
-                                                        </a>
-                                                    </li>
-                                @endforeach
-
-                                {{-- Toggle button --}}
-                                <li class="mb-1 mt-1 d-flex align-items-center px-2 py-1 rounded-2">
-                                    <span class="text-light me-2">{{ $cat->status ? 'Published' : 'Draft' }}</span>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input toggle-status video-category" type="checkbox"
-                                            data-name="{{ $cat->name }}" {{ $cat->status ? 'checked' : '' }}>
-                                    </div>
-                                </li>
-                            </ul>
-                        </li>
-                    @endforeach
+                    {{-- AI Baby Video --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ $isBabyVideoItemActive ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-baby-video.videos.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-play-btn me-2"></i>
+                            <span>AI Baby Video</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -401,7 +322,6 @@
             </li>
             @php
                 $isNGDActive = request()->is('ngendev/categories*') || request()->is('ngendev/images*');
-                // Check if NGD setting is active
                 $isNGDSettingActive = request()->routeIs('ai-image-ngd-setting.index');
                 $isNGDActive = $isNGDActive || $isNGDSettingActive;
             @endphp
@@ -652,6 +572,7 @@
                     document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
                         const p = normalizePath(a.getAttribute('href') || '');
                         if (p === activePath) {
+                            a.classList.remove('text-light');
                             a.classList.add('active', 'bg-primary', 'text-white');
                         }
                     });

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AiVideoCategory;
-use App\Models\AiVideoSubcategory;
+use App\Models\AiBabyVideo;
 use App\Models\AiBabyVideoModuleSetting;
 
 class VideoCategoryController extends Controller
@@ -16,84 +16,75 @@ class VideoCategoryController extends Controller
         $videoSetting = AiBabyVideoModuleSetting::first();
         $videoModel = $videoSetting ? $videoSetting->model : null;
 
-        // Active categories
-        $activeCategories = AiVideoCategory::where('status', 1)->pluck('name');
+        // Get active categories
+        $activeCategories = AiVideoCategory::where('status', 1)->get();
 
         $response = [];
 
         foreach ($activeCategories as $category) {
+            $categoryName = trim($category->category_name);
 
-            $subcategories = AiVideoSubcategory::where('category_name', $category)
-                ->orderBy('id', 'desc')
-                // Limit to 4 records
-                ->limit(4)
-                ->get([
-                    'id',
-                    'title',
-                    'category_name',
-                    'category_thumbnail_image',
-                    'videos'
-                ]);
+            // Thumbnail path
+            $thumbnailPath = $category->category_image
+                ? "AI Baby Video/Category/{$category->category_image}"
+                : null;
 
-            $formattedSubcategories = $subcategories->map(function ($subcat) {
+            // Get videos for this category
+            $videos = AiBabyVideo::where('category_id', $category->id)->orderBy('id', 'desc')->get(); // Get all videos initially to process
 
-                $categoryName = trim($subcat->category_name);
-                $subcatTitle = trim($subcat->title);
+            $formattedVideos = [];
 
-                // Thumbnail path
-                $thumbnailPath = $subcat->category_thumbnail_image
-                    ? "AI Baby Video/{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
-                    : null;
+            foreach ($videos as $vid) {
+                $file = $vid->video_path;
+                $prompt = $vid->ai_prompt ?? '';
+                $videoTitle = $vid->video_title;
+                $nameChange = (bool) $vid->name_change;
+                $thumbnail = $vid->video_thumbnail;
 
-                // Decode videos
-                $videos = json_decode($subcat->videos, true) ?? [];
-                $formattedVideos = [];
+                if ($file) {
+                    $videoPath = "AI Baby Video/{$categoryName}/{$file}";
+                    $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/{$thumbnail}" : null;
 
-                foreach ($videos as $vid) {
-                    $file = $vid['file'] ?? null;
-                    $prompt = $vid['prompt'] ?? '';
-                    $videoTitle = $vid['video_title'] ?? ($vid['image_title'] ?? '');
-                    $nameChange = isset($vid['name_change']) ? (bool) $vid['name_change'] : false;
-                    $thumbnail = $vid['thumbnail'] ?? null;
-
-                    if ($file) {
-                        $videoPath = "AI Baby Video/{$categoryName}/{$subcatTitle}/video/{$file}";
-                        $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/{$subcatTitle}/video thumbnail/{$thumbnail}" : null;
-
-                        $formattedVideos[] = [
-                            'url' => $videoPath,
-                            'thumbnail' => $videoThumbnailPath,
-                            'prompt' => $prompt,
-                            'video_title' => $videoTitle,
-                            'name_change' => $nameChange,
-                        ];
-                    }
+                    $formattedVideos[] = [
+                        'url' => $videoPath,
+                        'thumbnail' => $videoThumbnailPath,
+                        'prompt' => $prompt,
+                        'video_title' => $videoTitle,
+                        'name_change' => $nameChange,
+                    ];
                 }
+            }
 
-                if ($subcatTitle === 'Baby Month Milestone') {
-                    $uniqueMonthVideos = [];
-                    foreach ($formattedVideos as $vid) {
-                        if (preg_match('/^(\d+)\s*Month/i', $vid['video_title'], $matches)) {
-                            $month = (int) $matches[1];
+            // Special logic only if Category Name is EXACTLY 'Baby Month Milestone'
+            if ($categoryName === 'Baby Month Milestone') {
+                $uniqueMonthVideos = [];
+                foreach ($formattedVideos as $vid) {
+                    // Try to extract month number from title like "1 Month", "2 Month" etc.
+                    if (preg_match('/^(\d+)\s*Month/i', $vid['video_title'], $matches)) {
+                        $month = (int) $matches[1];
+                        // If multiple videos exist for same month, this will take the last one processed (which is latest due to orderBy id desc?)
+                        // Wait, orderBy id desc means latest first. So this takes the first one encountered (latest).
+                        // Array key overwrite.
+                        if (!isset($uniqueMonthVideos[$month])) {
                             $uniqueMonthVideos[$month] = $vid;
                         }
                     }
-                    ksort($uniqueMonthVideos);
-                    $formattedVideos = array_values($uniqueMonthVideos);
-                } else {
-                    // Limit to last 4 videos
-                    $formattedVideos = array_slice($formattedVideos, -4);
                 }
+                ksort($uniqueMonthVideos);
+                $formattedVideos = array_values($uniqueMonthVideos);
+            } else {
+                // Limit to last 4 videos for the main list view (as per original logic)
+                // Original logic: ->limit(4) on database query or array_slice.
+                // Since we fetched all to process, we slice here.
+                $formattedVideos = array_slice($formattedVideos, 0, 4);
+            }
 
-                return [
-                    'id' => $subcat->id,
-                    'title' => $subcat->title,
-                    'thumbnail' => $thumbnailPath,
-                    'videos' => $formattedVideos,
-                ];
-            });
-
-            $response = array_merge($response, $formattedSubcategories->toArray());
+            $response[] = [
+                'id' => $category->id,
+                'title' => $category->category_name, // Mapping category_name to title
+                'thumbnail' => $thumbnailPath,
+                'videos' => $formattedVideos,
+            ];
         }
 
         return response()->json([
@@ -123,14 +114,14 @@ class VideoCategoryController extends Controller
 
         $subCategoryId = $request->sub_category_id;
 
-        // Get subcategory
-        $subCategory = AiVideoSubcategory::where('id', $subCategoryId)->first(['id', 'title', 'description', 'videos', 'category_name']);
+        // Get category (Acting as subcategory in this context)
+        $category = AiVideoCategory::find($subCategoryId);
 
-        if (!$subCategory) {
+        if (!$category) {
             return response()->json(
                 [
                     'status' => false,
-                    'message' => 'No data found for the given sub category id',
+                    'message' => 'No data found for the given category id',
                     'sub_category_id' => $subCategoryId,
                     'data' => [],
                 ],
@@ -138,18 +129,12 @@ class VideoCategoryController extends Controller
             );
         }
 
-        $mainCategory = $subCategory->category_name;
-        $subCategoryName = $subCategory->title;
-
-        // Check if the main category is active
-        $category = AiVideoCategory::where('name', $mainCategory)->first();
-
-        if (!$category || $category->status != 1) {
+        if ($category->status != 1) {
             return response()->json(
                 [
                     'status' => false,
                     'message' => 'This category is not active',
-                    'main_category' => $mainCategory,
+                    'main_category' => $category->category_name, // Best guess for main_category
                     'data' => [],
                 ],
                 403,
@@ -160,23 +145,22 @@ class VideoCategoryController extends Controller
         $videoSetting = AiBabyVideoModuleSetting::first();
         $videoModel = $videoSetting ? $videoSetting->model : null;
 
-        // Format videos
-        $videos = json_decode($subCategory->videos, true) ?? [];
+        $categoryName = trim($category->category_name);
+
+        // Get videos
+        $videos = AiBabyVideo::where('category_id', $category->id)->orderBy('id', 'desc')->get();
         $formattedVideos = [];
 
-        $categoryName = trim($subCategory->category_name);
-        $subcatTitle = trim($subCategory->title);
-
         foreach ($videos as $vid) {
-            $file = $vid['file'] ?? null;
-            $prompt = $vid['prompt'] ?? '';
-            $videoTitle = $vid['video_title'] ?? ($vid['image_title'] ?? '');
-            $nameChange = isset($vid['name_change']) ? (bool) $vid['name_change'] : false;
-            $thumbnail = $vid['thumbnail'] ?? null;
+            $file = $vid->video_path;
+            $prompt = $vid->ai_prompt ?? '';
+            $videoTitle = $vid->video_title;
+            $nameChange = (bool) $vid->name_change;
+            $thumbnail = $vid->video_thumbnail;
 
             if ($file) {
-                $videoPath = "AI Baby Video/{$categoryName}/{$subcatTitle}/video/{$file}";
-                $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/{$subcatTitle}/video thumbnail/{$thumbnail}" : null;
+                $videoPath = "AI Baby Video/{$categoryName}/{$file}";
+                $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/{$thumbnail}" : null;
 
                 $formattedVideos[] = [
                     'url' => $videoPath,
@@ -188,42 +172,49 @@ class VideoCategoryController extends Controller
             }
         }
 
-        $subCategory->videos = $formattedVideos;
-        unset($subCategory->category_name);
+        // Prepare the response structure to match old API
+        // Old API returned a 'subcategories' array with one item (the detailed subcategory)
+        $subCategoryResponse = [
+            'id' => $category->id,
+            'title' => $category->category_name,
+            'description' => '', // Description not in new schema, return empty string
+            'videos' => $formattedVideos,
+            // category_name removed in old code via unset, so not including it here inside the object
+        ];
 
         return response()->json([
             'status' => true,
-            'message' => 'Subcategories retrieved successfully',
+            'message' => 'Subcategories retrieved successfully', // Keeping message same
             'model' => $videoModel,
-            'main_category' => $mainCategory,
-            'category_name' => $subCategoryName,
-            'subcategories' => [$subCategory],
+            'main_category' => $categoryName, // Using category name as main category
+            'category_name' => $categoryName, // Using category name as sub category name
+            'subcategories' => [$subCategoryResponse],
         ]);
     }
 
     public function trending()
     {
-        $trendingSubcategories = AiVideoSubcategory::where('trending', 1)->get();
+        $trendingCategories = AiVideoCategory::where('trending', 1)->where('status', 1)->get();
 
-        $data = $trendingSubcategories->map(function ($subcat) {
-            $categoryName = trim($subcat->category_name);
-            $subcatTitle = trim($subcat->title);
-            $thumbnailPath = $subcat->category_thumbnail_image
-                ? "AI Baby Video/{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
+        $data = $trendingCategories->map(function ($category) {
+            $categoryName = trim($category->category_name);
+
+            $thumbnailPath = $category->category_image
+                ? "AI Baby Video/Category/{$category->category_image}"
                 : null;
 
             return [
-                'id' => $subcat->id,
-                'main_category_name' => $categoryName,
-                'name' => $subcatTitle,
+                'id' => $category->id,
+                'main_category_name' => $categoryName, // Mapping category_name to main_category_name
+                'name' => $categoryName, // Mapping as subcategory name
                 'thumbnail' => $thumbnailPath,
-                'description' => $subcat->description,
+                'description' => '', // No description column
             ];
         });
 
         return response()->json([
             'status' => true,
-            'message' => 'Trending video subcategories retrieved successfully',
+            'message' => 'Trending video categories retrieved successfully',
             'data' => $data,
         ]);
     }

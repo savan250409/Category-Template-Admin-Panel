@@ -135,9 +135,31 @@ Route::middleware(['admin_auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | AI Baby Video Module Setting Routes
+    | AI Baby Video Module Routes
     |--------------------------------------------------------------------------
     */
+    // Category Management
+    Route::prefix('ai-baby-video')
+        ->name('ai-baby-video.')
+        ->group(function () {
+            // Categories
+            Route::get('/categories', [App\Http\Controllers\AiVideoCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories/create', [App\Http\Controllers\AiVideoCategoryController::class, 'create'])->name('categories.create');
+            Route::post('/categories', [App\Http\Controllers\AiVideoCategoryController::class, 'store'])->name('categories.store');
+            Route::get('/categories/{id}/edit', [App\Http\Controllers\AiVideoCategoryController::class, 'edit'])->name('categories.edit');
+            Route::put('/categories/{id}', [App\Http\Controllers\AiVideoCategoryController::class, 'update'])->name('categories.update');
+            Route::delete('/categories/{id}', [App\Http\Controllers\AiVideoCategoryController::class, 'destroy'])->name('categories.destroy');
+            Route::post('/categories/update-status', [App\Http\Controllers\AiVideoCategoryController::class, 'toggleStatus'])->name('categories.updateStatus');
+
+            // Videos (Subcategories used as Video Items)
+            Route::get('/videos', [App\Http\Controllers\AiBabyVideoController::class, 'index'])->name('videos.index');
+            Route::get('/videos/create', [App\Http\Controllers\AiBabyVideoController::class, 'create'])->name('videos.create');
+            Route::post('/videos', [App\Http\Controllers\AiBabyVideoController::class, 'store'])->name('videos.store');
+            Route::get('/videos/{id}/edit', [App\Http\Controllers\AiBabyVideoController::class, 'edit'])->name('videos.edit');
+            Route::put('/videos/{id}', [App\Http\Controllers\AiBabyVideoController::class, 'update'])->name('videos.update');
+            Route::delete('/videos/{id}', [App\Http\Controllers\AiBabyVideoController::class, 'destroy'])->name('videos.destroy');
+        });
+
     Route::prefix('ai-baby-video-module-setting')
         ->name('ai-baby-video-module-setting.')
         ->group(function () {

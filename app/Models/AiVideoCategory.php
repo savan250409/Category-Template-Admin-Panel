@@ -9,7 +9,12 @@ class AiVideoCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'ai_video_categories';
+    protected $table = 'ai_baby_video_categories';
 
-    protected $fillable = ['name', 'status'];
+    protected $fillable = [
+        'category_name',
+        'category_image',
+        'trending',
+        'status'
+    ];
 }

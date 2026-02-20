@@ -33,9 +33,8 @@ class AppServiceProvider extends ServiceProvider
             $categories = ['Newborn Baby', 'Baby Bumps', 'Toddler (1–3 Years Old)', 'Festival Frames', 'Birthday Photo', 'Unique Style', 'Invitation card'];
 
             $allSubs = Subcategory::all()->groupBy('category_name');
-            $allVideoSubs = \App\Models\AiVideoSubcategory::all()->groupBy('category_name');
 
-            $view->with(compact('categories', 'allSubs', 'allVideoSubs'));
+            $view->with(compact('categories', 'allSubs'));
         });
     }
 }
