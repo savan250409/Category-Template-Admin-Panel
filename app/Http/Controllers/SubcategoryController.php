@@ -372,10 +372,12 @@ class SubcategoryController extends Controller
 
         // Update simple fields
         $subcategory->description = $request->description;
-        $subcategory->trending = $request->has('trending') ? 1 : 0;
+        // $subcategory->trending = $request->has('trending') ? 1 : 0; // Removed as field is not in form
 
         // Update Title
-        $subcategory->title = $request->title;
+        if ($request->has('title')) {
+            $subcategory->title = $request->title;
+        }
         $subcategory->save(); // Save immediately to update model state for folder logic
 
         // Current resolved folders (New Values)
