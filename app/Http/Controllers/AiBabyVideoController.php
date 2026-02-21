@@ -16,18 +16,26 @@ class AiBabyVideoController extends Controller
 
         $query = AiBabyVideo::with('category');
 
+        if ($request->has('category_id') && $request->category_id != '') {
+            $query->where('category_id', $request->category_id);
+        }
+
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('ai_prompt', 'like', "%{$search}%")
-                    ->orWhere('video_title', 'like', "%{$search}%")
-                    ->orWhereHas('category', function ($q) use ($search) {
-                        $q->where('category_name', 'like', "%{$search}%");
-                    });
+                    ->orWhere('video_title', 'like', "%{$search}%");
             });
         }
 
-        $videos = $query->latest()->paginate(10); // Check if pagination works or needs adjustment
+        $videos = $query->latest()->paginate(10);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('ai_baby_video.videos.table', compact('videos'))->render(),
+                'total' => $videos->total(),
+            ]);
+        }
 
         return view('ai_baby_video.videos.index', compact('categories', 'videos'));
     }
