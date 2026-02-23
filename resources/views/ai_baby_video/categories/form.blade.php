@@ -60,16 +60,21 @@
 
                 <div class="mb-3">
                     <label for="category_image" class="form-label">Category Image</label>
-                    <input type="file" class="form-control" id="category_image" name="category_image" accept="image/*">
-                    @if (isset($category) && $category->category_image)
-                        <div class="mt-2">
+                    <input type="file" class="form-control" id="category_image" name="category_image" accept="image/*" onchange="previewImage(event)">
+                    
+                    <div class="mt-2" id="image_preview_container" style="{{ (isset($category) && $category->category_image) ? '' : 'display: none;' }}">
+                        @if (isset($category) && $category->category_image)
                              @if(Str::startsWith($category->category_image, 'upload/'))
-                                <img src="{{ asset($category->category_image) }}" alt="Category Image" width="100" class="img-thumbnail">
+                                <img id="image_preview" src="{{ asset($category->category_image) }}" alt="Category Image" width="100" class="img-thumbnail">
+                            @elseif(file_exists(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image)))
+                                <img id="image_preview" src="{{ asset('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image) }}" alt="Category Image" width="100" class="img-thumbnail">
                             @else
-                                <img src="{{ asset('upload/AI Baby Video/Category/' . $category->category_image) }}" alt="Category Image" width="100" class="img-thumbnail">
+                                <img id="image_preview" src="{{ asset('upload/AI Baby Video/Category/' . $category->category_image) }}" alt="Category Image" width="100" class="img-thumbnail">
                             @endif
-                        </div>
-                    @endif
+                        @else
+                            <img id="image_preview" src="" alt="Category Image" width="100" class="img-thumbnail">
+                        @endif
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -100,6 +105,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function previewImage(event) {
+            const input = event.target;
+            const container = document.getElementById('image_preview_container');
+            const preview = document.getElementById('image_preview');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.style.display = 'block';
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             @if(session('success'))
             Swal.fire({

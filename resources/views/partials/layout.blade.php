@@ -260,7 +260,7 @@
 
             {{-- AI Baby Video Module --}}
             @php
-                $isBabyVideoSettingActive = request()->routeIs('ai-baby-video-module-setting.index');
+                $isBabyVideoSettingActive = request()->routeIs('ai-baby-video-module-setting.*');
                 $isBabyVideoCategoryActive = request()->routeIs('ai-baby-video.categories.*');
                 $isBabyVideoItemActive = request()->routeIs('ai-baby-video.videos.*');
 
@@ -569,13 +569,22 @@
             function restoreSidebarState() {
                 const activePath = localStorage.getItem('sidebar_active_path');
                 if (activePath) {
-                    document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
-                        const p = normalizePath(a.getAttribute('href') || '');
-                        if (p === activePath) {
-                            a.classList.remove('text-light');
-                            a.classList.add('active', 'bg-primary', 'text-white');
-                        }
+                    
+                    // Always default behavior over localstorage highlighting since blade sets it correctly
+                    let backendActiveFound = false;
+                    document.querySelectorAll('#sidebar-nav a.nav-link.active').forEach(a => {
+                         backendActiveFound = true;
                     });
+                    
+                    if(!backendActiveFound) {
+                        document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
+                            const p = normalizePath(a.getAttribute('href') || '');
+                            if (p === activePath) {
+                                a.classList.remove('text-light');
+                                a.classList.add('active', 'bg-primary', 'text-white');
+                            }
+                        });
+                    }
                 }
             }
 

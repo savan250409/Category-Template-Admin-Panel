@@ -148,8 +148,11 @@
                                             @if(\Illuminate\Support\Str::startsWith($category->category_image, 'upload/'))
                                                 <img src="{{ asset($category->category_image) }}"
                                                     alt="{{ $category->category_name }}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #eee;">
-                                            @else
+                                            @elseif(file_exists(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image)))
                                                 <img src="{{ asset('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image) }}"
+                                                    alt="{{ $category->category_name }}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #eee;">
+                                            @else
+                                                <img src="{{ asset('upload/AI Baby Video/Category/' . $category->category_image) }}"
                                                     alt="{{ $category->category_name }}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #eee;">
                                             @endif
                                         @else

@@ -88,6 +88,8 @@ class AiVideoCategoryController extends Controller
             if ($category->category_image) {
                 if (file_exists(public_path($category->category_image))) {
                     unlink(public_path($category->category_image));
+                } elseif (file_exists(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image))) {
+                    unlink(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image));
                 } elseif (file_exists(public_path('upload/AI Baby Video/Category/' . $category->category_image))) {
                     unlink(public_path('upload/AI Baby Video/Category/' . $category->category_image));
                 }
@@ -122,6 +124,8 @@ class AiVideoCategoryController extends Controller
         if ($category->category_image) {
             if (file_exists(public_path($category->category_image))) {
                 unlink(public_path($category->category_image));
+            } elseif (file_exists(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image))) {
+                unlink(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image));
             } elseif (file_exists(public_path('upload/AI Baby Video/Category/' . $category->category_image))) {
                 unlink(public_path('upload/AI Baby Video/Category/' . $category->category_image));
             }
