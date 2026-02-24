@@ -26,6 +26,33 @@
             max-width: 150px;
             max-height: 100px;
         }
+
+        .preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-media-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74a3b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            z-index: 10;
+        }
+
+        .preview-container:hover .remove-media-btn {
+            display: flex;
+        }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -57,7 +84,7 @@
                 @endif
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label for="category_id" class="form-label">Category</label>
                         <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Select Category</option>
@@ -68,49 +95,67 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label for="video_path" class="form-label">Video File</label>
                         <input type="file" class="form-control" id="video_path" name="video_path" accept="video/*"
-                            onchange="generateThumbnail(this)">
-                        <small class="text-muted">Upload a video to automatically generate a thumbnail.</small>
-                        <small id="thumbnailStatus" class="text-info d-none"><i class="bi bi-hourglass-split"></i>
-                            Generating thumbnail...</small>
-                        <input type="hidden" name="generated_thumbnail" id="generated_thumbnail">
-                        <canvas id="thumbnailCanvas" style="display: none;"></canvas>
+                            onchange="previewVideoUpload(this)">
+                        <small class="text-muted">Upload a video for preview.</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="video_thumbnail" class="form-label">Video Thumbnail</label>
+                        <input type="file" class="form-control" id="video_thumbnail" name="video_thumbnail" accept="image/*"
+                            onchange="previewThumbnailUpload(this)">
+                        <small class="text-muted">Upload a thumbnail image.</small>
+                    </div>
+                </div>
 
-                        <div id="videoPreviewContainer"
-                            class="mt-3 {{ isset($video) && $video->video_path ? '' : 'd-none' }}">
-                            <div class="d-flex align-items-start gap-4 p-3 bg-light rounded border">
-                                <div>
-                                    <span class="d-block text-muted small mb-2 fw-bold">Video Preview</span>
-                                    @php
-                                        $videoAsset = '';
-                                        if (isset($video) && $video->video_path) {
-                                            if (Str::startsWith($video->video_path, 'upload/')) {
-                                                $videoAsset = asset($video->video_path);
-                                            } else {
-                                                $videoAsset = asset('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path);
-                                            }
-                                        }
-                                    @endphp
-                                    <video id="previewVideo" src="{{ $videoAsset }}" controls
-                                        class="video-preview rounded shadow-sm"></video>
-                                </div>
-                                <div>
-                                    <span class="d-block text-muted small mb-2 fw-bold">Thumbnail Preview</span>
-                                    @php
-                                        $thumbAsset = '';
-                                        if (isset($video) && $video->video_thumbnail) {
-                                            if (Str::startsWith($video->video_thumbnail, 'upload/')) {
-                                                $thumbAsset = asset($video->video_thumbnail);
-                                            } else {
-                                                $thumbAsset = asset('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail);
-                                            }
-                                        }
-                                    @endphp
-                                    <img id="thumbPreview" src="{{ $thumbAsset }}" class="rounded shadow-sm"
-                                        style="max-width: 150px; border: 1px solid #ddd;">
-                                </div>
+                <input type="hidden" name="remove_video" id="remove_video" value="0">
+                <input type="hidden" name="remove_thumbnail" id="remove_thumbnail" value="0">
+
+                <div id="videoPreviewContainer"
+                    class="mb-3 {{ isset($video) && ($video->video_path || $video->video_thumbnail) ? '' : 'd-none' }}">
+                    <div class="d-flex align-items-start gap-4 p-3 bg-light rounded border">
+                        <div id="videoPreviewWrapper" class="{{ (isset($video) && $video->video_path) ? '' : 'd-none' }}">
+                            <span class="d-block text-muted small mb-2 fw-bold">Video Preview</span>
+                            @php
+                                $videoAsset = '';
+                                if (isset($video) && $video->video_path) {
+                                    if (Str::startsWith($video->video_path, 'upload/')) {
+                                        $videoAsset = asset($video->video_path);
+                                    } else {
+                                        $videoAsset = asset('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path);
+                                    }
+                                }
+                            @endphp
+                            <div class="preview-container">
+                                <button type="button" class="remove-media-btn" onclick="removeVideo()" title="Remove Video">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                <video id="previewVideo" src="{{ $videoAsset }}" controls
+                                    class="video-preview rounded shadow-sm {{ $videoAsset ? '' : 'd-none' }}"></video>
+                            </div>
+                        </div>
+                        <div id="thumbPreviewWrapper"
+                            class="{{ (isset($video) && $video->video_thumbnail) ? '' : 'd-none' }}">
+                            <span class="d-block text-muted small mb-2 fw-bold">Thumbnail Preview</span>
+                            @php
+                                $thumbAsset = '';
+                                if (isset($video) && $video->video_thumbnail) {
+                                    if (Str::startsWith($video->video_thumbnail, 'upload/')) {
+                                        $thumbAsset = asset($video->video_thumbnail);
+                                    } else {
+                                        $thumbAsset = asset('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail);
+                                    }
+                                }
+                            @endphp
+                            <div class="preview-container">
+                                <button type="button" class="remove-media-btn" onclick="removeThumbnail()"
+                                    title="Remove Thumbnail">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                <img id="thumbPreview" src="{{ $thumbAsset }}"
+                                    class="rounded shadow-sm {{ $thumbAsset ? '' : 'd-none' }}"
+                                    style="max-width: 150px; border: 1px solid #ddd;">
                             </div>
                         </div>
                     </div>
@@ -174,65 +219,64 @@
                     timerProgressBar: true,
                 });
             @endif
-            });
+                    });
 
-        function generateThumbnail(input) {
-            const submitBtn = document.getElementById('submitBtn');
-            const statusText = document.getElementById('thumbnailStatus');
-
+        function previewVideoUpload(input) {
             if (input.files && input.files[0]) {
-                // Disable submit button and show status
-                submitBtn.disabled = true;
-                if (statusText) statusText.classList.remove('d-none');
-
                 var file = input.files[0];
                 var fileURL = URL.createObjectURL(file);
-                var video = document.createElement('video');
-                var canvas = document.getElementById('thumbnailCanvas');
-                var context = canvas.getContext('2d');
-                var thumbPreview = document.getElementById('thumbPreview');
+                var videoPreview = document.getElementById('previewVideo');
 
-                video.src = fileURL;
-                video.muted = true;
-                video.preload = 'metadata';
-
-                // Fallback timeout in case video fails to load
-                const timeout = setTimeout(() => {
-                    submitBtn.disabled = false;
-                    if (statusText) statusText.classList.add('d-none');
-                    console.error("Thumbnail generation timed out");
-                }, 5000);
-
-                video.onloadedmetadata = function () {
-                    video.currentTime = 1;
-                };
-
-                video.onseeked = function () {
-                    clearTimeout(timeout);
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    var dataURL = canvas.toDataURL('image/jpeg', 0.7);
-                    document.getElementById('generated_thumbnail').value = dataURL;
-                    thumbPreview.src = dataURL;
-
-                    URL.revokeObjectURL(fileURL);
-
-                    submitBtn.disabled = false;
-                    if (statusText) statusText.classList.add('d-none');
-                };
-
-                video.onerror = function () {
-                    clearTimeout(timeout);
-                    submitBtn.disabled = false;
-                    if (statusText) statusText.classList.add('d-none');
-                    console.error("Error loading video for thumbnail");
-                };
-
-                // Show preview
-                document.getElementById('previewVideo').src = fileURL;
+                videoPreview.src = fileURL;
+                videoPreview.classList.remove('d-none');
+                document.getElementById('videoPreviewWrapper').classList.remove('d-none');
                 document.getElementById('videoPreviewContainer').classList.remove('d-none');
+                document.getElementById('remove_video').value = '0';
+            }
+        }
+
+        function previewThumbnailUpload(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var thumbPreview = document.getElementById('thumbPreview');
+                    thumbPreview.src = e.target.result;
+                    thumbPreview.classList.remove('d-none');
+                    document.getElementById('thumbPreviewWrapper').classList.remove('d-none');
+                    document.getElementById('videoPreviewContainer').classList.remove('d-none');
+                    document.getElementById('remove_thumbnail').value = '0';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeVideo() {
+            document.getElementById('video_path').value = '';
+            document.getElementById('previewVideo').src = '';
+            document.getElementById('previewVideo').classList.add('d-none');
+            document.getElementById('videoPreviewWrapper').classList.add('d-none');
+            document.getElementById('remove_video').value = '1';
+
+            checkContainerVisibility();
+        }
+
+        function removeThumbnail() {
+            document.getElementById('video_thumbnail').value = '';
+            document.getElementById('thumbPreview').src = '';
+            document.getElementById('thumbPreview').classList.add('d-none');
+            document.getElementById('thumbPreviewWrapper').classList.add('d-none');
+            document.getElementById('remove_thumbnail').value = '1';
+
+            checkContainerVisibility();
+        }
+
+        function checkContainerVisibility() {
+            var hasVideo = !document.getElementById('videoPreviewWrapper').classList.contains('d-none');
+            var hasThumb = !document.getElementById('thumbPreviewWrapper').classList.contains('d-none');
+
+            if (!hasVideo && !hasThumb) {
+                document.getElementById('videoPreviewContainer').classList.add('d-none');
             }
         }
     </script>

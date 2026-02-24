@@ -52,6 +52,7 @@ class AiBabyVideoController extends Controller
             'category_id' => 'required|exists:ai_baby_video_categories,id',
             'video_title' => 'required|string|max:255',
             'video_path' => 'required|mimes:mp4,mov,avi,wmv|max:51200',
+            'video_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'ai_prompt' => 'nullable|string',
             'name_change' => 'boolean',
         ]);
@@ -74,23 +75,21 @@ class AiBabyVideoController extends Controller
 
             $file->move($videoDestPath, $filename);
             $videoPath = $filename;
+        }
 
-            // Handle Client-Generated Thumbnail
-            if ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
-                $image = $request->generated_thumbnail;
-                $image = str_replace('data:image/jpeg;base64,', '', $image);
-                $image = str_replace(' ', '+', $image);
-                $imageName = 'thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
+        if ($request->hasFile('video_thumbnail')) {
+            $thumbFile = $request->file('video_thumbnail');
+            $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
 
-                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
-                $thumbDestPath = public_path($thumbRelativePath);
-                if (!File::exists($thumbDestPath)) {
-                    File::makeDirectory($thumbDestPath, 0777, true);
-                }
+            $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
+            $thumbDestPath = public_path($thumbRelativePath);
 
-                File::put($thumbDestPath . '/' . $imageName, base64_decode($image));
-                $thumbnailPath = $imageName;
+            if (!File::exists($thumbDestPath)) {
+                File::makeDirectory($thumbDestPath, 0777, true);
             }
+
+            $thumbFile->move($thumbDestPath, $thumbFilename);
+            $thumbnailPath = $thumbFilename;
         }
 
         AiBabyVideo::create([
@@ -120,6 +119,7 @@ class AiBabyVideoController extends Controller
             'category_id' => 'required|exists:ai_baby_video_categories,id',
             'video_title' => 'required|string|max:255',
             'video_path' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
+            'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'ai_prompt' => 'nullable|string',
             'name_change' => 'boolean',
         ]);
@@ -131,19 +131,14 @@ class AiBabyVideoController extends Controller
         $basePathLegacy = 'upload/AI Baby Video/' . $category->category_name . '/';
 
         if ($request->hasFile('video_path')) {
-            // Delete old video and thumbnail
+            // Delete old video
             if ($video->video_path) {
                 if (file_exists(public_path($video->video_path))) {
                     unlink(public_path($video->video_path));
                 } elseif (file_exists(public_path($basePathLegacy . $video->video_path))) {
                     unlink(public_path($basePathLegacy . $video->video_path));
-                }
-            }
-            if ($video->video_thumbnail) {
-                if (file_exists(public_path($video->video_thumbnail))) {
-                    unlink(public_path($video->video_thumbnail));
-                } elseif (file_exists(public_path($basePathLegacy . $video->video_thumbnail))) {
-                    unlink(public_path($basePathLegacy . $video->video_thumbnail));
+                } elseif (file_exists(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path))) {
+                    unlink(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path));
                 }
             }
 
@@ -159,23 +154,54 @@ class AiBabyVideoController extends Controller
 
             $file->move($videoDestPath, $filename);
             $videoPath = $filename;
-
-            // Handle Client-Generated Thumbnail
-            if ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
-                $image = $request->generated_thumbnail;
-                $image = str_replace('data:image/jpeg;base64,', '', $image);
-                $image = str_replace(' ', '+', $image);
-                $imageName = 'thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
-
-                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
-                $thumbDestPath = public_path($thumbRelativePath);
-                if (!File::exists($thumbDestPath)) {
-                    File::makeDirectory($thumbDestPath, 0777, true);
+        } elseif ($request->has('remove_video') && $request->remove_video == '1') {
+            if ($video->video_path) {
+                if (file_exists(public_path($video->video_path))) {
+                    unlink(public_path($video->video_path));
+                } elseif (file_exists(public_path($basePathLegacy . $video->video_path))) {
+                    unlink(public_path($basePathLegacy . $video->video_path));
+                } elseif (file_exists(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path))) {
+                    unlink(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video/' . $video->video_path));
                 }
-
-                File::put($thumbDestPath . '/' . $imageName, base64_decode($image));
-                $thumbnailPath = $imageName;
             }
+            $videoPath = null;
+        }
+
+        if ($request->hasFile('video_thumbnail')) {
+            // Delete old thumbnail
+            if ($video->video_thumbnail) {
+                if (file_exists(public_path($video->video_thumbnail))) {
+                    unlink(public_path($video->video_thumbnail));
+                } elseif (file_exists(public_path($basePathLegacy . $video->video_thumbnail))) {
+                    unlink(public_path($basePathLegacy . $video->video_thumbnail));
+                } elseif (file_exists(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail))) {
+                    unlink(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail));
+                }
+            }
+
+            $thumbFile = $request->file('video_thumbnail');
+            $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
+
+            $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
+            $thumbDestPath = public_path($thumbRelativePath);
+
+            if (!File::exists($thumbDestPath)) {
+                File::makeDirectory($thumbDestPath, 0777, true);
+            }
+
+            $thumbFile->move($thumbDestPath, $thumbFilename);
+            $thumbnailPath = $thumbFilename;
+        } elseif ($request->has('remove_thumbnail') && $request->remove_thumbnail == '1') {
+            if ($video->video_thumbnail) {
+                if (file_exists(public_path($video->video_thumbnail))) {
+                    unlink(public_path($video->video_thumbnail));
+                } elseif (file_exists(public_path($basePathLegacy . $video->video_thumbnail))) {
+                    unlink(public_path($basePathLegacy . $video->video_thumbnail));
+                } elseif (file_exists(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail))) {
+                    unlink(public_path('upload/AI Baby Video/' . $video->category->category_name . '/video thumbanail/' . $video->video_thumbnail));
+                }
+            }
+            $thumbnailPath = null;
         }
 
         $video->update([
@@ -197,12 +223,16 @@ class AiBabyVideoController extends Controller
         $categoryName = $category ? $category->category_name : '';
 
         $basePathLegacy = 'upload/AI Baby Video/' . $categoryName . '/';
+        $videoDir = public_path('upload/AI Baby Video/' . $categoryName . '/video');
+        $thumbDir = public_path('upload/AI Baby Video/' . $categoryName . '/video thumbanail');
 
         if ($video->video_path) {
             if (file_exists(public_path($video->video_path))) {
                 unlink(public_path($video->video_path));
             } elseif (file_exists(public_path($basePathLegacy . $video->video_path))) {
                 unlink(public_path($basePathLegacy . $video->video_path));
+            } elseif (file_exists($videoDir . '/' . $video->video_path)) {
+                unlink($videoDir . '/' . $video->video_path);
             }
         }
 
@@ -211,7 +241,19 @@ class AiBabyVideoController extends Controller
                 unlink(public_path($video->video_thumbnail));
             } elseif (file_exists(public_path($basePathLegacy . $video->video_thumbnail))) {
                 unlink(public_path($basePathLegacy . $video->video_thumbnail));
+            } elseif (file_exists($thumbDir . '/' . $video->video_thumbnail)) {
+                unlink($thumbDir . '/' . $video->video_thumbnail);
             }
+        }
+
+        // Check and delete empty video directory
+        if (is_dir($videoDir) && count(glob($videoDir . '/*')) === 0) {
+            rmdir($videoDir);
+        }
+
+        // Check and delete empty thumbnail directory
+        if (is_dir($thumbDir) && count(glob($thumbDir . '/*')) === 0) {
+            rmdir($thumbDir);
         }
 
         $video->delete();
