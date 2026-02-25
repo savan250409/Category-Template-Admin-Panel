@@ -161,12 +161,26 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="ai_prompt" class="form-label">AI Prompt</label>
-                    <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="3"
-                        placeholder="Enter AI Prompt">{{ old('ai_prompt', $video->ai_prompt ?? '') }}</textarea>
-                </div>
+              <div class="mb-3">
+    <label for="ai_prompt" class="form-label">
+        AI Prompt 
+        <small class="text-muted">
+            (<span id="charCount">0</span> characters)
+        </small>
+    </label>
 
+    <textarea 
+        class="form-control" 
+        id="ai_prompt" 
+        name="ai_prompt" 
+        rows="3"
+        maxlength="2990"
+        placeholder="Enter AI Prompt">{{ old('ai_prompt', $video->ai_prompt ?? '') }}</textarea>
+
+    <div class="form-text text-end">
+        Max 2990 characters
+    </div>
+</div>
                 <div class="mb-3">
                     <label for="video_title" class="form-label">Video Title</label>
                     <input type="text" class="form-control" id="video_title" name="video_title"
@@ -269,7 +283,6 @@
             document.getElementById('remove_thumbnail').value = '1';
 
             checkContainerVisibility();
-        }
 
         function checkContainerVisibility() {
             var hasVideo = !document.getElementById('videoPreviewWrapper').classList.contains('d-none');
@@ -280,4 +293,18 @@
             }
         }
     </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const textarea = document.getElementById("ai_prompt");
+        const charCount = document.getElementById("charCount");
+
+        function updateCount() {
+            charCount.textContent = textarea.value.length;
+        }
+
+        updateCount(); // Set initial value (for edit mode)
+
+        textarea.addEventListener("input", updateCount);
+    });
+</script>
 @endsection

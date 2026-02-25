@@ -53,7 +53,7 @@ class AiBabyVideoController extends Controller
             'video_title' => 'required|string|max:255',
             'video_path' => 'required|mimes:mp4,mov,avi,wmv|max:51200',
             'video_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt' => 'nullable|string',
+            'ai_prompt' => 'nullable|string|max:3000',
             'name_change' => 'boolean',
         ]);
 
@@ -120,7 +120,7 @@ class AiBabyVideoController extends Controller
             'video_title' => 'required|string|max:255',
             'video_path' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
             'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt' => 'nullable|string',
+            'ai_prompt' => 'nullable|string|max:3000',
             'name_change' => 'boolean',
         ]);
 
