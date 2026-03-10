@@ -75,6 +75,7 @@ class VideoCategoryController extends Controller
                 'id' => $category->id,
                 'title' => $category->category_name,
                 'thumbnail' => $thumbnailPath,
+                'description' => $category->description ?? '',
                 'videos' => $formattedVideos,
             ];
         }
@@ -167,7 +168,7 @@ class VideoCategoryController extends Controller
         $subCategoryResponse = [
             'id' => $category->id,
             'title' => $category->category_name,
-            'description' => '',
+            'description' => $category->description ?? '',
             'videos' => $formattedVideos,
         ];
 
@@ -197,7 +198,7 @@ class VideoCategoryController extends Controller
                 'main_category_name' => $categoryName,
                 'name' => $categoryName,
                 'thumbnail' => $thumbnailPath,
-                'description' => '',
+                'description' => $category->description ?? '',
             ];
         });
 

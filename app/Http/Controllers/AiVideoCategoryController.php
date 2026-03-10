@@ -38,6 +38,7 @@ class AiVideoCategoryController extends Controller
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ai_baby_video_categories,category_name',
             'category_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'description' => 'nullable|string',
             'trending' => 'boolean',
             'status' => 'boolean',
         ]);
@@ -58,6 +59,7 @@ class AiVideoCategoryController extends Controller
         AiVideoCategory::create([
             'category_name' => $request->category_name,
             'category_image' => $imagePath,
+            'description' => $request->description,
             'trending' => $request->has('trending') ? 1 : 0,
             'status' => $request->has('status') ? 1 : 0,
         ]);
@@ -78,6 +80,7 @@ class AiVideoCategoryController extends Controller
         $request->validate([
             'category_name' => 'required|string|max:255|unique:ai_baby_video_categories,category_name,' . $id,
             'category_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'description' => 'nullable|string',
             'trending' => 'boolean',
             'status' => 'boolean',
         ]);
@@ -109,6 +112,7 @@ class AiVideoCategoryController extends Controller
         $category->update([
             'category_name' => $request->category_name,
             'category_image' => $imagePath,
+            'description' => $request->description,
             'trending' => $request->has('trending') ? 1 : 0,
             'status' => $request->has('status') ? 1 : 0,
         ]);

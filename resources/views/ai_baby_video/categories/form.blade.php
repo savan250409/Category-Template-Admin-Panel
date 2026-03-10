@@ -78,6 +78,12 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"
+                        placeholder="Enter category description">{{ old('description', $category->description ?? '') }}</textarea>
+                </div>
+
+                <div class="mb-3">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="trending" name="trending" value="1"
                             {{ old('trending', $category->trending ?? 0) ? 'checked' : '' }}>

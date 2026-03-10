@@ -14,6 +14,7 @@ class AiVideoCategory extends Model
     protected $fillable = [
         'category_name',
         'category_image',
+        'description',
         'trending',
         'status'
     ];
