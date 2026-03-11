@@ -130,6 +130,39 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- API 21: Get AI Video Categories -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>21. Get AI Video Categories</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/ngd/getAiVideoCategories') }}</span>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Retrieves a list of AI Video categories available in the app.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API 22: Get AI Videos by Category ID -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>22. Get AI Videos by Category ID</h5>
+                            <p><span class="param-label">Method:</span> POST</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/ngd/getAiVideoByCategoryId') }}</span>
+                            </p>
+                            <p><span class="param-label">Parameters:</span><br>
+                                <code>category_id</code> (required) e.g. <code>5</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Returns all AI-generated videos and their thumbnails for the specified category ID.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- AI Baby Video Module Divider -->

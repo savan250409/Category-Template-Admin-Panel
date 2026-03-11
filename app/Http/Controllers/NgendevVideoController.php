@@ -1,0 +1,264 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\File;
+use App\Models\NgendevVideo;
+use App\Models\NgendevVideoCategory;
+
+class NgendevVideoController extends Controller
+{
+    public function index(Request $request)
+    {
+        $categories = NgendevVideoCategory::orderBy('created_at', 'desc')->get();
+
+        $query = NgendevVideo::with('category')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc');
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ai_prompt', 'like', "%{$search}%")
+                  ->orWhere('ai_model', 'like', "%{$search}%")
+                  ->orWhereHas('category', function ($q2) use ($search) {
+                      $q2->where('category_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $videos = $query->paginate(10)->appends(['search' => $request->get('search')]);
+
+        if ($request->ajax()) {
+            $view = view('ngendev_video.index', compact('videos', 'categories'))->renderSections();
+
+            return response()->json([
+                'table' => $view['table'],
+                'pagination' => $view['pagination'],
+                'total' => $videos->total(),
+            ]);
+        }
+
+        return view('ngendev_video.index', compact('categories', 'videos'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_video_categories,id',
+            'ai_prompt' => 'required|string|max:10000',
+            'ai_model' => 'nullable|string|max:255',
+            'video' => 'required|file|mimes:mp4,mkv,avi,mov|max:50000',
+            'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+        ]);
+
+        $videoName = null;
+        $thumbnailName = null;
+
+        if ($request->hasFile('video')) {
+            $category = NgendevVideoCategory::findOrFail($request->category_id);
+            $categoryName = $category->category_name;
+
+            $originalName = $request->file('video')->getClientOriginalName();
+            if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $originalName))) {
+                $originalName = time() . '_' . $originalName;
+            }
+            $destinationPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video');
+
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0777, true, true);
+            }
+
+            $request->file('video')->move($destinationPath, $originalName);
+            $videoName = $originalName;
+        }
+
+        if ($request->hasFile('video_thumbnail')) {
+            $category = NgendevVideoCategory::findOrFail($request->category_id);
+            $categoryName = $category->category_name;
+
+            $originalThumbName = $request->file('video_thumbnail')->getClientOriginalName();
+            if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $originalThumbName))) {
+                $originalThumbName = time() . '_' . $originalThumbName;
+            }
+            $destinationThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail');
+
+            if (!File::exists($destinationThumbPath)) {
+                File::makeDirectory($destinationThumbPath, 0777, true, true);
+            }
+
+            $request->file('video_thumbnail')->move($destinationThumbPath, $originalThumbName);
+            $thumbnailName = $originalThumbName;
+        }
+
+        NgendevVideo::create([
+            'category_id' => $request->category_id,
+            'ai_prompt' => $request->ai_prompt,
+            'ai_model' => $request->ai_model,
+            'no_of_video' => $request->no_of_video ?? 1,
+            'name_change' => $request->has('name_change') ? 1 : 0,
+            'video_path' => $videoName,
+            'video_thumbnail' => $thumbnailName,
+        ]);
+
+        return $request->ajax() ? response()->json(['success' => true, 'message' => 'Ngendev video added successfully!']) : redirect()->route('ngendev-videos.index')->with('success', 'Ngendev video added successfully!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_video_categories,id',
+            'ai_prompt' => 'required|string|max:1000',
+            'ai_model' => 'nullable|string|max:255',
+            'video' => 'nullable|file|mimes:mp4,mkv,avi,mov|max:50000',
+            'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'no_of_video' => 'required|integer|min:1',
+            'name_change' => 'boolean',
+        ]);
+
+        $video = NgendevVideo::findOrFail($id);
+        $category = NgendevVideoCategory::findOrFail($request->category_id);
+        $categoryName = $category->category_name;
+
+        $videoPath = $video->video_path;
+        $thumbnailPath = $video->video_thumbnail;
+
+        if ($request->hasFile('video')) {
+            $oldPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $videoPath);
+            if ($videoPath && file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+
+            $originalName = $request->file('video')->getClientOriginalName();
+            if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $originalName))) {
+                $originalName = time() . '_' . $originalName;
+            }
+            $destinationPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video');
+
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+
+            $request->file('video')->move($destinationPath, $originalName);
+            $videoPath = $originalName;
+        }
+
+        if ($request->hasFile('video_thumbnail')) {
+            $oldThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $thumbnailPath);
+            if ($thumbnailPath && file_exists($oldThumbPath)) {
+                unlink($oldThumbPath);
+            }
+
+            $originalThumbName = $request->file('video_thumbnail')->getClientOriginalName();
+            if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $originalThumbName))) {
+                $originalThumbName = time() . '_' . $originalThumbName;
+            }
+            $destinationThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail');
+
+            if (!file_exists($destinationThumbPath)) {
+                mkdir($destinationThumbPath, 0777, true);
+            }
+
+            $request->file('video_thumbnail')->move($destinationThumbPath, $originalThumbName);
+            $thumbnailPath = $originalThumbName;
+        }
+
+        $video->update([
+            'category_id' => $request->category_id,
+            'ai_prompt' => $request->ai_prompt,
+            'ai_model' => $request->ai_model,
+            'no_of_video' => $request->no_of_video,
+            'name_change' => $request->has('name_change') ? 1 : 0,
+            'video_path' => $videoPath,
+            'video_thumbnail' => $thumbnailPath,
+        ]);
+
+        return $request->ajax() 
+            ? response()->json(['success' => true, 'message' => 'Ngendev video updated successfully!']) 
+            : redirect()->route('ngendev-videos.index')->with('success', 'Ngendev video updated successfully!');
+    }
+
+    public function destroy($id)
+    {
+        $video = NgendevVideo::findOrFail($id);
+        $category = $video->category;
+
+        $videoFilePath = public_path('upload/ngendev/videos/' . $category->category_name . '/category_video/' . $video->video_path);
+        if (File::exists($videoFilePath)) {
+            File::delete($videoFilePath);
+        }
+
+        if ($video->video_thumbnail) {
+            $thumbnailFilePath = public_path('upload/ngendev/videos/' . $category->category_name . '/video_thumbnail/' . $video->video_thumbnail);
+            if (File::exists($thumbnailFilePath)) {
+                File::delete($thumbnailFilePath);
+            }
+        }
+
+        $video->delete();
+
+        return redirect()->route('ngendev-videos.index')->with('success', 'Selected video deleted successfully!');
+    }
+
+    public function indexing(Request $request)
+    {
+        $categoryId = $request->get('category_id');
+
+        if (!$categoryId) {
+            return response()->json(['videos' => []]);
+        }
+
+        $videos = NgendevVideo::with('category')->where('category_id', $categoryId)->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+
+        if ($videos->count() > 0 && $videos->where('sort_order', 0)->count() > 0) {
+            foreach ($videos as $index => $video) {
+                if ($video->sort_order == 0) {
+                    $video->update(['sort_order' => $index + 1]);
+                }
+            }
+            $videos = NgendevVideo::with('category')->where('category_id', $categoryId)->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        }
+
+        $transformedVideos = $videos->map(function ($video) {
+            $videoData = $video->toArray();
+
+            if ($video->video_path && $video->category) {
+                $videoData['video_url'] = asset('upload/ngendev/videos/' . $video->category->category_name . '/category_video/' . $video->video_path);
+            } else {
+                $videoData['video_url'] = null;
+            }
+
+            if ($video->video_thumbnail && $video->category) {
+                $videoData['thumbnail_url'] = asset('upload/ngendev/videos/' . $video->category->category_name . '/video_thumbnail/' . $video->video_thumbnail);
+            } else {
+                $videoData['thumbnail_url'] = null;
+            }
+
+            return $videoData;
+        });
+
+        return response()->json(['videos' => $transformedVideos]);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_video_categories,id',
+            'order' => 'required|array',
+            'order.*.id' => 'required|exists:ngendev_videos,id',
+            'order.*.sort_order' => 'required|integer|min:1',
+        ]);
+
+        $categoryId = $request->category_id;
+        $orderData = $request->order;
+
+        foreach ($orderData as $item) {
+            NgendevVideo::where('id', $item['id'])
+                ->where('category_id', $categoryId)
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Video order updated successfully!']);
+    }
+}

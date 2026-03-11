@@ -68,7 +68,7 @@ class VideoCategoryController extends Controller
                 ksort($uniqueMonthVideos);
                 $formattedVideos = array_values($uniqueMonthVideos);
             } else {
-                $formattedVideos = array_slice($formattedVideos, 0, 4);
+                $formattedVideos = array_slice($formattedVideos, 0, 3);
             }
 
             $response[] = [

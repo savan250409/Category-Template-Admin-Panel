@@ -134,6 +134,51 @@ Route::middleware(['admin_auth'])->group(function () {
     Route::post('/ai-image-categories/toggle-status', [AiImageCategoryController::class, 'toggleStatus'])->name('ai-image-categories.toggle-status');
 
     /*
+|--------------------------------------------------------------------------
+| AI Video NGD Setting Routes
+|--------------------------------------------------------------------------
+*/
+    Route::prefix('ai-video-ngd-setting')
+        ->name('ai-video-ngd-setting.')
+        ->group(function () {
+            Route::get('/', [\App\Http\Controllers\AiVideoNgdSettingController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\AiVideoNgdSettingController::class, 'store'])->name('store');
+            Route::put('/{id}', [\App\Http\Controllers\AiVideoNgdSettingController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\AiVideoNgdSettingController::class, 'destroy'])->name('destroy');
+        });
+
+    // Ngendev Video Categories Routes
+    Route::prefix('ngendev')
+        ->name('ngendev-video-categories.')
+        ->group(function () {
+            Route::get('/video-categories', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'index'])->name('index');
+            Route::get('/video-categories-indexing', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'indexing'])->name('indexing');
+            Route::post('/video-categories-update-order', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'updateOrder'])->name('updateOrder');
+            Route::get('/video-categories/create', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'create'])->name('create');
+            Route::post('/video-categories', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'store'])->name('store');
+            Route::get('/video-categories/{id}/edit', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'edit'])->name('edit');
+            Route::put('/video-categories/{id}', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'update'])->name('update');
+            Route::delete('/video-categories/{id}', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'destroy'])->name('destroy');
+            Route::post('/video-categories/update-status', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'updateStatus'])->name('updateStatus');
+            Route::post('/video-categories/update-type', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'updateType'])->name('updateType');
+            Route::post('/video-categories/update-couple-status', [\App\Http\Controllers\NgendevVideoCategoryController::class, 'updateCoupleStatus'])->name('updateCoupleStatus');
+        });
+
+    // Ngendev Videos Routes
+    Route::prefix('ngendev')
+        ->name('ngendev-videos.')
+        ->group(function () {
+            Route::get('/videos', [\App\Http\Controllers\NgendevVideoController::class, 'index'])->name('index');
+            Route::post('/videos', [\App\Http\Controllers\NgendevVideoController::class, 'store'])->name('store');
+            Route::get('/videos/create', [\App\Http\Controllers\NgendevVideoController::class, 'create'])->name('create');
+            Route::get('/videos/{id}/edit', [\App\Http\Controllers\NgendevVideoController::class, 'edit'])->name('edit');
+            Route::put('/videos/{id}', [\App\Http\Controllers\NgendevVideoController::class, 'update'])->name('update');
+            Route::delete('/videos/{id}', [\App\Http\Controllers\NgendevVideoController::class, 'destroy'])->name('destroy');
+            Route::get('/videos-indexing', [\App\Http\Controllers\NgendevVideoController::class, 'indexing'])->name('indexing');
+            Route::post('/videos-update-order', [\App\Http\Controllers\NgendevVideoController::class, 'updateOrder'])->name('updateOrder');
+        });
+
+    /*
     |--------------------------------------------------------------------------
     | AI Baby Video Module Routes
     |--------------------------------------------------------------------------

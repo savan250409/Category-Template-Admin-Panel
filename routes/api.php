@@ -9,6 +9,7 @@ use App\Http\Controllers\SyncController;
 use App\Models\Admin;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\NgendevCategoryApiController;
+use App\Http\Controllers\Api\NgendevVideoApiController;
 use App\Http\Controllers\Api\VideoCategoryController;
 
 /*
@@ -43,6 +44,9 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
+
+    Route::get('/v1/ngd/getAiVideoCategories', [NgendevVideoApiController::class, 'getAiVideoCategories']);
+    Route::post('/v1/ngd/getAiVideoByCategoryId', [NgendevVideoApiController::class, 'getAiVideoByCategoryId']);
 });
 
 

@@ -314,10 +314,8 @@
                 </ul>
             </li>
 
-
-            {{-- AI Image NGD (NGD Module) --}}
-
-              <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+            {{-- AI Image NGD Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                AI Image NGD Module
             </li>
             @php
@@ -363,6 +361,58 @@
                             href="{{ route('ngendev.images.index') }}" style="transition: all 0.2s;">
                             <i class="bi bi-image me-2"></i>
                             <span>AI Image</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            {{-- AI Video NGD Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+               AI Video NGD Module
+            </li>
+            @php
+                $isVideoNGDActive = request()->is('ngendev/video-categories*') || request()->is('ngendev/videos*');
+                $isVideoNGDSettingActive = request()->routeIs('ai-video-ngd-setting.index');
+                $isVideoNGDActive = $isVideoNGDActive || $isVideoNGDSettingActive;
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isVideoNGDActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#videoNgdCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-camera-reels me-2 text-success"></i>
+                        <span class="fw-semibold">AI Video NGD</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                {{-- Video NGD Module Submenu --}}
+                <ul id="videoNgdCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isVideoNGDActive ? 'block' : 'none' }};">
+
+                    {{-- AI Video NGD Setting --}}
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('ai-video-ngd-setting.index') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ai-video-ngd-setting.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-gear me-2"></i>
+                            <span>AI Video NGD Setting</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('ngendev/video-categories*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ngendev-video-categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>AI Video Category</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('ngendev/videos*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('ngendev-videos.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-camera-video me-2"></i>
+                            <span>AI Video</span>
                         </a>
                     </li>
                 </ul>
