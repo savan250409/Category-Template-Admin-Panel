@@ -50,8 +50,8 @@ class NgendevVideoApiController extends Controller
                 ->get();
 
             $videos->transform(function ($video) use ($encodedCategory) {
-                $video->video_thumbnail = $video->video_thumbnail ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}" : null;
                 $video->video_thumbnail_full_url = $video->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail)) : null;
+                $video->video_thumbnail = $video->video_thumbnail ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}" : null;
                 $video->category_video = $video->video_path ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}" : null;
                 $video->category_video_full_url = $video->category_video ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/category_video/' . rawurlencode($video->video_path)) : null;
                 $video->name_change = (bool) $video->name_change;
