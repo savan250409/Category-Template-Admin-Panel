@@ -42,12 +42,23 @@ class VideoCategoryController extends Controller
                 $thumbnail = $vid->video_thumbnail;
 
                 if ($file) {
-                    $videoPath = str_replace(' ', '%20', "AI Baby Video/{$categoryName}/video/{$file}");
-                    $videoThumbnailPath = $thumbnail ? str_replace(' ', '%20', "AI Baby Video/{$categoryName}/video thumbanail/{$thumbnail}") : null;
+                    $videoPath = "AI Baby Video/{$categoryName}/video/{$file}";
+                    $videoPathArr = explode('/', $videoPath);
+                    $encodedVideoPath = implode('/', array_map('rawurlencode', $videoPathArr));
+
+                    $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/video thumbanail/{$thumbnail}" : null;
+                    if ($videoThumbnailPath) {
+                        $thumbnailPathArr = explode('/', $videoThumbnailPath);
+                        $encodedThumbnailPath = implode('/', array_map('rawurlencode', $thumbnailPathArr));
+                    } else {
+                        $encodedThumbnailPath = null;
+                    }
 
                     $formattedVideos[] = [
-                        'url' => $videoPath,
-                        'thumbnail' => $videoThumbnailPath,
+                        'url' => str_replace(' ', '%20', $videoPath),
+                        'url_full_url' => asset('upload/' . $encodedVideoPath),
+                        'thumbnail' => $videoThumbnailPath ? str_replace(' ', '%20', $videoThumbnailPath) : null,
+                        'thumbnail_full_url' => $encodedThumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                         'prompt' => $prompt,
                         'video_title' => $videoTitle,
                         'name_change' => $nameChange,
@@ -71,10 +82,14 @@ class VideoCategoryController extends Controller
                 $formattedVideos = array_slice($formattedVideos, 0, 3);
             }
 
+            $thumbnailPathSegments = $category->category_image ? explode('/', "AI Baby Video/{$categoryName}/category thumbanail/{$category->category_image}") : [];
+            $encodedThumbnailPathMain = $category->category_image ? implode('/', array_map('rawurlencode', $thumbnailPathSegments)) : null;
+
             $response[] = [
                 'id' => $category->id,
                 'title' => $category->category_name,
                 'thumbnail' => $thumbnailPath,
+                'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
                 'description' => $category->description ?? '',
                 'videos' => $formattedVideos,
             ];
@@ -152,12 +167,23 @@ class VideoCategoryController extends Controller
             $thumbnail = $vid->video_thumbnail;
 
             if ($file) {
-                $videoPath = str_replace(' ', '%20', "AI Baby Video/{$categoryName}/video/{$file}");
-                $videoThumbnailPath = $thumbnail ? str_replace(' ', '%20', "AI Baby Video/{$categoryName}/video thumbanail/{$thumbnail}") : null;
+                $videoPath = "AI Baby Video/{$categoryName}/video/{$file}";
+                $videoPathArr = explode('/', $videoPath);
+                $encodedVideoPath = implode('/', array_map('rawurlencode', $videoPathArr));
+
+                $videoThumbnailPath = $thumbnail ? "AI Baby Video/{$categoryName}/video thumbanail/{$thumbnail}" : null;
+                if ($videoThumbnailPath) {
+                    $thumbnailPathArr = explode('/', $videoThumbnailPath);
+                    $encodedThumbnailPath = implode('/', array_map('rawurlencode', $thumbnailPathArr));
+                } else {
+                    $encodedThumbnailPath = null;
+                }
 
                 $formattedVideos[] = [
-                    'url' => $videoPath,
-                    'thumbnail' => $videoThumbnailPath,
+                    'url' => str_replace(' ', '%20', $videoPath),
+                    'url_full_url' => asset('upload/' . $encodedVideoPath),
+                    'thumbnail' => $videoThumbnailPath ? str_replace(' ', '%20', $videoThumbnailPath) : null,
+                    'thumbnail_full_url' => $encodedThumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                     'prompt' => $prompt,
                     'video_title' => $videoTitle,
                     'name_change' => $nameChange,
@@ -193,11 +219,15 @@ class VideoCategoryController extends Controller
                 ? str_replace(' ', '%20', "AI Baby Video/{$categoryName}/category thumbanail/{$category->category_image}")
                 : null;
 
+            $thumbnailPathSegments = $category->category_image ? explode('/', "AI Baby Video/{$categoryName}/category thumbanail/{$category->category_image}") : [];
+            $encodedThumbnailPathMain = $category->category_image ? implode('/', array_map('rawurlencode', $thumbnailPathSegments)) : null;
+
             return [
                 'id' => $category->id,
                 'main_category_name' => $categoryName,
                 'name' => $categoryName,
                 'thumbnail' => $thumbnailPath,
+                'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
                 'description' => $category->description ?? '',
             ];
         });

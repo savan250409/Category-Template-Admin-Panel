@@ -51,6 +51,7 @@ class NgendevCategoryApiController extends Controller
 
             $images->transform(function ($image) use ($encodedCategory) {
                 $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
+                $image->category_image_full_url = $image->category_image ? asset('upload/ngendev/images/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/category_image/' . rawurlencode($image->image_path)) : null;
                 $image->name_change = (bool) $image->name_change;
                 unset($image->image_path);
                 return $image;
@@ -171,14 +172,16 @@ class NgendevCategoryApiController extends Controller
 
                 if ($latestImage) {
                     $encodedCategory = str_replace(' ', '%20', $category->category_name);
+                    $category_image_path = $latestImage->image_path
+                        ? "ngendev/images/{$encodedCategory}/category_image/{$latestImage->image_path}"
+                        : null;
                     $latestImages->push([
                         'id' => $latestImage->id,
                         'ai_prompt' => $latestImage->ai_prompt,
                         'no_of_image' => $latestImage->no_of_image,
                         'name_change' => (bool) $latestImage->name_change,
-                        'category_image' => $latestImage->image_path
-                            ? "ngendev/images/{$encodedCategory}/category_image/{$latestImage->image_path}"
-                            : null,
+                        'category_image' => $category_image_path,
+                        'category_image_full_url' => $category_image_path ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($latestImage->image_path)) : null,
                     ]);
                 }
             }
@@ -192,14 +195,16 @@ class NgendevCategoryApiController extends Controller
 
                 if ($trendingImage) {
                     $encodedTrending = str_replace(' ', '%20', $trendingCategory->category_name);
+                    $trending_image_path = $trendingImage->image_path
+                        ? "ngendev/images/{$encodedTrending}/category_image/{$trendingImage->image_path}"
+                        : null;
                     $latestImages->push([
                         'id' => $trendingImage->id,
                         'ai_prompt' => $trendingImage->ai_prompt,
                         'no_of_image' => $trendingImage->no_of_image,
                         'name_change' => (bool) $trendingImage->name_change,
-                        'category_image' => $trendingImage->image_path
-                            ? "ngendev/images/{$encodedTrending}/category_image/{$trendingImage->image_path}"
-                            : null,
+                        'category_image' => $trending_image_path,
+                        'category_image_full_url' => $trending_image_path ? asset('upload/ngendev/images/' . rawurlencode($trendingCategory->category_name) . '/category_image/' . rawurlencode($trendingImage->image_path)) : null,
                     ]);
                 }
             }
@@ -257,6 +262,9 @@ class NgendevCategoryApiController extends Controller
             'name_change' => (bool) $image->name_change,
             'category_image' => $image->image_path
                 ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}"
+                : null,
+            'category_image_full_url' => $image->image_path
+                ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path))
                 : null,
         ]);
 

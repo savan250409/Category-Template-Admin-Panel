@@ -51,7 +51,9 @@ class NgendevVideoApiController extends Controller
 
             $videos->transform(function ($video) use ($encodedCategory) {
                 $video->video_thumbnail = $video->video_thumbnail ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}" : null;
+                $video->video_thumbnail_full_url = $video->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail)) : null;
                 $video->category_video = $video->video_path ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}" : null;
+                $video->category_video_full_url = $video->category_video ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/category_video/' . rawurlencode($video->video_path)) : null;
                 $video->name_change = (bool) $video->name_change;
                 unset($video->video_path);
                 return $video;
@@ -170,17 +172,21 @@ class NgendevVideoApiController extends Controller
 
                 if ($latestVideo) {
                     $encodedCategory = str_replace(' ', '%20', $category->category_name);
+                    $video_thumbnail_path = $latestVideo->video_thumbnail
+                        ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$latestVideo->video_thumbnail}"
+                        : null;
+                    $category_video_path = $latestVideo->video_path
+                        ? "ngendev/videos/{$encodedCategory}/category_video/{$latestVideo->video_path}"
+                        : null;
                     $latestVideos->push([
                         'id' => $latestVideo->id,
                         'ai_prompt' => $latestVideo->ai_prompt,
                         'no_of_video' => $latestVideo->no_of_video,
                         'name_change' => (bool) $latestVideo->name_change,
-                        'video_thumbnail' => $latestVideo->video_thumbnail
-                            ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$latestVideo->video_thumbnail}"
-                            : null,
-                        'category_video' => $latestVideo->video_path
-                            ? "ngendev/videos/{$encodedCategory}/category_video/{$latestVideo->video_path}"
-                            : null,
+                        'video_thumbnail' => $video_thumbnail_path,
+                        'video_thumbnail_full_url' => $latestVideo->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/video_thumbnail/' . rawurlencode($latestVideo->video_thumbnail)) : null,
+                        'category_video' => $category_video_path,
+                        'category_video_full_url' => $latestVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($latestVideo->video_path)) : null,
                     ]);
                 }
             }
@@ -194,17 +200,21 @@ class NgendevVideoApiController extends Controller
 
                 if ($trendingVideo) {
                     $encodedTrending = str_replace(' ', '%20', $trendingCategory->category_name);
+                    $video_thumbnail_path = $trendingVideo->video_thumbnail
+                        ? "ngendev/videos/{$encodedTrending}/video_thumbnail/{$trendingVideo->video_thumbnail}"
+                        : null;
+                    $category_video_path = $trendingVideo->video_path
+                        ? "ngendev/videos/{$encodedTrending}/category_video/{$trendingVideo->video_path}"
+                        : null;
                     $latestVideos->push([
                         'id' => $trendingVideo->id,
                         'ai_prompt' => $trendingVideo->ai_prompt,
                         'no_of_video' => $trendingVideo->no_of_video,
                         'name_change' => (bool) $trendingVideo->name_change,
-                        'video_thumbnail' => $trendingVideo->video_thumbnail
-                            ? "ngendev/videos/{$encodedTrending}/video_thumbnail/{$trendingVideo->video_thumbnail}"
-                            : null,
-                        'category_video' => $trendingVideo->video_path
-                            ? "ngendev/videos/{$encodedTrending}/category_video/{$trendingVideo->video_path}"
-                            : null,
+                        'video_thumbnail' => $video_thumbnail_path,
+                        'video_thumbnail_full_url' => $trendingVideo->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode($trendingCategory->category_name) . '/video_thumbnail/' . rawurlencode($trendingVideo->video_thumbnail)) : null,
+                        'category_video' => $category_video_path,
+                        'category_video_full_url' => $trendingVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($trendingCategory->category_name) . '/category_video/' . rawurlencode($trendingVideo->video_path)) : null,
                     ]);
                 }
             }
@@ -262,8 +272,14 @@ class NgendevVideoApiController extends Controller
             'video_thumbnail' => $video->video_thumbnail
                 ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}"
                 : null,
+            'video_thumbnail_full_url' => $video->video_thumbnail
+                ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail))
+                : null,
             'category_video' => $video->video_path
                 ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}"
+                : null,
+            'category_video_full_url' => $video->video_path
+                ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($video->video_path))
                 : null,
         ]);
 

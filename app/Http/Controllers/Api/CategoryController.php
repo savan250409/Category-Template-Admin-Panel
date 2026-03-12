@@ -32,10 +32,13 @@ class CategoryController extends Controller
 
                 $thumbnailPath = $subcat->category_thumbnail_image ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}" : null;
 
+                $thumbnailPathArr = explode('/', $thumbnailPath);
+                $encodedThumbnailPath = implode('/', array_map('rawurlencode', $thumbnailPathArr));
                 return [
                     'id' => $subcat->id,
                     'title' => $subcat->title,
                     'thumbnail' => $thumbnailPath,
+                    'thumbnail_full_url' => $thumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                 ];
             });
 
@@ -101,12 +104,20 @@ class CategoryController extends Controller
                     }
                 }
 
+                $thumbnailPathArr = $thumbnailPath ? explode('/', $thumbnailPath) : [];
+                $encodedThumbnailPath = $thumbnailPath ? implode('/', array_map('rawurlencode', $thumbnailPathArr)) : null;
+
+                $subImageArr = $subcategoryImage ? explode('/', $subcategoryImage) : [];
+                $encodedSubcategoryImage = $subcategoryImage ? implode('/', array_map('rawurlencode', $subImageArr)) : null;
+
                 return [
                     'id' => $subcat->id,
                     'title' => $subcat->title,
                     'thumbnail' => $thumbnailPath,
+                    'thumbnail_full_url' => $thumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                     'total_count' => $totalCount,
                     'subcategories_image' => $subcategoryImage,
+                    'subcategories_image_full_url' => $subcategoryImage ? asset('upload/' . $encodedSubcategoryImage) : null,
                 ];
             });
 
@@ -170,8 +181,13 @@ class CategoryController extends Controller
                     $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
                     if ($file) {
+                        $urlPath = "{$categoryName}/{$subcatTitle}/{$file}";
+                        $urlPathArr = explode('/', $urlPath);
+                        $encodedUrlPath = implode('/', array_map('rawurlencode', $urlPathArr));
+
                         $formattedImages[] = [
-                            'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                            'url' => $urlPath,
+                            'url_full_url' => asset('upload/' . $encodedUrlPath),
                             'prompt' => $prompt,
                             'image_title' => $imageTitle,
                             'name_change' => $nameChange,
@@ -194,10 +210,14 @@ class CategoryController extends Controller
                     $formattedImages = array_slice($formattedImages, -4);
                 }
 
+                $thumbnailPathArr = $thumbnailPath ? explode('/', $thumbnailPath) : [];
+                $encodedThumbnailPath = $thumbnailPath ? implode('/', array_map('rawurlencode', $thumbnailPathArr)) : null;
+
                 return [
                     'id' => $subcat->id,
                     'title' => $subcat->title,
                     'thumbnail' => $thumbnailPath,
+                    'thumbnail_full_url' => $thumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                     'images' => $formattedImages,
                 ];
 
@@ -290,8 +310,13 @@ class CategoryController extends Controller
                 $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
                 if ($file) {
+                    $urlPath = "{$categoryName}/{$subcatTitle}/{$file}";
+                    $urlPathArr = explode('/', $urlPath);
+                    $encodedUrlPath = implode('/', array_map('rawurlencode', $urlPathArr));
+
                     $formattedImages[] = [
-                        'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                        'url' => $urlPath,
+                        'url_full_url' => asset('upload/' . $encodedUrlPath),
                         'prompt' => $prompt,
                         'image_title' => $imageTitle,
                         'name_change' => $nameChange,
@@ -385,8 +410,13 @@ class CategoryController extends Controller
             $nameChange = isset($img['name_change']) ? (bool) $img['name_change'] : false;
 
             if ($file) {
+                $urlPath = "{$categoryName}/{$subcatTitle}/{$file}";
+                $urlPathArr = explode('/', $urlPath);
+                $encodedUrlPath = implode('/', array_map('rawurlencode', $urlPathArr));
+
                 $formattedImages[] = [
-                    'url' => "{$categoryName}/{$subcatTitle}/{$file}",
+                    'url' => $urlPath,
+                    'url_full_url' => asset('upload/' . $encodedUrlPath),
                     'prompt' => $prompt,
                     'image_title' => $imageTitle,
                     'name_change' => $nameChange,
@@ -417,11 +447,15 @@ class CategoryController extends Controller
                 ? "{$categoryName}/{$subcatTitle}/category_thumbnail/{$subcat->category_thumbnail_image}"
                 : null;
 
+            $thumbnailPathArr = $thumbnailPath ? explode('/', $thumbnailPath) : [];
+            $encodedThumbnailPath = $thumbnailPath ? implode('/', array_map('rawurlencode', $thumbnailPathArr)) : null;
+
             return [
                 'id' => $subcat->id,
                 'main_category_name' => $categoryName,
                 'name' => $subcatTitle,
                 'thumbnail' => $thumbnailPath,
+                'thumbnail_full_url' => $thumbnailPath ? asset('upload/' . $encodedThumbnailPath) : null,
                 'description' => $subcat->description,
             ];
         });
