@@ -51,3 +51,6 @@ Route::middleware('jwt.auth')->group(function () {
 
 
 Route::get('getAllCategoryNames', [NgendevCategoryApiController::class, 'getAllCategoryNames']);
+Route::get('baby/getAllCategoryNames', [CategoryController::class, 'getAllCategoryNames']);
+Route::get('video/getAllCategoryNames', [VideoCategoryController::class, 'getAllCategoryNames']);
+Route::get('v1/ngd/video/getAllCategoryNames', [NgendevVideoApiController::class, 'getAllCategoryNames']);

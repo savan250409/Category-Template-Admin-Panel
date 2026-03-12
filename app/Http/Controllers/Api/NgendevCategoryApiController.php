@@ -67,19 +67,19 @@ class NgendevCategoryApiController extends Controller
         // Separate Exclusive category
         $exclusive = $categories->firstWhere('category_name', 'Exclusive');
         if ($exclusive) {
-            $categories = $categories->reject(fn($cat) => $cat['category_name'] === 'Exclusive');
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Exclusive'; });
         }
 
         // Separate Trending category
         $trending = $categories->firstWhere('category_name', 'Trending');
         if ($trending) {
-            $categories = $categories->reject(fn($cat) => $cat['category_name'] === 'Trending');
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Trending'; });
         }
 
         // Latest category: last record from all other categories
         $latestImages = $categories
-            ->filter(fn($cat) => $cat['items']->isNotEmpty())
-            ->map(fn($cat) => $cat['items']->first()) // latest record per category
+            ->filter(function($cat) { return $cat['items']->isNotEmpty(); })
+            ->map(function($cat) { return $cat['items']->first(); }) // latest record per category
             ->filter()
             ->values();
 
@@ -159,7 +159,7 @@ class NgendevCategoryApiController extends Controller
                 ->get();
 
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
-            $categories = $categories->reject(fn($cat) => $cat->category_name === 'Trending');
+            $categories = $categories->reject(function($cat) { return $cat->category_name === 'Trending'; });
 
             $latestImages = collect();
 
@@ -255,18 +255,20 @@ class NgendevCategoryApiController extends Controller
             ], 404);
         }
 
-        $images->transform(fn($image) => [
-            'id' => $image->id,
-            'ai_prompt' => $image->ai_prompt,
-            'no_of_image' => $image->no_of_image,
-            'name_change' => (bool) $image->name_change,
-            'category_image' => $image->image_path
-                ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}"
-                : null,
-            'category_image_full_url' => $image->image_path
-                ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path))
-                : null,
-        ]);
+        $images->transform(function($image) use ($encodedCategory, $category) {
+            return [
+                'id' => $image->id,
+                'ai_prompt' => $image->ai_prompt,
+                'no_of_image' => $image->no_of_image,
+                'name_change' => (bool) $image->name_change,
+                'category_image' => $image->image_path
+                    ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}"
+                    : null,
+                'category_image_full_url' => $image->image_path
+                    ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path))
+                    : null,
+            ];
+        });
 
         return response()->json([
             'status' => true,

@@ -69,19 +69,19 @@ class NgendevVideoApiController extends Controller
         // Separate Exclusive category
         $exclusive = $categories->firstWhere('category_name', 'Exclusive');
         if ($exclusive) {
-            $categories = $categories->reject(fn($cat) => $cat['category_name'] === 'Exclusive');
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Exclusive'; });
         }
 
         // Separate Trending category
         $trending = $categories->firstWhere('category_name', 'Trending');
         if ($trending) {
-            $categories = $categories->reject(fn($cat) => $cat['category_name'] === 'Trending');
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Trending'; });
         }
 
         // Latest category: last record from all other categories
         $latestVideos = $categories
-            ->filter(fn($cat) => $cat['items']->isNotEmpty())
-            ->map(fn($cat) => $cat['items']->first()) // latest record per category
+            ->filter(function($cat) { return $cat['items']->isNotEmpty(); })
+            ->map(function($cat) { return $cat['items']->first(); }) // latest record per category
             ->filter()
             ->values();
 
@@ -159,7 +159,7 @@ class NgendevVideoApiController extends Controller
                 ->get();
 
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
-            $categories = $categories->reject(fn($cat) => $cat->category_name === 'Trending');
+            $categories = $categories->reject(function($cat) { return $cat->category_name === 'Trending'; });
 
             $latestVideos = collect();
 
@@ -264,24 +264,26 @@ class NgendevVideoApiController extends Controller
             ], 404);
         }
 
-        $videos->transform(fn($video) => [
-            'id' => $video->id,
-            'ai_prompt' => $video->ai_prompt,
-            'no_of_video' => $video->no_of_video,
-            'name_change' => (bool) $video->name_change,
-            'video_thumbnail' => $video->video_thumbnail
-                ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}"
-                : null,
-            'video_thumbnail_full_url' => $video->video_thumbnail
-                ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail))
-                : null,
-            'category_video' => $video->video_path
-                ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}"
-                : null,
-            'category_video_full_url' => $video->video_path
-                ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($video->video_path))
-                : null,
-        ]);
+        $videos->transform(function($video) use ($encodedCategory, $category) {
+            return [
+                'id' => $video->id,
+                'ai_prompt' => $video->ai_prompt,
+                'no_of_video' => $video->no_of_video,
+                'name_change' => (bool) $video->name_change,
+                'video_thumbnail' => $video->video_thumbnail
+                    ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}"
+                    : null,
+                'video_thumbnail_full_url' => $video->video_thumbnail
+                    ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail))
+                    : null,
+                'category_video' => $video->video_path
+                    ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}"
+                    : null,
+                'category_video_full_url' => $video->video_path
+                    ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($video->video_path))
+                    : null,
+            ];
+        });
 
         return response()->json([
             'status' => true,

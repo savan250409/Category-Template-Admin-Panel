@@ -466,4 +466,27 @@ class CategoryController extends Controller
             'data' => $data,
         ]);
     }
+    public function getAllCategoryNames()
+    {
+        $activeCategories = AiImageCategory::where('status', 1)->pluck('name');
+
+        $categories = Subcategory::select('id', 'title as category_name')
+            ->whereIn('category_name', $activeCategories)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($categories->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No subcategories found',
+                'data' => [],
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Subcategories fetched successfully',
+            'data' => $categories,
+        ]);
+    }
 }
