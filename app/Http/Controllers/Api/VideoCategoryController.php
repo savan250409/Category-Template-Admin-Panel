@@ -38,7 +38,7 @@ class VideoCategoryController extends Controller
                 $file = $vid->video_path;
                 $prompt = $vid->ai_prompt ?? '';
                 $videoTitle = $vid->video_title;
-                $nameChange = (bool) $vid->name_change;
+                $nameChange = (bool)$vid->name_change;
                 $thumbnail = $vid->video_thumbnail;
 
                 if ($file) {
@@ -50,7 +50,8 @@ class VideoCategoryController extends Controller
                     if ($videoThumbnailPath) {
                         $thumbnailPathArr = explode('/', $videoThumbnailPath);
                         $encodedThumbnailPath = implode('/', array_map('rawurlencode', $thumbnailPathArr));
-                    } else {
+                    }
+                    else {
                         $encodedThumbnailPath = null;
                     }
 
@@ -70,7 +71,7 @@ class VideoCategoryController extends Controller
                 $uniqueMonthVideos = [];
                 foreach ($formattedVideos as $vid) {
                     if (preg_match('/^(\d+)\s*Month/i', $vid['video_title'], $matches)) {
-                        $month = (int) $matches[1];
+                        $month = (int)$matches[1];
                         if (!isset($uniqueMonthVideos[$month])) {
                             $uniqueMonthVideos[$month] = $vid;
                         }
@@ -78,7 +79,8 @@ class VideoCategoryController extends Controller
                 }
                 ksort($uniqueMonthVideos);
                 $formattedVideos = array_values($uniqueMonthVideos);
-            } else {
+            }
+            else {
                 $formattedVideos = array_slice($formattedVideos, 0, 3);
             }
 
@@ -111,11 +113,11 @@ class VideoCategoryController extends Controller
 
         if ($validator->fails()) {
             return response()->json(
-                [
-                    'status' => false,
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors(),
-                ],
+            [
+                'status' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ],
                 422,
             );
         }
@@ -127,24 +129,24 @@ class VideoCategoryController extends Controller
 
         if (!$category) {
             return response()->json(
-                [
-                    'status' => false,
-                    'message' => 'No data found for the given category id',
-                    'sub_category_id' => $subCategoryId,
-                    'data' => [],
-                ],
+            [
+                'status' => false,
+                'message' => 'No data found for the given category id',
+                'sub_category_id' => $subCategoryId,
+                'data' => [],
+            ],
                 200,
             );
         }
 
         if ($category->status != 1) {
             return response()->json(
-                [
-                    'status' => false,
-                    'message' => 'This category is not active',
-                    'main_category' => $category->category_name, // Best guess for main_category
-                    'data' => [],
-                ],
+            [
+                'status' => false,
+                'message' => 'This category is not active',
+                'main_category' => $category->category_name, // Best guess for main_category
+                'data' => [],
+            ],
                 403,
             );
         }
@@ -163,7 +165,7 @@ class VideoCategoryController extends Controller
             $file = $vid->video_path;
             $prompt = $vid->ai_prompt ?? '';
             $videoTitle = $vid->video_title;
-            $nameChange = (bool) $vid->name_change;
+            $nameChange = (bool)$vid->name_change;
             $thumbnail = $vid->video_thumbnail;
 
             if ($file) {
@@ -175,7 +177,8 @@ class VideoCategoryController extends Controller
                 if ($videoThumbnailPath) {
                     $thumbnailPathArr = explode('/', $videoThumbnailPath);
                     $encodedThumbnailPath = implode('/', array_map('rawurlencode', $thumbnailPathArr));
-                } else {
+                }
+                else {
                     $encodedThumbnailPath = null;
                 }
 
@@ -223,12 +226,12 @@ class VideoCategoryController extends Controller
             $encodedThumbnailPathMain = $category->category_image ? implode('/', array_map('rawurlencode', $thumbnailPathSegments)) : null;
 
             return [
-                'id' => $category->id,
-                'main_category_name' => $categoryName,
-                'name' => $categoryName,
-                'thumbnail' => $thumbnailPath,
-                'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
-                'description' => $category->description ?? '',
+            'id' => $category->id,
+            'main_category_name' => $categoryName,
+            'name' => $categoryName,
+            'thumbnail' => $thumbnailPath,
+            'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
+            'description' => $category->description ?? '',
             ];
         });
 

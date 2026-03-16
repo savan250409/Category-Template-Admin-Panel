@@ -54,3 +54,24 @@ Route::get('getAllCategoryNames', [NgendevCategoryApiController::class, 'getAllC
 Route::get('baby/getAllCategoryNames', [CategoryController::class, 'getAllCategoryNames']);
 Route::get('video/getAllCategoryNames', [VideoCategoryController::class, 'getAllCategoryNames']);
 Route::get('v1/ngd/video/getAllCategoryNames', [NgendevVideoApiController::class, 'getAllCategoryNames']);
+
+// Simple Test API without token
+Route::get('test-api', function (Request $request) {
+    try {
+        // To simulate a failure, you can pass ?fail=true in the URL
+        if ($request->query('fail')) {
+            throw new \Exception("Simulated API failure");
+        }
+
+        return response()->json([
+            'status_code' => 200,
+            'message' => 'Success! The API is working correctly.'
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status_code' => 500,
+            'message' => 'Failed! Something went wrong.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
