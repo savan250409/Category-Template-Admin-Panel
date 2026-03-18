@@ -87,8 +87,9 @@
 
                 <div class="mb-4">
                     <label for="category_image" class="form-label">Category Image(s)</label>
-                    <input type="file" class="form-control" id="category_image" name="category_image[]" accept="image/*"
-                        multiple onchange="previewImage(this)" {{ isset($category) ? '' : 'required' }}>
+                    <input type="file" class="form-control" id="category_image" name="category_image[]" accept=".webp"
+                        multiple onchange="validateWebpFiles(this)" {{ isset($category) ? '' : 'required' }}>
+                    <small class="text-warning fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>Only .webp images are allowed</small>
 
                     <div class="mt-3">
                         @if (isset($category) && $category->category_image)
@@ -142,14 +143,32 @@
     </div>
 
     <script>
-        function previewImage(input) {
+        function validateWebpFiles(input) {
             let previewContainer = document.getElementById('newImagePreviewContainer');
             let previewList = document.getElementById('newImagePreviewList');
             previewList.innerHTML = "";
 
             if (input.files && input.files.length > 0) {
-                previewContainer.classList.remove('d-none');
+                let invalidFiles = [];
+                let validFiles = [];
+
                 Array.from(input.files).forEach(file => {
+                    if (!file.name.toLowerCase().endsWith('.webp')) {
+                        invalidFiles.push(file.name);
+                    } else {
+                        validFiles.push(file);
+                    }
+                });
+
+                if (invalidFiles.length > 0) {
+                    alert('Warning: Only .webp images are allowed!\n\nThe following files are not webp format:\n' + invalidFiles.join('\n') + '\n\nPlease select only .webp files.');
+                    input.value = '';
+                    previewContainer.classList.add('d-none');
+                    return;
+                }
+
+                previewContainer.classList.remove('d-none');
+                validFiles.forEach(file => {
                     let reader = new FileReader();
                     reader.onload = function(e) {
                         let img = document.createElement('img');

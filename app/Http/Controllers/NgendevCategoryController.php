@@ -44,7 +44,7 @@ class NgendevCategoryController extends Controller
             'status' => 'boolean',
             'type' => 'required|in:Solo,Couple',
             'category_image' => 'required',
-            'category_image.*' => 'image|mimes:jpg,jpeg,png,webp|max:10000',
+            'category_image.*' => 'image|mimes:webp|max:10000',
         ]);
 
         $categoryFolder = $request->category_name;
@@ -103,7 +103,7 @@ class NgendevCategoryController extends Controller
             'category_name' => 'required|string|max:255|unique:ngendev_categories,category_name,' . $id,
             'status' => 'boolean',
             'type' => 'required|in:Solo,Couple',
-            'category_image.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10000',
+            'category_image.*' => 'nullable|image|mimes:webp|max:10000',
         ]);
 
         $oldName = $category->category_name;

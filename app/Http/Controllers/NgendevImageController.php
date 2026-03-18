@@ -54,7 +54,7 @@ class NgendevImageController extends Controller
             'category_id' => 'required|exists:ngendev_categories,id',
             'ai_prompt' => 'required|string|max:10000',
             'ai_model' => 'nullable|string|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'image' => 'required|image|mimes:webp|max:10000',
         ]);
 
         $imageName = null;
@@ -92,7 +92,7 @@ class NgendevImageController extends Controller
             'category_id' => 'required|exists:ngendev_categories,id',
             'ai_prompt' => 'required|string|max:1000',
             'ai_model' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'image' => 'nullable|image|mimes:webp|max:4096',
             'no_of_image' => 'required|integer|min:1',
             'name_change' => 'boolean',
         ]);

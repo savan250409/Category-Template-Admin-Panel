@@ -229,9 +229,10 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="image" class="form-label">Image</label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/*"
+                        <input type="file" class="form-control" id="image" name="image" accept=".webp"
                             onchange="previewImage(this)">
-                        <div class="form-text">Upload image (max 4 MB, only for new entries)</div>
+                        <small class="text-warning fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>Only .webp images are allowed</small>
+                        <div class="form-text">Upload image (max 4 MB)</div>
                         <div id="imagePreview" class="mt-2 d-none">
                             <img id="previewImg" src="#" alt="Preview" class="img-thumbnail">
                         </div>
@@ -477,6 +478,18 @@
             window.previewImage = function(input) {
                 if (input.files && input.files[0]) {
                     const file = input.files[0];
+
+                    if (!file.name.toLowerCase().endsWith('.webp')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid File Format',
+                            text: 'Only .webp images are allowed! Please select a .webp file.'
+                        });
+                        input.value = '';
+                        document.getElementById('imagePreview').classList.add('d-none');
+                        return;
+                    }
+
                     const maxSize = 4 * 1024 * 1024;
                     if (file.size > maxSize) {
                         Swal.fire({

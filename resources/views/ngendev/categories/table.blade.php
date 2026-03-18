@@ -92,7 +92,7 @@
             {{ $categories->total() }} categories
         </div>
         <div>
-            {{ $categories->links('pagination::bootstrap-5') }}
+            {{ $categories->links('pagination::bootstrap-4') }}
         </div>
     </div>
 @endif
