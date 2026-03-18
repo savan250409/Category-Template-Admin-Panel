@@ -189,6 +189,8 @@ Route::middleware(['admin_auth'])->group(function () {
         ->group(function () {
             // Categories
             Route::get('/categories', [App\Http\Controllers\AiVideoCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories/indexing', [App\Http\Controllers\AiVideoCategoryController::class, 'indexing'])->name('categories.indexing');
+            Route::post('/categories/update-order', [App\Http\Controllers\AiVideoCategoryController::class, 'updateOrder'])->name('categories.updateOrder');
             Route::get('/categories/create', [App\Http\Controllers\AiVideoCategoryController::class, 'create'])->name('categories.create');
             Route::post('/categories', [App\Http\Controllers\AiVideoCategoryController::class, 'store'])->name('categories.store');
             Route::get('/categories/{id}/edit', [App\Http\Controllers\AiVideoCategoryController::class, 'edit'])->name('categories.edit');

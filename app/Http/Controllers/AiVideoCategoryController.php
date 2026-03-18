@@ -19,7 +19,7 @@ class AiVideoCategoryController extends Controller
             $query->where('category_name', 'like', '%' . $search . '%');
         }
 
-        $categories = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
+        $categories = $query->orderBy('sort_order', 'asc')->orderBy('updated_at', 'desc')->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
             return view('ai_baby_video.categories.index', compact('categories', 'perPage', 'search'));
@@ -62,6 +62,7 @@ class AiVideoCategoryController extends Controller
             'description' => $request->description,
             'trending' => $request->has('trending') ? 1 : 0,
             'status' => $request->has('status') ? 1 : 0,
+            'sort_order' => 0,
         ]);
 
         return redirect()->route('ai-baby-video.categories.index')->with('success', 'Category added successfully!');
@@ -152,6 +153,38 @@ class AiVideoCategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Status updated successfully!'
+        ]);
+    }
+
+    public function indexing(Request $request)
+    {
+        if (!$request->ajax()) {
+            return redirect()->route('ai-baby-video.categories.index');
+        }
+
+        $categories = AiVideoCategory::orderBy('sort_order', 'asc')->orderBy('updated_at', 'desc')->get();
+
+        return response()->json([
+            'categories' => $categories
+        ]);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*.id' => 'required|exists:ai_baby_video_categories,id',
+            'order.*.sort_order' => 'required|integer|min:0',
+        ]);
+
+        foreach ($request->order as $item) {
+            AiVideoCategory::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category order updated successfully!',
+            'redirect_url' => route('ai-baby-video.categories.index'),
         ]);
     }
 }

@@ -119,6 +119,9 @@
                     <i class="bi bi-collection"></i> Total: <span id="total-categories">{{ $categories->total() }}</span>
                     Categories
                 </span>
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
+                    <i class="bi bi-arrow-up-down me-2"></i>Index
+                </button>
                 <a href="{{ route('ai-baby-video.categories.create') }}" class="btn btn-primary"><i
                         class="bi bi-plus-lg me-2"></i>Add Category</a>
             </div>
@@ -225,6 +228,40 @@
         </div>
     </div>
 
+    <!-- Indexing Modal -->
+    <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="indexingModalLabel">
+                        <i class="bi bi-arrow-up-down me-2"></i>Category Indexing
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Drag and drop categories to reorder them. New categories (sort order 0) appear first by default.
+                    </div>
+                    <div id="abv-categoriesContainer" class="list-group" style="min-height: 200px;">
+                        <div class="col-12 text-center text-muted py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading categories...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="abvSaveOrderBtn">
+                        <i class="bi bi-save me-2"></i>Save Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -247,6 +284,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         let selectedCategoryId = null;
 
@@ -325,6 +363,145 @@
                     }
                 });
             }
+
+            // Indexing Logic
+            let abvSortableInstance = null;
+            const abvIndexingModal = document.getElementById('indexingModal');
+
+            abvIndexingModal.addEventListener('show.bs.modal', function () {
+                loadAbvCategoriesForIndexing();
+            });
+
+            function loadAbvCategoriesForIndexing() {
+                const container = document.getElementById('abv-categoriesContainer');
+                container.innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading categories...</p>
+                    </div>`;
+
+                $.ajax({
+                    url: "{{ route('ai-baby-video.categories.indexing') }}",
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.categories && response.categories.length > 0) {
+                            displayAbvCategories(response.categories);
+                            initAbvSortable();
+                        } else {
+                            container.innerHTML = `
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="bi bi-camera-video fs-1"></i>
+                                    <p class="mt-2">No categories found</p>
+                                </div>`;
+                        }
+                    },
+                    error: function () {
+                        container.innerHTML = `
+                            <div class="col-12 text-center text-danger py-5">
+                                <i class="bi bi-exclamation-triangle fs-1"></i>
+                                <p class="mt-2">Error loading categories</p>
+                            </div>`;
+                    }
+                });
+            }
+
+            function displayAbvCategories(categories) {
+                const container = document.getElementById('abv-categoriesContainer');
+                container.innerHTML = '';
+                categories.forEach((category, index) => {
+                    const html = `
+                        <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-grip-vertical me-2 text-muted fs-5"></i>
+                                <span class="fw-bold me-2">${index + 1}.</span>
+                                <span>${category.category_name}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
+                                <span class="badge ${category.sort_order == 0 ? 'bg-success' : 'bg-light text-dark border'} rounded-pill small">
+                                    Order: ${category.sort_order}
+                                </span>
+                            </div>
+                        </div>`;
+                    container.innerHTML += html;
+                });
+            }
+
+            function initAbvSortable() {
+                if (abvSortableInstance) {
+                    abvSortableInstance.destroy();
+                }
+                const container = document.getElementById('abv-categoriesContainer');
+                abvSortableInstance = new Sortable(container, {
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    onEnd: function () {
+                        updateAbvOrderNumbers();
+                    }
+                });
+            }
+
+            function updateAbvOrderNumbers() {
+                const items = document.querySelectorAll('#abv-categoriesContainer .list-group-item');
+                items.forEach((item, index) => {
+                    const numberSpan = item.querySelector('.fw-bold');
+                    if (numberSpan) {
+                        numberSpan.textContent = (index + 1) + '.';
+                    }
+                });
+            }
+
+            document.getElementById('abvSaveOrderBtn').addEventListener('click', function () {
+                const items = document.querySelectorAll('#abv-categoriesContainer .list-group-item');
+                const orderData = [];
+                items.forEach((item, index) => {
+                    orderData.push({
+                        id: item.getAttribute('data-id'),
+                        sort_order: index + 1
+                    });
+                });
+
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+
+                $.ajax({
+                    url: "{{ route('ai-baby-video.categories.updateOrder') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        order: orderData
+                    },
+                    success: function (response) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        if (response.success) {
+                            const modal = bootstrap.Modal.getInstance(abvIndexingModal);
+                            modal.hide();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                window.location.href = response.redirect_url;
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message || 'Something went wrong!'
+                        });
+                    }
+                });
+            });
 
             // Status Toggle
             $(document).on('change', '.status-toggle', function () {

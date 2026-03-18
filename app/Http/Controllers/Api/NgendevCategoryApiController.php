@@ -79,19 +79,19 @@ class NgendevCategoryApiController extends Controller
         // Latest category: last record from all other categories
         $latestImages = $categories
             ->filter(function($cat) { return $cat['items']->isNotEmpty(); })
-            ->map(function($cat) { return $cat['items']->first(); }) // latest record per category
+            ->map(function($cat) { return $cat['items']->last(); }) // explicitly last record
             ->filter()
             ->values();
 
         // 🔥 Add Exclusive's last record at the end of Latest category
         if ($exclusive && $exclusive['items']->isNotEmpty()) {
-            $exclusiveLastRecord = $exclusive['items']->first(); // latest record
+            $exclusiveLastRecord = $exclusive['items']->last(); // explicitly last record
             $latestImages->push($exclusiveLastRecord);
         }
 
         // 🔥 Add Trending's last record at the end of Latest category
         if ($trending && $trending['items']->isNotEmpty()) {
-            $trendingLastRecord = $trending['items']->first(); // latest record
+            $trendingLastRecord = $trending['items']->last(); // explicitly last record
             $latestImages->push($trendingLastRecord);
         }
 
@@ -153,16 +153,30 @@ class NgendevCategoryApiController extends Controller
          * ===========================
          */
         if ($data['category_id'] == 0) {
+            $coupleActive = $ngdAiSetting ? $ngdAiSetting->couple_active : 1;
 
-            $categories = NgendevCategory::where('status', 1)
-                ->orderBy('id', 'asc')
+            $query = NgendevCategory::where('status', 1);
+
+            if (!$coupleActive) {
+                $query->where('type', '!=', 'Couple');
+            }
+
+            $categories = $query->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'desc')
                 ->get();
 
+            // Separate Exclusive and Trending categories to match getCategories ordering
+            $exclusiveCategory = $categories->firstWhere('category_name', 'Exclusive');
+            $categories = $categories->reject(function ($cat) {
+                return $cat->category_name === 'Exclusive'; });
+
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
-            $categories = $categories->reject(function($cat) { return $cat->category_name === 'Trending'; });
+            $categories = $categories->reject(function ($cat) {
+                return $cat->category_name === 'Trending'; });
 
             $latestImages = collect();
 
+            // Get first image from each remaining category (same order as getCategories)
             foreach ($categories as $category) {
                 $latestImage = NgendevImage::where('category_id', $category->id)
                     ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
@@ -186,6 +200,31 @@ class NgendevCategoryApiController extends Controller
                 }
             }
 
+            // Add Exclusive first record
+            if ($exclusiveCategory) {
+                $exclusiveImage = NgendevImage::where('category_id', $exclusiveCategory->id)
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
+                    ->orderBy('sort_order', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($exclusiveImage) {
+                    $encodedExclusive = str_replace(' ', '%20', $exclusiveCategory->category_name);
+                    $exclusive_image_path = $exclusiveImage->image_path
+                        ? "ngendev/images/{$encodedExclusive}/category_image/{$exclusiveImage->image_path}"
+                        : null;
+                    $latestImages->push([
+                        'id' => $exclusiveImage->id,
+                        'ai_prompt' => $exclusiveImage->ai_prompt,
+                        'no_of_image' => $exclusiveImage->no_of_image,
+                        'name_change' => (bool) $exclusiveImage->name_change,
+                        'category_image' => $exclusive_image_path,
+                        'category_image_full_url' => $exclusive_image_path ? asset('upload/ngendev/images/' . rawurlencode($exclusiveCategory->category_name) . '/category_image/' . rawurlencode($exclusiveImage->image_path)) : null,
+                    ]);
+                }
+            }
+
+            // Add Trending first record
             if ($trendingCategory) {
                 $trendingImage = NgendevImage::where('category_id', $trendingCategory->id)
                     ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
@@ -209,8 +248,7 @@ class NgendevCategoryApiController extends Controller
                 }
             }
 
-            // ðŸ”¥ Show last category last record FIRST
-            $latestImages = $latestImages->reverse()->values();
+            $latestImages = $latestImages->values();
 
             return response()->json([
                 'status' => true,

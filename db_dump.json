@@ -1,0 +1,38 @@
+{
+    "categories": [
+        {
+            "id": 1,
+            "category_name": "tests"
+        },
+        {
+            "id": 3,
+            "category_name": "Face AI Video"
+        }
+    ],
+    "videos": [
+        {
+            "id": 3,
+            "category_id": 1,
+            "sort_order": 0,
+            "video_path": "16.mp4"
+        },
+        {
+            "id": 5,
+            "category_id": 1,
+            "sort_order": 0,
+            "video_path": "4b3217f8-fae4-4ce1-a8ed-276f5f9fa862.mp4"
+        },
+        {
+            "id": 6,
+            "category_id": 3,
+            "sort_order": 0,
+            "video_path": "eye blink.mp4"
+        },
+        {
+            "id": 7,
+            "category_id": 3,
+            "sort_order": 0,
+            "video_path": "17.mp4"
+        }
+    ]
+}

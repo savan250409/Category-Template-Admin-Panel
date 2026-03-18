@@ -69,29 +69,33 @@ class NgendevVideoApiController extends Controller
         // Separate Exclusive category
         $exclusive = $categories->firstWhere('category_name', 'Exclusive');
         if ($exclusive) {
-            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Exclusive'; });
+            $categories = $categories->reject(function ($cat) {
+                return $cat['category_name'] === 'Exclusive'; });
         }
 
         // Separate Trending category
         $trending = $categories->firstWhere('category_name', 'Trending');
         if ($trending) {
-            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Trending'; });
+            $categories = $categories->reject(function ($cat) {
+                return $cat['category_name'] === 'Trending'; });
         }
 
         // Latest category: last record from all other categories
         $latestVideos = $categories
-            ->filter(function($cat) { return $cat['items']->isNotEmpty(); })
-            ->map(function($cat) { return $cat['items']->first(); }) // latest record per category
+            ->filter(function ($cat) {
+                return $cat['items']->isNotEmpty(); })
+            ->map(function ($cat) {
+                return $cat['items']->last(); }) // explicitly last record
             ->filter()
             ->values();
 
         if ($exclusive && $exclusive['items']->isNotEmpty()) {
-            $exclusiveLastRecord = $exclusive['items']->first(); // latest record
+            $exclusiveLastRecord = $exclusive['items']->last(); // explicitly last record
             $latestVideos->push($exclusiveLastRecord);
         }
 
         if ($trending && $trending['items']->isNotEmpty()) {
-            $trendingLastRecord = $trending['items']->first(); // latest record
+            $trendingLastRecord = $trending['items']->last(); // explicitly last record
             $latestVideos->push($trendingLastRecord);
         }
 
@@ -154,15 +158,30 @@ class NgendevVideoApiController extends Controller
          */
         if ($data['category_id'] == 0) {
 
-            $categories = NgendevVideoCategory::where('status', 1)
-                ->orderBy('id', 'asc')
+            $coupleActive = $ngdAiSetting ? $ngdAiSetting->couple_active : 1;
+
+            $query = NgendevVideoCategory::where('status', 1);
+
+            if (!$coupleActive) {
+                $query->where('type', '!=', 'Couple');
+            }
+
+            $categories = $query->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'desc')
                 ->get();
 
+            // Separate Exclusive and Trending categories
+            $exclusiveCategory = $categories->firstWhere('category_name', 'Exclusive');
+            $categories = $categories->reject(function ($cat) {
+                return $cat->category_name === 'Exclusive'; });
+
             $trendingCategory = $categories->firstWhere('category_name', 'Trending');
-            $categories = $categories->reject(function($cat) { return $cat->category_name === 'Trending'; });
+            $categories = $categories->reject(function ($cat) {
+                return $cat->category_name === 'Trending'; });
 
             $latestVideos = collect();
 
+            // Get first video from each remaining category (same order as getAiVideoCategories)
             foreach ($categories as $category) {
                 $latestVideo = NgendevVideo::where('category_id', $category->id)
                     ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
@@ -172,25 +191,51 @@ class NgendevVideoApiController extends Controller
 
                 if ($latestVideo) {
                     $encodedCategory = str_replace(' ', '%20', $category->category_name);
-                    $video_thumbnail_path = $latestVideo->video_thumbnail
-                        ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$latestVideo->video_thumbnail}"
-                        : null;
-                    $category_video_path = $latestVideo->video_path
-                        ? "ngendev/videos/{$encodedCategory}/category_video/{$latestVideo->video_path}"
-                        : null;
                     $latestVideos->push([
                         'id' => $latestVideo->id,
                         'ai_prompt' => $latestVideo->ai_prompt,
                         'no_of_video' => $latestVideo->no_of_video,
                         'name_change' => (bool) $latestVideo->name_change,
-                        'video_thumbnail' => $video_thumbnail_path,
+                        'video_thumbnail' => $latestVideo->video_thumbnail
+                            ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$latestVideo->video_thumbnail}"
+                            : null,
                         'video_thumbnail_full_url' => $latestVideo->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/video_thumbnail/' . rawurlencode($latestVideo->video_thumbnail)) : null,
-                        'category_video' => $category_video_path,
+                        'category_video' => $latestVideo->video_path
+                            ? "ngendev/videos/{$encodedCategory}/category_video/{$latestVideo->video_path}"
+                            : null,
                         'category_video_full_url' => $latestVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($latestVideo->video_path)) : null,
                     ]);
                 }
             }
 
+            // Add Exclusive first record
+            if ($exclusiveCategory) {
+                $exclusiveVideo = NgendevVideo::where('category_id', $exclusiveCategory->id)
+                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
+                    ->orderBy('sort_order', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($exclusiveVideo) {
+                    $encodedExclusive = str_replace(' ', '%20', $exclusiveCategory->category_name);
+                    $latestVideos->push([
+                        'id' => $exclusiveVideo->id,
+                        'ai_prompt' => $exclusiveVideo->ai_prompt,
+                        'no_of_video' => $exclusiveVideo->no_of_video,
+                        'name_change' => (bool) $exclusiveVideo->name_change,
+                        'video_thumbnail' => $exclusiveVideo->video_thumbnail
+                            ? "ngendev/videos/{$encodedExclusive}/video_thumbnail/{$exclusiveVideo->video_thumbnail}"
+                            : null,
+                        'video_thumbnail_full_url' => $exclusiveVideo->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode($exclusiveCategory->category_name) . '/video_thumbnail/' . rawurlencode($exclusiveVideo->video_thumbnail)) : null,
+                        'category_video' => $exclusiveVideo->video_path
+                            ? "ngendev/videos/{$encodedExclusive}/category_video/{$exclusiveVideo->video_path}"
+                            : null,
+                        'category_video_full_url' => $exclusiveVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($exclusiveCategory->category_name) . '/category_video/' . rawurlencode($exclusiveVideo->video_path)) : null,
+                    ]);
+                }
+            }
+
+            // Add Trending first record
             if ($trendingCategory) {
                 $trendingVideo = NgendevVideo::where('category_id', $trendingCategory->id)
                     ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
@@ -200,26 +245,24 @@ class NgendevVideoApiController extends Controller
 
                 if ($trendingVideo) {
                     $encodedTrending = str_replace(' ', '%20', $trendingCategory->category_name);
-                    $video_thumbnail_path = $trendingVideo->video_thumbnail
-                        ? "ngendev/videos/{$encodedTrending}/video_thumbnail/{$trendingVideo->video_thumbnail}"
-                        : null;
-                    $category_video_path = $trendingVideo->video_path
-                        ? "ngendev/videos/{$encodedTrending}/category_video/{$trendingVideo->video_path}"
-                        : null;
                     $latestVideos->push([
                         'id' => $trendingVideo->id,
                         'ai_prompt' => $trendingVideo->ai_prompt,
                         'no_of_video' => $trendingVideo->no_of_video,
                         'name_change' => (bool) $trendingVideo->name_change,
-                        'video_thumbnail' => $video_thumbnail_path,
+                        'video_thumbnail' => $trendingVideo->video_thumbnail
+                            ? "ngendev/videos/{$encodedTrending}/video_thumbnail/{$trendingVideo->video_thumbnail}"
+                            : null,
                         'video_thumbnail_full_url' => $trendingVideo->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode($trendingCategory->category_name) . '/video_thumbnail/' . rawurlencode($trendingVideo->video_thumbnail)) : null,
-                        'category_video' => $category_video_path,
+                        'category_video' => $trendingVideo->video_path
+                            ? "ngendev/videos/{$encodedTrending}/category_video/{$trendingVideo->video_path}"
+                            : null,
                         'category_video_full_url' => $trendingVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($trendingCategory->category_name) . '/category_video/' . rawurlencode($trendingVideo->video_path)) : null,
                     ]);
                 }
             }
 
-            $latestVideos = $latestVideos->reverse()->values();
+            $latestVideos = $latestVideos->values();
 
             return response()->json([
                 'status' => true,
@@ -264,7 +307,7 @@ class NgendevVideoApiController extends Controller
             ], 404);
         }
 
-        $videos->transform(function($video) use ($encodedCategory, $category) {
+        $videos->transform(function ($video) use ($encodedCategory, $category) {
             return [
                 'id' => $video->id,
                 'ai_prompt' => $video->ai_prompt,

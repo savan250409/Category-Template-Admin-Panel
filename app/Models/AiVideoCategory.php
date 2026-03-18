@@ -16,6 +16,7 @@ class AiVideoCategory extends Model
         'category_image',
         'description',
         'trending',
-        'status'
+        'status',
+        'sort_order',
     ];
 }

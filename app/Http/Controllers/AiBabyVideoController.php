@@ -101,6 +101,10 @@ class AiBabyVideoController extends Controller
             'name_change' => $request->has('name_change') ? 1 : 0,
         ]);
 
+        // Reset sort_order to 0 so this category floats to the top of the API response
+        $category->sort_order = 0;
+        $category->save();
+
         return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video added successfully!');
     }
 
@@ -212,6 +216,10 @@ class AiBabyVideoController extends Controller
             'ai_prompt' => $request->ai_prompt,
             'name_change' => $request->has('name_change') ? 1 : 0,
         ]);
+
+        // Reset sort_order to 0 so this category floats to the top of the API response
+        $category->sort_order = 0;
+        $category->save();
 
         return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video updated successfully!');
     }

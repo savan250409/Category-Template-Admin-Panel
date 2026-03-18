@@ -16,8 +16,8 @@ class VideoCategoryController extends Controller
         $videoSetting = AiBabyVideoModuleSetting::first();
         $videoModel = $videoSetting ? $videoSetting->model : null;
 
-        // Get active categories
-        $activeCategories = AiVideoCategory::where('status', 1)->get();
+        // Get active categories: sort_order ASC first, then most recently updated (new category or video added) first
+        $activeCategories = AiVideoCategory::where('status', 1)->orderBy('sort_order', 'asc')->orderBy('updated_at', 'desc')->get();
 
         $response = [];
 
