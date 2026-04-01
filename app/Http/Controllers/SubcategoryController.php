@@ -27,7 +27,7 @@ class SubcategoryController extends Controller
         $model = $this->getModel($request);
         $subcategory = $id ? $model::findOrFail($id) : new $model();
 
-        $videoCategories = \App\Models\AiVideoCategory::where('status', 1)->pluck('name')->toArray();
+        $videoCategories = \App\Models\AiVideoCategory::where('status', 1)->pluck('category_name')->toArray();
         $imageCategories = \App\Models\AiImageCategory::pluck('name')->toArray();
         $hardcodedCategories = ['Newborn Baby', 'Baby Bumps', 'Toddler Photoshoot', 'Festival Photoshoot', 'Birthday Photo', 'Unique Style', 'Invitation card'];
 
