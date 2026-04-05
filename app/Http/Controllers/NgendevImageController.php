@@ -65,14 +65,17 @@ class NgendevImageController extends Controller
                 $category        = NgendevCategory::findOrFail($request->category_id);
                 $categoryName    = $category->category_name;
                 $originalName    = $request->file('image')->getClientOriginalName();
+                $filename        = pathinfo($originalName, PATHINFO_FILENAME);
+                $extension       = pathinfo($originalName, PATHINFO_EXTENSION);
+                $newImageName    = $filename . '_' . time() . '.' . $extension;
                 $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
 
                 if (!File::exists($destinationPath)) {
                     File::makeDirectory($destinationPath, 0777, true, true);
                 }
 
-                $request->file('image')->move($destinationPath, $originalName);
-                $imageName = $originalName;
+                $request->file('image')->move($destinationPath, $newImageName);
+                $imageName = $newImageName;
             }
 
             NgendevImage::create([
@@ -128,14 +131,17 @@ class NgendevImageController extends Controller
                 }
 
                 $originalName    = $request->file('image')->getClientOriginalName();
+                $filename        = pathinfo($originalName, PATHINFO_FILENAME);
+                $extension       = pathinfo($originalName, PATHINFO_EXTENSION);
+                $newImageName    = $filename . '_' . time() . '.' . $extension;
                 $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
 
                 if (!file_exists($destinationPath)) {
                     mkdir($destinationPath, 0777, true);
                 }
 
-                $request->file('image')->move($destinationPath, $originalName);
-                $imagePath = $originalName;
+                $request->file('image')->move($destinationPath, $newImageName);
+                $imagePath = $newImageName;
             }
 
             $image->update([

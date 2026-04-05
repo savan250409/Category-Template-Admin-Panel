@@ -781,6 +781,20 @@
             });
         });
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert-success, .alert-danger, .alert-warning');
+                alerts.forEach(function(alertEl) {
+                    var bsAlert = bootstrap.Alert.getInstance(alertEl);
+                    if (!bsAlert) {
+                        bsAlert = new bootstrap.Alert(alertEl);
+                    }
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
     @yield('scripts')
 </body>
 
