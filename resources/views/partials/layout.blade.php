@@ -418,6 +418,81 @@
                 </ul>
             </li>
 
+            {{-- Filter AI Image Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+               Filter AI Image Module
+            </li>
+            @php
+                $isFilterAIActive = request()->is('filter-ai-image/categories*') || request()->is('filter-ai-image/images*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isFilterAIActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#filterAICollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-filter-circle me-2 text-primary"></i>
+                        <span class="fw-semibold">Filter AI Image</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                {{-- Filter AI Module Submenu --}}
+                <ul id="filterAICollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isFilterAIActive ? 'block' : 'none' }};">
+
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('filter-ai-image/categories*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('filter-ai-image.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>Filter AI Category</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->is('filter-ai-image/images*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('filter-ai-image.images.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-image me-2"></i>
+                            <span>Filter AI Image</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            {{-- Top Slider Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+               Top Slider Module
+            </li>
+            @php
+                $isTopSliderActive = request()->routeIs('top-slider.categories.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isTopSliderActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#topSliderCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-images me-2 text-info"></i>
+                        <span class="fw-semibold">Top Slider Module</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                {{-- Top Slider Submenu --}}
+                <ul id="topSliderCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isTopSliderActive ? 'block' : 'none' }};">
+
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('top-slider.categories.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('top-slider.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>Top Slider Category</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API
@@ -481,7 +556,7 @@
             </div>
         </div>
 
-        <a href="{{ route('clear.cache') }}" title="Clear Cache">
+        <a href="javascript:void(0);" id="clearCacheBtn" title="Clear Cache & Logs">
             <i class="fas fa-broom" style="font-size: 24px; color: #9aa5df; margin-left:20px;"></i>
         </a>
 
@@ -656,6 +731,56 @@
         })();
     </script>
 
+    <script>
+        document.getElementById('clearCacheBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Clear Cache & Logs?',
+                text: "This will clear all application cache and truncate log files.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, clear it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Clearing...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "{{ route('system.clearCache') }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Cleared!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire('Error!', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error!', 'An error occurred while clearing cache.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
     @yield('scripts')
 </body>
 

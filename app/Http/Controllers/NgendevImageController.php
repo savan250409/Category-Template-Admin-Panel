@@ -50,86 +50,123 @@ class NgendevImageController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'category_id' => 'required|exists:ngendev_categories,id',
-            'ai_prompt' => 'required|string|max:10000',
-            'ai_model' => 'nullable|string|max:255',
-            'image' => 'required|image|mimes:webp|max:10000',
-        ]);
+        try {
+            $request->validate([
+                'category_id' => 'required|exists:ngendev_categories,id',
+                'ai_prompt'   => 'required|string|max:10000',
+                'ai_model'    => 'nullable|string|max:255',
+                'image'       => 'required|image|mimes:webp|max:10000',
+                'no_of_image' => 'required|integer|min:1',
+            ]);
 
-        $imageName = null;
+            $imageName = null;
 
-        if ($request->hasFile('image')) {
-            $category = NgendevCategory::findOrFail($request->category_id);
-            $categoryName = $category->category_name;
+            if ($request->hasFile('image')) {
+                $category        = NgendevCategory::findOrFail($request->category_id);
+                $categoryName    = $category->category_name;
+                $originalName    = $request->file('image')->getClientOriginalName();
+                $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
 
-            $originalName = $request->file('image')->getClientOriginalName();
-            $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
+                if (!File::exists($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0777, true, true);
+                }
 
-            if (!File::exists($destinationPath)) {
-                File::makeDirectory($destinationPath, 0777, true, true);
+                $request->file('image')->move($destinationPath, $originalName);
+                $imageName = $originalName;
             }
 
-            $request->file('image')->move($destinationPath, $originalName);
-            $imageName = $originalName;
+            NgendevImage::create([
+                'category_id' => $request->category_id,
+                'ai_prompt'   => $request->ai_prompt,
+                'ai_model'    => $request->ai_model,
+                'no_of_image' => $request->no_of_image,
+                'name_change' => $request->has('name_change') ? 1 : 0,
+                'image_path'  => $imageName,
+            ]);
+
+            return $request->ajax()
+                ? response()->json(['success' => true, 'message' => 'Ngendev image added successfully!'])
+                : redirect()->route('ngendev.images.index')->with('success', 'Ngendev image added successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $errors], 422);
+            }
+            return redirect()->back()->withInput()->withErrors($e->errors());
+
+        } catch (\Exception $e) {
+            $msg = 'Something went wrong while adding the image. Please try again.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 500);
+            }
+            return redirect()->back()->withInput()->with('error', $msg);
         }
-
-        NgendevImage::create([
-            'category_id' => $request->category_id,
-            'ai_prompt' => $request->ai_prompt,
-            'ai_model' => $request->ai_model,
-            'no_of_image' => $request->no_of_image,
-            'name_change' => $request->has('name_change') ? 1 : 0,
-            'image_path' => $imageName,
-        ]);
-
-        return $request->ajax() ? response()->json(['success' => true, 'message' => 'Ngendev image added successfully!']) : redirect()->route('ngendev.images.index')->with('success', 'Ngendev image added successfully!');
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'category_id' => 'required|exists:ngendev_categories,id',
-            'ai_prompt' => 'required|string|max:1000',
-            'ai_model' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:webp|max:4096',
-            'no_of_image' => 'required|integer|min:1',
-            'name_change' => 'boolean',
-        ]);
+        try {
+            $request->validate([
+                'category_id' => 'required|exists:ngendev_categories,id',
+                'ai_prompt'   => 'required|string|max:10000',
+                'ai_model'    => 'nullable|string|max:255',
+                'image'       => 'nullable|image|mimes:webp|max:4096',
+                'no_of_image' => 'required|integer|min:1',
+                'name_change' => 'boolean',
+            ]);
 
-        $image = NgendevImage::findOrFail($id);
-        $category = NgendevCategory::findOrFail($request->category_id);
-        $categoryName = $category->category_name;
+            $image        = NgendevImage::findOrFail($id);
+            $category     = NgendevCategory::findOrFail($request->category_id);
+            $categoryName = $category->category_name;
+            $imagePath    = $image->image_path;
 
-        $imagePath = $image->image_path;
+            if ($request->hasFile('image')) {
+                $oldPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image/' . $imagePath);
+                if ($imagePath && file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
 
-        if ($request->hasFile('image')) {
-            $oldPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image/' . $imagePath);
-            if ($imagePath && file_exists($oldPath)) {
-                unlink($oldPath);
+                $originalName    = $request->file('image')->getClientOriginalName();
+                $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+
+                $request->file('image')->move($destinationPath, $originalName);
+                $imagePath = $originalName;
             }
 
-            $originalName = $request->file('image')->getClientOriginalName();
-            $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
+            $image->update([
+                'category_id' => $request->category_id,
+                'ai_prompt'   => $request->ai_prompt,
+                'ai_model'    => $request->ai_model,
+                'no_of_image' => $request->no_of_image,
+                'name_change' => $request->has('name_change') ? 1 : 0,
+                'image_path'  => $imagePath,
+            ]);
 
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Ngendev image updated successfully!']);
             }
 
-            $request->file('image')->move($destinationPath, $originalName);
-            $imagePath = $originalName;
+            return redirect()->route('ngendev.images.index')->with('success', 'Ngendev image updated successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $errors], 422);
+            }
+            return redirect()->back()->withInput()->withErrors($e->errors());
+
+        } catch (\Exception $e) {
+            $msg = 'Something went wrong while updating the image. Please try again.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 500);
+            }
+            return redirect()->back()->withInput()->with('error', $msg);
         }
-
-        $image->update([
-            'category_id' => $request->category_id,
-            'ai_prompt' => $request->ai_prompt,
-            'ai_model' => $request->ai_model,
-            'no_of_image' => $request->no_of_image,
-            'name_change' => $request->has('name_change') ? 1 : 0,
-            'image_path' => $imagePath,
-        ]);
-
-        return redirect()->route('ngendev.images.index')->with('success', 'Ngendev image updated successfully!');
     }
 
     public function destroy($id)

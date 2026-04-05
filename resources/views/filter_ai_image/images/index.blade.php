@@ -1,5 +1,5 @@
 @extends('partials.layout')
-@section('title', 'Ngendev Images Management')
+@section('title', 'Filter AI Images Management')
 @section('container')
     <style>
         .stats-badge {
@@ -21,21 +21,67 @@
 
         .data-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         .data-table th {
             background: #f8f9fc;
-            color: #5a5c69;
-            font-weight: 700;
-            padding: .75rem;
-            border-bottom: 1px solid #e3e6f0;
+            color: #4e73df;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem .75rem;
+            border-bottom: 2px solid #e3e6f0;
         }
 
         .data-table td {
-            padding: .75rem;
+            padding: 1.25rem .75rem;
             vertical-align: middle;
             border-bottom: 1px solid #e3e6f0;
+            color: #5a5c69;
+            font-size: 0.9rem;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fc;
+            transition: background-color 0.2s ease;
+        }
+
+        .category-badge {
+            background: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .img-container {
+            width: 100px;
+            height: 60px;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .prompt-text {
+            color: #858796;
+            font-size: 0.8rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+            max-width: 300px;
         }
 
         .action-btn {
@@ -165,8 +211,8 @@
     <div class="container mt-4 mb-5">
         <div class="page-header d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="page-title"><i class="bi bi-robot me-2"></i>Ngendev Images Management</h1>
-                <p class="page-subtitle">Manage all Ngendev images in the system</p>
+                <h1 class="page-title"><i class="bi bi-robot me-2"></i>Filter AI Images Management</h1>
+                <p class="page-subtitle">Manage all Filter AI images in the system</p>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
@@ -186,13 +232,13 @@
 
         <div class="form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 id="formTitle"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image</h4>
+                <h4 id="formTitle"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Filter AI Image</h4>
                 <button type="button" id="cancelEdit" class="btn btn-outline-secondary d-none"><i
                         class="bi bi-x-lg me-1"></i>Cancel Edit</button>
             </div>
 
-            <form id="ngendevImageForm" method="POST" enctype="multipart/form-data"
-                action="{{ route('ngendev.images.store') }}">
+            <form id="filterAiImageForm" method="POST" enctype="multipart/form-data"
+                action="{{ route('filter-ai-image.images.store') }}">
                 @csrf
                 <input type="hidden" id="formMethod" name="_method" value="POST">
                 <input type="hidden" id="editId" name="id" value="">
@@ -207,25 +253,12 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <label for="ai_model" class="form-label">Model</label>
-                        <select class="form-select" id="ai_model" name="ai_model" required>
-                            <option value="Ngendev Image">Ngendev Image</option>
-                            <option value="Ngendev Figure">Ngendev Figure</option>
-                        </select>
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="ai_prompt" class="form-label">Prompt</label>
-                        <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="6" placeholder="Enter prompt" required></textarea>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="mb-3">
-                            <label for="no_of_image" class="form-label">No of Image</label>
-                            <input type="number" class="form-control" id="no_of_image" name="no_of_image" value="1" min="1" required>
-                        </div>
-                        <div class="form-check form-switch mt-4">
-                            <input class="form-check-input" type="checkbox" id="name_change" name="name_change" value="1">
-                            <label class="form-check-label" for="name_change">Name Change</label>
-                        </div>
+                        <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="3" placeholder="Enter prompt" required></textarea>
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="image" class="form-label">Image</label>
@@ -249,7 +282,7 @@
             <div class="search-container">
                 <div class="input-group" style="width: 350px;">
                     <input type="text" id="searchInput" class="form-control"
-                        placeholder="Search by prompt, model, or category..." value="{{ request('search') }}">
+                        placeholder="Search by name, prompt, model, or category..." value="{{ request('search') }}">
                     <button class="btn btn-outline-secondary" type="button" id="clearSearch">
                         <i class="bi bi-x"></i>
                     </button>
@@ -262,8 +295,8 @@
                         <div class="empty-state-icon">
                             <i class="bi bi-robot"></i>
                         </div>
-                        <h4 class="empty-state-title">No Ngendev Images Found</h4>
-                        <p class="empty-state-text">Get started by adding your first Ngendev image</p>
+                        <h4 class="empty-state-title">No Filter AI Images Found</h4>
+                        <p class="empty-state-text">Get started by adding your first Filter AI image</p>
                     </div>
                 @else
                     @section('table')
@@ -271,56 +304,47 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Category</th>
-                                        <th>Model</th>
-                                        <th>Image</th>
-                                        <th>Prompt</th>
-                                        <th>No Of Image</th>
-                                        <th>Name Change</th>
-                                        <th class="text-end">Actions</th>
+                                        <th width="15%">Category</th>
+                                        <th width="15%">Name</th>
+                                        <th width="15%">Image</th>
+                                        <th width="40%">Prompt</th>
+                                        <th width="15%" class="text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($images as $img)
                                         <tr id="row-{{ $img->id }}">
-                                            <td><strong>{{ $img->category->category_name ?? 'N/A' }}</strong></td>
-                                            <td>{{ $img->ai_model ?? 'Ngendev Image' }}</td>
+                                            <td><span class="category-badge">{{ $img->category->category_name ?? 'N/A' }}</span></td>
+                                            <td><span class="fw-bold text-dark">{{ $img->name ?? 'N/A' }}</span></td>
                                             <td>
                                                 @if ($img->image_path)
-                                                    <img src="{{ asset('upload/ngendev/images/' . $img->category->category_name . '/category_image/' . $img->image_path) }}"
-                                                        width="80">
+                                                    <div class="img-container">
+                                                        <img src="{{ asset('upload/filter_ai_image/images/' . $img->category->category_name . '/category_image/' . $img->image_path) }}"
+                                                            alt="{{ $img->name }}">
+                                                    </div>
                                                 @else
-                                                    <div class="text-muted">No image</div>
+                                                    <div class="img-container d-flex align-items-center justify-content-center bg-light">
+                                                        <i class="bi bi-image text-muted"></i>
+                                                    </div>
                                                 @endif
                                             </td>
                                             <td>
-                                                <div class="text-truncate" style="max-width:300px;"
-                                                    title="{{ $img->ai_prompt }}">
+                                                <div class="prompt-text" title="{{ $img->ai_prompt }}">
                                                     {{ $img->ai_prompt }}
                                                 </div>
-                                            </td>
-                                            <td>{{ $img->no_of_image }}</td>
-                                            <td>
-                                                @if($img->name_change)
-                                                    <span class="badge bg-success">Yes</span>
-                                                @else
-                                                    <span class="badge bg-secondary">No</span>
-                                                @endif
                                             </td>
                                             <td class="text-end">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="action-btn edit-btn"
                                                         data-id="{{ $img->id }}"
                                                         data-category="{{ $img->category_id }}"
-                                                        data-model="{{ $img->ai_model }}"
+                                                        data-name="{{ $img->name }}"
                                                         data-prompt="{{ $img->ai_prompt }}"
-                                                        data-noofimage="{{ $img->no_of_image }}"
-                                                        data-namechange="{{ $img->name_change }}"
                                                         data-image="{{ $img->image_path }}" onclick="editImage(this)">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
                                                     <form id="deleteForm-{{ $img->id }}"
-                                                        action="{{ route('ngendev.images.destroy', $img->id) }}"
+                                                        action="{{ route('filter-ai-image.images.destroy', $img->id) }}"
                                                         method="POST" class="d-inline">
                                                         @csrf @method('DELETE')
                                                         <button type="button" class="action-btn delete-btn"
@@ -534,7 +558,7 @@
 
         function loadImages(page, search = '') {
             $.ajax({
-                url: "{{ route('ngendev.images.index') }}",
+                url: "{{ route('filter-ai-image.images.index') }}",
                 type: 'GET',
                 data: {
                     page: page,
@@ -562,30 +586,26 @@
         function editImage(button) {
             const id = button.getAttribute('data-id');
             const category = button.getAttribute('data-category');
-            const model = button.getAttribute('data-model') || 'Ngendev Image';
+            const name = button.getAttribute('data-name');
             const prompt = button.getAttribute('data-prompt');
-            const noOfImage = button.getAttribute('data-noofimage');
-            const nameChange = button.getAttribute('data-namechange');
             const imagePath = button.getAttribute('data-image');
 
             document.getElementById('formTitle').innerHTML =
-                '<i class="bi bi-pencil-square me-2 text-info"></i>Edit Ngendev Image';
+                '<i class="bi bi-pencil-square me-2 text-info"></i>Edit Filter AI Image';
             document.getElementById('submitBtn').innerHTML =
                 '<i class="bi bi-save me-2"></i>Update Image';
             document.getElementById('cancelEdit').classList.remove('d-none');
 
-            document.getElementById('ngendevImageForm').action = "{{ url('ngendev/images') }}/" + id;
+            document.getElementById('filterAiImageForm').action = "{{ url('filter-ai-image/images') }}/" + id;
             document.getElementById('formMethod').value = 'PUT';
             document.getElementById('editId').value = id;
             document.getElementById('category_id').value = category;
-            document.getElementById('ai_model').value = model;
+            document.getElementById('name').value = name;
             document.getElementById('ai_prompt').value = prompt;
-            document.getElementById('no_of_image').value = noOfImage;
-            document.getElementById('name_change').checked = (nameChange == 1);
 
             if (imagePath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
-                const imgUrl = "{{ asset('upload/ngendev/images') }}/" + categoryName + '/category_image/' + imagePath;
+                const imgUrl = "{{ asset('upload/filter_ai_image/images') }}/" + categoryName + '/category_image/' + imagePath;
                 document.getElementById('previewImg').src = imgUrl;
                 document.getElementById('imagePreview').classList.remove('d-none');
             } else {
@@ -599,7 +619,7 @@
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: `Are you sure you want to delete the Ngendev image "${categoryName}"?`,
+                text: `Are you sure you want to delete this Filter AI image?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -619,20 +639,18 @@
 
         function resetForm() {
             document.getElementById('formTitle').innerHTML =
-                '<i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image';
+                '<i class="bi bi-plus-circle me-2 text-primary"></i>Add New Filter AI Image';
             document.getElementById('submitBtn').innerHTML =
                 '<i class="bi bi-plus-lg me-2"></i>Add Image';
             document.getElementById('cancelEdit').classList.add('d-none');
-            document.getElementById('ngendevImageForm').action = "{{ route('ngendev.images.store') }}";
+            document.getElementById('filterAiImageForm').action = "{{ route('filter-ai-image.images.store') }}";
             document.getElementById('formMethod').value = 'POST';
             document.getElementById('editId').value = '';
-            document.getElementById('ngendevImageForm').reset();
-            document.getElementById('no_of_image').value = 1;
-            document.getElementById('name_change').checked = false;
+            document.getElementById('filterAiImageForm').reset();
             document.getElementById('imagePreview').classList.add('d-none');
         }
 
-        document.getElementById('ngendevImageForm').addEventListener('submit', function(e) {
+        document.getElementById('filterAiImageForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             const url = this.action;
@@ -718,7 +736,7 @@
             `;
 
             $.ajax({
-                url: "{{ route('ngendev.images.indexing') }}",
+                url: "{{ route('filter-ai-image.images.indexing') }}",
                 type: 'GET',
                 data: {
                     category_id: categoryId
@@ -777,7 +795,8 @@
                                 }
                                 <div class="mt-2">
                                     <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                        ${image.ai_prompt ? image.ai_prompt.substring(0, 50) + '...' : 'No prompt'}
+                                        <strong>${image.name || 'No Name'}</strong><br>
+                                        ${image.ai_prompt ? image.ai_prompt.substring(0, 40) + '...' : 'No prompt'}
                                     </small>
                                 </div>
                             </div>
@@ -798,40 +817,23 @@
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 chosenClass: 'sortable-chosen',
-                dragClass: 'sortable-drag',
-                onEnd: function(evt) {
-                    updateOrderNumbers();
-                }
-            });
-        }
-
-        function updateOrderNumbers() {
-            const items = document.querySelectorAll('#imagesContainer .col-md-3');
-            items.forEach((item, index) => {
-                const badge = item.querySelector('.badge');
-                if (badge) {
-                    badge.textContent = index + 1;
-                }
+                dragClass: 'sortable-drag'
             });
         }
 
         document.getElementById('saveOrderBtn').addEventListener('click', function() {
-            if (!currentCategoryId) return;
-
-            const items = document.querySelectorAll('#imagesContainer .col-md-3');
+            const items = document.querySelectorAll('#imagesContainer [data-image-id]');
             const orderData = [];
 
             items.forEach((item, index) => {
-                const imageId = item.getAttribute('data-image-id');
                 orderData.push({
-                    id: imageId,
+                    id: item.getAttribute('data-image-id'),
                     sort_order: index + 1
                 });
             });
 
             Swal.fire({
                 title: 'Saving Order...',
-                text: 'Please wait while we update the image order',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -839,7 +841,7 @@
             });
 
             $.ajax({
-                url: "{{ route('ngendev.images.updateOrder') }}",
+                url: "{{ route('filter-ai-image.images.updateOrder') }}",
                 type: 'POST',
                 data: {
                     _token: "{{ csrf_token() }}",
@@ -850,18 +852,17 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
-                        text: 'Image order updated successfully!',
-                        timer: 2000,
+                        text: 'Order updated successfully!',
+                        timer: 1500,
                         showConfirmButton: false
                     });
                     loadImages(1, document.getElementById('searchInput').value);
                 },
                 error: function(xhr) {
-                    console.error('Error saving order:', xhr.responseText);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: 'Failed to save image order.'
+                        text: 'Failed to update order.'
                     });
                 }
             });

@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\NgendevCategoryApiController;
 use App\Http\Controllers\Api\NgendevVideoApiController;
 use App\Http\Controllers\Api\VideoCategoryController;
+use App\Http\Controllers\Api\FilterAiImageApiController;
+use App\Http\Controllers\Api\TopSliderApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,11 +44,13 @@ Route::middleware('jwt.auth')->group(function () {
 
     Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
     Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
-    Route::get('/v1/ngd/getAiCategories', [NgendevCategoryApiController::class, 'getCategories']);
-    Route::post('/v1/ngd/getAiImageByCategoryId', [NgendevCategoryApiController::class, 'getAiImageByCategoryId']);
 
     Route::get('/v1/ngd/getAiVideoCategories', [NgendevVideoApiController::class, 'getAiVideoCategories']);
     Route::post('/v1/ngd/getAiVideoByCategoryId', [NgendevVideoApiController::class, 'getAiVideoByCategoryId']);
+
+    // Filter AI Image Module API
+    Route::get('/v1/filter/getFilterAiCategories', [FilterAiImageApiController::class, 'getCategories']);
+    Route::post('/v1/filter/getFilterAiImageByCategoryId', [FilterAiImageApiController::class, 'getAiImageByCategoryId']);
 });
 
 
@@ -54,6 +58,7 @@ Route::get('getAllCategoryNames', [NgendevCategoryApiController::class, 'getAllC
 Route::get('baby/getAllCategoryNames', [CategoryController::class, 'getAllCategoryNames']);
 Route::get('video/getAllCategoryNames', [VideoCategoryController::class, 'getAllCategoryNames']);
 Route::get('v1/ngd/video/getAllCategoryNames', [NgendevVideoApiController::class, 'getAllCategoryNames']);
+Route::get('v1/top-slider/getTopSlider', [TopSliderApiController::class, 'getTopSlider']);
 
 // Simple Test API without token
 Route::get('test-api', function (Request $request) {

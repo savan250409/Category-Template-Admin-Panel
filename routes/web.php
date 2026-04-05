@@ -10,6 +10,10 @@ use App\Http\Controllers\NgendevCategoryController;
 use App\Http\Controllers\AiImageBabyPhotoSettingController;
 use App\Http\Controllers\AiImageNgdSettingController;
 use App\Http\Controllers\AiImageCategoryController;
+use App\Http\Controllers\SystemController;
+use App\Http\Controllers\FilterAiImageController;
+use App\Http\Controllers\FilterAiImageCategoryController;
+use App\Http\Controllers\FilterAiImageSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +49,9 @@ Route::middleware(['admin_auth'])->group(function () {
     });
 
     Route::post('/logout', [AdminController::class, 'logout'])->name('auth.logout');
+
+    // Maintenance Routes
+    Route::post('/clear-cache', [SystemController::class, 'clearCache'])->name('system.clearCache');
 
     Route::prefix('subcategories')->group(function () {
         Route::get('/', [SubcategoryController::class, 'index'])->name('subcategories.index');
@@ -101,6 +108,34 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::post('/categories/update-type', [NgendevCategoryController::class, 'updateType'])->name('categories.updateType');
             Route::post('/categories/update-couple-status', [NgendevCategoryController::class, 'updateCoupleStatus'])->name('categories.updateCoupleStatus');
         });
+
+    // Filter AI Image Images Routes
+    Route::prefix('filter-ai-image')
+        ->name('filter-ai-image.')
+        ->group(function () {
+            Route::get('/images', [FilterAiImageController::class, 'index'])->name('images.index');
+            Route::post('/images', [FilterAiImageController::class, 'store'])->name('images.store');
+            Route::get('/images-indexing', [FilterAiImageController::class, 'indexing'])->name('images.indexing');
+            Route::post('/images-update-order', [FilterAiImageController::class, 'updateOrder'])->name('images.updateOrder');
+            Route::put('/images/{id}', [FilterAiImageController::class, 'update'])->name('images.update');
+            Route::delete('/images/{id}', [FilterAiImageController::class, 'destroy'])->name('images.destroy');
+        });
+
+    // Filter AI Image Categories Routes
+    Route::prefix('filter-ai-image')
+        ->name('filter-ai-image.')
+        ->group(function () {
+            Route::get('/categories', [FilterAiImageCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories-indexing', [FilterAiImageCategoryController::class, 'indexing'])->name('categories.indexing');
+            Route::post('/categories-update-order', [FilterAiImageCategoryController::class, 'updateOrder'])->name('categories.updateOrder');
+            Route::get('/categories/create', [FilterAiImageCategoryController::class, 'create'])->name('categories.create');
+            Route::post('/categories', [FilterAiImageCategoryController::class, 'store'])->name('categories.store');
+            Route::get('/categories/{id}/edit', [FilterAiImageCategoryController::class, 'edit'])->name('categories.edit');
+            Route::put('/categories/{id}', [FilterAiImageCategoryController::class, 'update'])->name('categories.update');
+            Route::delete('/categories/{id}', [FilterAiImageCategoryController::class, 'destroy'])->name('categories.destroy');
+            Route::post('/categories/update-status', [FilterAiImageCategoryController::class, 'updateStatus'])->name('categories.updateStatus');
+        });
+
 
     /*
 |--------------------------------------------------------------------------
@@ -218,4 +253,19 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'destroy'])->name('destroy');
         });
     Route::post('/ai-video-categories/toggle-status', [\App\Http\Controllers\AiVideoCategoryController::class, 'toggleStatus'])->name('ai-video-categories.toggle-status');
+    // Top Slider Module
+    Route::prefix('top-slider')->name('top-slider.')->group(function () {
+        // Categories
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\TopSliderCategoryController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\TopSliderCategoryController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\TopSliderCategoryController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [\App\Http\Controllers\TopSliderCategoryController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\TopSliderCategoryController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\TopSliderCategoryController::class, 'destroy'])->name('destroy');
+            Route::post('/update-topslider-status', [\App\Http\Controllers\TopSliderCategoryController::class, 'toggleTopSliderStatus'])->name('updateTopSliderStatus');
+            Route::get('/indexing', [\App\Http\Controllers\TopSliderCategoryController::class, 'indexing'])->name('indexing');
+            Route::post('/update-order', [\App\Http\Controllers\TopSliderCategoryController::class, 'updateOrder'])->name('updateOrder');
+        });
+    });
 });

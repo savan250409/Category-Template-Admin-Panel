@@ -221,10 +221,78 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                </div>
+
+                <!-- Filter AI Image Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #3498db;">Filter AI Image Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Filter AI Image Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <!-- API: Get Filter AI Categories -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Filter AI Categories</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/filter/getFilterAiCategories') }}</span>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Retrieves a list of Filter AI categories available in the app.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API: Get Filter AI Images by Category ID -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Filter AI Images by Category ID</h5>
+                            <p><span class="param-label">Method:</span> POST</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/filter/getFilterAiImageByCategoryId') }}</span>
+                            </p>
+                            <p><span class="param-label">Parameters:</span><br>
+                                <code>category_id</code> (required) e.g. <code>1</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Returns all Filter AI images for the specified category ID.</p>
+                            </div>
+                        </div>
+                    </div>
+                <!-- Top Slider Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #f1c40f;">Top Slider Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Top Slider Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <!-- API: Get Top Slider Data -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Top Slider Data</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/top-slider/getTopSlider') }}</span>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Retrieves all Top Slider categories and their associated items (images/videos).</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <style>
         .api-box {
