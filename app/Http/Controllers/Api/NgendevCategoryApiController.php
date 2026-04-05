@@ -62,7 +62,9 @@ class NgendevCategoryApiController extends Controller
                 'category_name' => $category->category_name,
                 'items' => $images,
             ];
-        });
+        })->filter(function ($cat) {
+            return $cat['items']->isNotEmpty();
+        })->values();
 
         // Separate Exclusive category
         $exclusive = $categories->firstWhere('category_name', 'Exclusive');

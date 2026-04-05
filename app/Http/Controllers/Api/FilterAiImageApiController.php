@@ -55,7 +55,9 @@ class FilterAiImageApiController extends Controller
                 'category_image_full_url' => $catImageUrl,
                 'items' => $images,
             ];
-        });
+        })->filter(function ($cat) {
+            return $cat['items']->isNotEmpty();
+        })->values();
 
         // Add Latest category (ID: 0) matching Ngendev logic
         $latestImages = $categoriesData

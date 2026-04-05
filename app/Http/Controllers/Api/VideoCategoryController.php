@@ -87,14 +87,16 @@ class VideoCategoryController extends Controller
             $thumbnailPathSegments = $category->category_image ? explode('/', "AI Baby Video/{$categoryName}/category thumbanail/{$category->category_image}") : [];
             $encodedThumbnailPathMain = $category->category_image ? implode('/', array_map('rawurlencode', $thumbnailPathSegments)) : null;
 
-            $response[] = [
-                'id' => $category->id,
-                'title' => $category->category_name,
-                'thumbnail' => $thumbnailPath,
-                'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
-                'description' => $category->description ?? '',
-                'videos' => $formattedVideos,
-            ];
+            if (count($formattedVideos) > 0) {
+                $response[] = [
+                    'id' => $category->id,
+                    'title' => $category->category_name,
+                    'thumbnail' => $thumbnailPath,
+                    'thumbnail_full_url' => $encodedThumbnailPathMain ? asset('upload/' . $encodedThumbnailPathMain) : null,
+                    'description' => $category->description ?? '',
+                    'videos' => $formattedVideos,
+                ];
+            }
         }
 
         return response()->json([

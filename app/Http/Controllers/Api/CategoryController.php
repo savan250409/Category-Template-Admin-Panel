@@ -42,10 +42,12 @@ class CategoryController extends Controller
                 ];
             });
 
-            $response[] = [
-                'category_name' => $category,
-                'subcategories' => $subcategories,
-            ];
+            if ($subcategories->isNotEmpty()) {
+                $response[] = [
+                    'category_name' => $category,
+                    'subcategories' => $subcategories,
+                ];
+            }
         }
 
         return response()->json([
@@ -121,10 +123,12 @@ class CategoryController extends Controller
                 ];
             });
 
-            $response[] = [
-                'category_name' => $category,
-                'subcategories' => $formattedSubcategories,
-            ];
+            if ($formattedSubcategories->isNotEmpty()) {
+                $response[] = [
+                    'category_name' => $category,
+                    'subcategories' => $formattedSubcategories,
+                ];
+            }
         }
 
         return response()->json([
@@ -225,7 +229,9 @@ class CategoryController extends Controller
             });
 
 
-            $response = array_merge($response, $formattedSubcategories->toArray());
+            if ($formattedSubcategories->isNotEmpty()) {
+                $response = array_merge($response, $formattedSubcategories->toArray());
+            }
         }
 
         return response()->json([
