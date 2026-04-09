@@ -73,7 +73,7 @@
                                 <input class="form-control form-control-sm" type="file" id="image" name="image" accept=".webp" onchange="previewFile(this, 'slider_img_preview', 'image')">
                                 <div class="text-danger small mt-1">Warning: Only .webp images are supported.</div>
                                 <div id="slider_img_preview_container" class="mt-2 {{ isset($category) && $category->file_type == 'image' && $category->image ? '' : 'd-none' }}">
-                                    <img id="slider_img_preview" src="{{ isset($category) && $category->file_type == 'image' && $category->image ? asset($category->image) : '#' }}" alt="Slider Image Preview" class="img-thumbnail" style="max-height: 100px;">
+                                    <img id="slider_img_preview" src="{{ isset($category) && $category->file_type == 'image' && $category->image ? asset('upload/top_slider/categories/' . $category->category_name . '/' . $category->image) : '#' }}" alt="Slider Image Preview" class="img-thumbnail" style="max-height: 100px;">
                                 </div>
                                 <small class="text-muted">Image will be shown if Top Slider is ON.</small>
                             </div>
@@ -83,7 +83,7 @@
                                     <label for="video" class="form-label fw-semibold">Top Slider Video <span class="text-danger">*</span></label>
                                     <input class="form-control form-control-sm" type="file" id="video" name="video" accept="video/mp4,video/x-m4v,video/*" onchange="previewFile(this, 'video_preview', 'video')">
                                     <div id="video_preview_container" class="mt-2 {{ isset($category) && $category->file_type == 'video' && $category->video ? '' : 'd-none' }}">
-                                        <video id="video_preview" src="{{ isset($category) && $category->file_type == 'video' && $category->video ? asset($category->video) : '#' }}" controls class="img-thumbnail" style="max-height: 100px;"></video>
+                                        <video id="video_preview" src="{{ isset($category) && $category->file_type == 'video' && $category->video ? asset('upload/top_slider/categories/' . $category->category_name . '/' . $category->video) : '#' }}" controls class="img-thumbnail" style="max-height: 100px;"></video>
                                     </div>
                                     <small class="text-muted">Video will be shown if Top Slider is ON.</small>
                                 </div>
@@ -92,7 +92,7 @@
                                     <input class="form-control form-control-sm" type="file" id="video_thumbnail" name="video_thumbnail" accept=".webp" onchange="previewFile(this, 'vid_thumb_preview', 'image')">
                                     <div class="text-danger small mt-1">Warning: Only .webp images are supported.</div>
                                     <div id="vid_thumb_preview_container" class="mt-2 {{ isset($category) && $category->file_type == 'video' && $category->video_thumbnail ? '' : 'd-none' }}">
-                                        <img id="vid_thumb_preview" src="{{ isset($category) && $category->file_type == 'video' && $category->video_thumbnail ? asset($category->video_thumbnail) : '#' }}" alt="Video Thumbnail Preview" class="img-thumbnail" style="max-height: 100px;">
+                                        <img id="vid_thumb_preview" src="{{ isset($category) && $category->file_type == 'video' && $category->video_thumbnail ? asset('upload/top_slider/categories/' . $category->category_name . '/' . $category->video_thumbnail) : '#' }}" alt="Video Thumbnail Preview" class="img-thumbnail" style="max-height: 100px;">
                                     </div>
                                 </div>
                             </div>

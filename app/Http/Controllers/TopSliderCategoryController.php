@@ -130,7 +130,7 @@ class TopSliderCategoryController extends Controller
         $category->file_type = $request->file_type;
         $category->top_slider_is_on = $request->has('top_slider_is_on') ? 1 : 0;
 
-        $basePath = 'upload/top_slider/categories/' . $category->id;
+        $basePath = 'upload/top_slider/categories/' . $category->category_name;
 
         if ($request->file_type == 'image') {
             if ($request->hasFile('image')) {
