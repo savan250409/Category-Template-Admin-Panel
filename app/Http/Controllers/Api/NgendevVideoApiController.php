@@ -47,7 +47,9 @@ class NgendevVideoApiController extends Controller
                 ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'no_of_video', 'name_change')
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
-                ->get();
+                ->get()
+                ->slice(-4)
+                ->values();
 
             $videos->transform(function ($video) use ($encodedCategory) {
                 $video->video_thumbnail_full_url = $video->video_thumbnail ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/video_thumbnail/' . rawurlencode($video->video_thumbnail)) : null;

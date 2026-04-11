@@ -47,7 +47,9 @@ class NgendevCategoryApiController extends Controller
                 ->select('id', 'ai_prompt', 'image_path', 'no_of_image', 'name_change') // removed sort_order
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
-                ->get();
+                ->get()
+                ->slice(-4)
+                ->values();
 
             $images->transform(function ($image) use ($encodedCategory) {
                 $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
