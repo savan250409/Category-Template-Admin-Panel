@@ -230,6 +230,11 @@
                             <label class="form-check-label" for="name_change">Name Change</label>
                         </div>
                     </div>
+                    <div class="col-md-3 mb-3 d-none" id="imageHintWrapper">
+                        <label for="image_hint" class="form-label">Image Hint</label>
+                        <input type="text" class="form-control" id="image_hint" name="image_hint" maxlength="255" placeholder="Enter image hint">
+                        <small class="form-text text-muted">Shown only when Name Change is enabled.</small>
+                    </div>
                     <div class="col-md-3 mb-3">
                         <label for="video_thumbnail" class="form-label">Video Thumbnail</label>
                         <input type="file" class="form-control" id="video_thumbnail" name="video_thumbnail" accept="image/*"
@@ -289,6 +294,7 @@
                                         <th>Prompt</th>
                                         <th>No Of Video</th>
                                         <th>Name Change</th>
+                                        <th>Image Hint</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -327,6 +333,13 @@
                                                     <span class="badge bg-secondary">No</span>
                                                 @endif
                                             </td>
+                                            <td>
+                                                @if($video->name_change && $video->image_hint)
+                                                    <div class="text-truncate" style="max-width:200px;" title="{{ $video->image_hint }}">{{ $video->image_hint }}</div>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
                                             <td class="text-end">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="action-btn edit-btn"
@@ -336,6 +349,7 @@
                                                         data-prompt="{{ $video->ai_prompt }}"
                                                         data-noofvideo="{{ $video->no_of_video ?? $video->no_of_image }}"
                                                         data-namechange="{{ $video->name_change }}"
+                                                        data-imagehint="{{ $video->image_hint }}"
                                                         data-thumbnail="{{ $video->video_thumbnail }}"
                                                         data-video="{{ $video->video_path }}" onclick="editImage(this)">
                                                         <i class="bi bi-pencil"></i>
@@ -495,7 +509,21 @@
     <script>
         let searchTimeout = null;
 
+        function toggleImageHint() {
+            const checked = document.getElementById('name_change').checked;
+            const wrapper = document.getElementById('imageHintWrapper');
+            if (checked) {
+                wrapper.classList.remove('d-none');
+            } else {
+                wrapper.classList.add('d-none');
+                document.getElementById('image_hint').value = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('name_change').addEventListener('change', toggleImageHint);
+            toggleImageHint();
+
             window.previewThumbnail = function(input) {
                 if (input.files && input.files[0]) {
                     const file = input.files[0];
@@ -584,6 +612,7 @@
             const prompt = button.getAttribute('data-prompt');
             const noOfImage = button.getAttribute('data-noofvideo');
             const nameChange = button.getAttribute('data-namechange');
+            const imageHint = button.getAttribute('data-imagehint') || '';
             const thumbnailPath = button.getAttribute('data-thumbnail');
             const videoPath = button.getAttribute('data-video');
 
@@ -601,6 +630,8 @@
             document.getElementById('ai_prompt').value = prompt;
             document.getElementById('no_of_video').value = noOfImage;
             document.getElementById('name_change').checked = (nameChange == 1);
+            document.getElementById('image_hint').value = imageHint;
+            toggleImageHint();
 
             if (thumbnailPath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
@@ -657,6 +688,8 @@
             document.getElementById('ngendevImageForm').reset();
             document.getElementById('no_of_video').value = 1;
             document.getElementById('name_change').checked = false;
+            document.getElementById('image_hint').value = '';
+            toggleImageHint();
             document.getElementById('thumbnailPreview').classList.add('d-none');
             document.getElementById('videoPreview').classList.add('d-none');
         }

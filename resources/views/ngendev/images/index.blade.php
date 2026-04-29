@@ -230,6 +230,11 @@
                             <label class="form-check-label" for="name_change">Name Change</label>
                         </div>
                     </div>
+                    <div class="col-md-3 mb-3 d-none" id="imageHintWrapper">
+                        <label for="image_hint" class="form-label">Image Hint</label>
+                        <input type="text" class="form-control" id="image_hint" name="image_hint" maxlength="255" placeholder="Enter image hint">
+                        <small class="form-text text-muted">Shown only when Name Change is enabled.</small>
+                    </div>
                     <div class="col-md-3 mb-3">
                         <label for="image" class="form-label">Image</label>
                         <input type="file" class="form-control" id="image" name="image" accept=".webp"
@@ -280,6 +285,7 @@
                                         <th>Prompt</th>
                                         <th>No Of Image</th>
                                         <th>Name Change</th>
+                                        <th>Image Hint</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -310,6 +316,13 @@
                                                     <span class="badge bg-secondary">No</span>
                                                 @endif
                                             </td>
+                                            <td>
+                                                @if($img->name_change && $img->image_hint)
+                                                    <div class="text-truncate" style="max-width:200px;" title="{{ $img->image_hint }}">{{ $img->image_hint }}</div>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
                                             <td class="text-end">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="action-btn edit-btn"
@@ -319,6 +332,7 @@
                                                         data-prompt="{{ $img->ai_prompt }}"
                                                         data-noofimage="{{ $img->no_of_image }}"
                                                         data-namechange="{{ $img->name_change }}"
+                                                        data-imagehint="{{ $img->image_hint }}"
                                                         data-image="{{ $img->image_path }}" onclick="editImage(this)">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
@@ -477,7 +491,21 @@
     <script>
         let searchTimeout = null;
 
+        function toggleImageHint() {
+            const checked = document.getElementById('name_change').checked;
+            const wrapper = document.getElementById('imageHintWrapper');
+            if (checked) {
+                wrapper.classList.remove('d-none');
+            } else {
+                wrapper.classList.add('d-none');
+                document.getElementById('image_hint').value = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('name_change').addEventListener('change', toggleImageHint);
+            toggleImageHint();
+
             window.previewImage = function(input) {
                 if (input.files && input.files[0]) {
                     const file = input.files[0];
@@ -569,6 +597,7 @@
             const prompt = button.getAttribute('data-prompt');
             const noOfImage = button.getAttribute('data-noofimage');
             const nameChange = button.getAttribute('data-namechange');
+            const imageHint = button.getAttribute('data-imagehint') || '';
             const imagePath = button.getAttribute('data-image');
 
             document.getElementById('formTitle').innerHTML =
@@ -585,6 +614,8 @@
             document.getElementById('ai_prompt').value = prompt;
             document.getElementById('no_of_image').value = noOfImage;
             document.getElementById('name_change').checked = (nameChange == 1);
+            document.getElementById('image_hint').value = imageHint;
+            toggleImageHint();
 
             if (imagePath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
@@ -632,6 +663,8 @@
             document.getElementById('ngendevImageForm').reset();
             document.getElementById('no_of_image').value = 1;
             document.getElementById('name_change').checked = false;
+            document.getElementById('image_hint').value = '';
+            toggleImageHint();
             document.getElementById('imagePreview').classList.add('d-none');
         }
 

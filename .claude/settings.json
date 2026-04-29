@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find /e/xampp/htdocs/savan_workspace/A_git_code/categor-template-admin-panel/resources/views/ngendev_video* -type f -name \"*.blade.php\")"
+      "Bash(find /e/xampp/htdocs/savan_workspace/A_git_code/categor-template-admin-panel/resources/views/ngendev_video* -type f -name \"*.blade.php\")",
+      "Bash(php -l app/Http/Controllers/NgendevImageController.php)",
+      "Bash(php -l app/Http/Controllers/NgendevVideoController.php)",
+      "Bash(php -l app/Http/Controllers/Api/NgendevCategoryApiController.php)",
+      "Bash(php -l app/Http/Controllers/Api/NgendevVideoApiController.php)",
+      "Bash(php -l app/Models/NgendevImage.php)"
     ]
   }
 }

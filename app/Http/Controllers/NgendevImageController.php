@@ -57,6 +57,7 @@ class NgendevImageController extends Controller
                 'ai_model'    => 'nullable|string|max:255',
                 'image'       => 'required|image|mimes:webp|max:10000',
                 'no_of_image' => 'required|integer|min:1',
+                'image_hint'  => 'nullable|string|max:255',
             ]);
 
             $imageName = null;
@@ -78,12 +79,15 @@ class NgendevImageController extends Controller
                 $imageName = $newImageName;
             }
 
+            $isNameChange = $request->has('name_change') ? 1 : 0;
+
             NgendevImage::create([
                 'category_id' => $request->category_id,
                 'ai_prompt'   => $request->ai_prompt,
                 'ai_model'    => $request->ai_model,
                 'no_of_image' => $request->no_of_image,
-                'name_change' => $request->has('name_change') ? 1 : 0,
+                'name_change' => $isNameChange,
+                'image_hint'  => $isNameChange ? $request->image_hint : null,
                 'image_path'  => $imageName,
             ]);
 
@@ -117,6 +121,7 @@ class NgendevImageController extends Controller
                 'image'       => 'nullable|image|mimes:webp|max:4096',
                 'no_of_image' => 'required|integer|min:1',
                 'name_change' => 'boolean',
+                'image_hint'  => 'nullable|string|max:255',
             ]);
 
             $image        = NgendevImage::findOrFail($id);
@@ -144,12 +149,15 @@ class NgendevImageController extends Controller
                 $imagePath = $newImageName;
             }
 
+            $isNameChange = $request->has('name_change') ? 1 : 0;
+
             $image->update([
                 'category_id' => $request->category_id,
                 'ai_prompt'   => $request->ai_prompt,
                 'ai_model'    => $request->ai_model,
                 'no_of_image' => $request->no_of_image,
-                'name_change' => $request->has('name_change') ? 1 : 0,
+                'name_change' => $isNameChange,
+                'image_hint'  => $isNameChange ? $request->image_hint : null,
                 'image_path'  => $imagePath,
             ]);
 
@@ -257,8 +265,12 @@ class NgendevImageController extends Controller
         ]);
 
         $value = (int) $request->name_change;
+        $updateData = ['name_change' => $value];
+        if (!$value) {
+            $updateData['image_hint'] = null;
+        }
         $count = NgendevImage::where('category_id', $request->category_id)
-            ->update(['name_change' => $value]);
+            ->update($updateData);
 
         return response()->json([
             'success'       => true,

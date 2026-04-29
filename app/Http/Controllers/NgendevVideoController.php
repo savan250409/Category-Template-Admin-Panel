@@ -51,6 +51,7 @@ class NgendevVideoController extends Controller
             'ai_model' => 'nullable|string|max:255',
             'video' => 'required|file|mimes:mp4,mkv,avi,mov|max:50000',
             'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
+            'image_hint' => 'nullable|string|max:255',
         ]);
 
         $videoName = null;
@@ -92,12 +93,15 @@ class NgendevVideoController extends Controller
             $thumbnailName = $originalThumbName;
         }
 
+        $isNameChange = $request->has('name_change') ? 1 : 0;
+
         NgendevVideo::create([
             'category_id' => $request->category_id,
             'ai_prompt' => $request->ai_prompt,
             'ai_model' => $request->ai_model,
             'no_of_video' => $request->no_of_video ?? 1,
-            'name_change' => $request->has('name_change') ? 1 : 0,
+            'name_change' => $isNameChange,
+            'image_hint' => $isNameChange ? $request->image_hint : null,
             'video_path' => $videoName,
             'video_thumbnail' => $thumbnailName,
         ]);
@@ -115,6 +119,7 @@ class NgendevVideoController extends Controller
             'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10000',
             'no_of_video' => 'required|integer|min:1',
             'name_change' => 'boolean',
+            'image_hint' => 'nullable|string|max:255',
         ]);
 
         $video = NgendevVideo::findOrFail($id);
@@ -164,12 +169,15 @@ class NgendevVideoController extends Controller
             $thumbnailPath = $originalThumbName;
         }
 
+        $isNameChange = $request->has('name_change') ? 1 : 0;
+
         $video->update([
             'category_id' => $request->category_id,
             'ai_prompt' => $request->ai_prompt,
             'ai_model' => $request->ai_model,
             'no_of_video' => $request->no_of_video,
-            'name_change' => $request->has('name_change') ? 1 : 0,
+            'name_change' => $isNameChange,
+            'image_hint' => $isNameChange ? $request->image_hint : null,
             'video_path' => $videoPath,
             'video_thumbnail' => $thumbnailPath,
         ]);
@@ -270,8 +278,12 @@ class NgendevVideoController extends Controller
         ]);
 
         $value = (int) $request->name_change;
+        $updateData = ['name_change' => $value];
+        if (!$value) {
+            $updateData['image_hint'] = null;
+        }
         $count = NgendevVideo::where('category_id', $request->category_id)
-            ->update(['name_change' => $value]);
+            ->update($updateData);
 
         return response()->json([
             'success'       => true,

@@ -44,7 +44,7 @@ class NgendevVideoApiController extends Controller
             $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
             $videos = NgendevVideo::where('category_id', $category->id)
-                ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'no_of_video', 'name_change')
+                ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'no_of_video', 'name_change', 'image_hint')
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
                 ->get()
@@ -56,7 +56,14 @@ class NgendevVideoApiController extends Controller
                 $video->video_thumbnail = $video->video_thumbnail ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}" : null;
                 $video->category_video = $video->video_path ? "ngendev/videos/{$encodedCategory}/category_video/{$video->video_path}" : null;
                 $video->category_video_full_url = $video->category_video ? asset('upload/ngendev/videos/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/category_video/' . rawurlencode($video->video_path)) : null;
-                $video->name_change = (bool) $video->name_change;
+                $isNameChange = (bool) $video->name_change;
+                $hint = $video->image_hint;
+                $video->name_change = $isNameChange;
+                if ($isNameChange) {
+                    $video->image_hint = $hint;
+                } else {
+                    unset($video->image_hint);
+                }
                 unset($video->video_path);
                 return $video;
             });
@@ -175,7 +182,7 @@ class NgendevVideoApiController extends Controller
                 ->get();
 
             // Separate Exclusive and Trending categories
-            $exclusiveCat`egory = $categories->firstWhere('category_name', 'Exclusive');
+            $exclusiveCategory = $categories->firstWhere('category_name', 'Exclusive');
             $categories = $categories->reject(function ($cat) {
                 return $cat->category_name === 'Exclusive'; });
 
@@ -188,18 +195,19 @@ class NgendevVideoApiController extends Controller
             // Get first video from each remaining category (same order as getAiVideoCategories)
             foreach ($categories as $category) {
                 $latestVideo = NgendevVideo::where('category_id', $category->id)
-                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
+                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
 
                 if ($latestVideo) {
                     $encodedCategory = str_replace(' ', '%20', $category->category_name);
-                    $latestVideos->push([
+                    $isNameChange = (bool) $latestVideo->name_change;
+                    $itemData = [
                         'id' => $latestVideo->id,
                         'ai_prompt' => $latestVideo->ai_prompt,
                         'no_of_video' => $latestVideo->no_of_video,
-                        'name_change' => (bool) $latestVideo->name_change,
+                        'name_change' => $isNameChange,
                         'video_thumbnail' => $latestVideo->video_thumbnail
                             ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$latestVideo->video_thumbnail}"
                             : null,
@@ -208,25 +216,30 @@ class NgendevVideoApiController extends Controller
                             ? "ngendev/videos/{$encodedCategory}/category_video/{$latestVideo->video_path}"
                             : null,
                         'category_video_full_url' => $latestVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($latestVideo->video_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $latestVideo->image_hint;
+                    }
+                    $latestVideos->push($itemData);
                 }
             }
 
             // Add Exclusive first record
             if ($exclusiveCategory) {
                 $exclusiveVideo = NgendevVideo::where('category_id', $exclusiveCategory->id)
-                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
+                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
 
                 if ($exclusiveVideo) {
                     $encodedExclusive = str_replace(' ', '%20', $exclusiveCategory->category_name);
-                    $latestVideos->push([
+                    $isNameChange = (bool) $exclusiveVideo->name_change;
+                    $itemData = [
                         'id' => $exclusiveVideo->id,
                         'ai_prompt' => $exclusiveVideo->ai_prompt,
                         'no_of_video' => $exclusiveVideo->no_of_video,
-                        'name_change' => (bool) $exclusiveVideo->name_change,
+                        'name_change' => $isNameChange,
                         'video_thumbnail' => $exclusiveVideo->video_thumbnail
                             ? "ngendev/videos/{$encodedExclusive}/video_thumbnail/{$exclusiveVideo->video_thumbnail}"
                             : null,
@@ -235,25 +248,30 @@ class NgendevVideoApiController extends Controller
                             ? "ngendev/videos/{$encodedExclusive}/category_video/{$exclusiveVideo->video_path}"
                             : null,
                         'category_video_full_url' => $exclusiveVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($exclusiveCategory->category_name) . '/category_video/' . rawurlencode($exclusiveVideo->video_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $exclusiveVideo->image_hint;
+                    }
+                    $latestVideos->push($itemData);
                 }
             }
 
             // Add Trending first record
             if ($trendingCategory) {
                 $trendingVideo = NgendevVideo::where('category_id', $trendingCategory->id)
-                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change')
+                    ->select('id', 'ai_prompt', 'video_thumbnail', 'video_path', 'category_id', 'no_of_video', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
 
                 if ($trendingVideo) {
                     $encodedTrending = str_replace(' ', '%20', $trendingCategory->category_name);
-                    $latestVideos->push([
+                    $isNameChange = (bool) $trendingVideo->name_change;
+                    $itemData = [
                         'id' => $trendingVideo->id,
                         'ai_prompt' => $trendingVideo->ai_prompt,
                         'no_of_video' => $trendingVideo->no_of_video,
-                        'name_change' => (bool) $trendingVideo->name_change,
+                        'name_change' => $isNameChange,
                         'video_thumbnail' => $trendingVideo->video_thumbnail
                             ? "ngendev/videos/{$encodedTrending}/video_thumbnail/{$trendingVideo->video_thumbnail}"
                             : null,
@@ -262,7 +280,11 @@ class NgendevVideoApiController extends Controller
                             ? "ngendev/videos/{$encodedTrending}/category_video/{$trendingVideo->video_path}"
                             : null,
                         'category_video_full_url' => $trendingVideo->video_path ? asset('upload/ngendev/videos/' . rawurlencode($trendingCategory->category_name) . '/category_video/' . rawurlencode($trendingVideo->video_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $trendingVideo->image_hint;
+                    }
+                    $latestVideos->push($itemData);
                 }
             }
 
@@ -297,7 +319,7 @@ class NgendevVideoApiController extends Controller
         $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
         $videos = NgendevVideo::where('category_id', $data['category_id'])
-            ->select('id', 'video_thumbnail', 'video_path', 'ai_prompt', 'no_of_video', 'name_change')
+            ->select('id', 'video_thumbnail', 'video_path', 'ai_prompt', 'no_of_video', 'name_change', 'image_hint')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
             ->get();
@@ -312,11 +334,12 @@ class NgendevVideoApiController extends Controller
         }
 
         $videos->transform(function ($video) use ($encodedCategory, $category) {
-            return [
+            $isNameChange = (bool) $video->name_change;
+            $itemData = [
                 'id' => $video->id,
                 'ai_prompt' => $video->ai_prompt,
                 'no_of_video' => $video->no_of_video,
-                'name_change' => (bool) $video->name_change,
+                'name_change' => $isNameChange,
                 'video_thumbnail' => $video->video_thumbnail
                     ? "ngendev/videos/{$encodedCategory}/video_thumbnail/{$video->video_thumbnail}"
                     : null,
@@ -330,6 +353,10 @@ class NgendevVideoApiController extends Controller
                     ? asset('upload/ngendev/videos/' . rawurlencode($category->category_name) . '/category_video/' . rawurlencode($video->video_path))
                     : null,
             ];
+            if ($isNameChange) {
+                $itemData['image_hint'] = $video->image_hint;
+            }
+            return $itemData;
         });
 
         return response()->json([

@@ -44,7 +44,7 @@ class NgendevCategoryApiController extends Controller
             $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
             $images = NgendevImage::where('category_id', $category->id)
-                ->select('id', 'ai_prompt', 'image_path', 'no_of_image', 'name_change') // removed sort_order
+                ->select('id', 'ai_prompt', 'image_path', 'no_of_image', 'name_change', 'image_hint') // removed sort_order
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
                 ->get()
@@ -54,7 +54,14 @@ class NgendevCategoryApiController extends Controller
             $images->transform(function ($image) use ($encodedCategory) {
                 $image->category_image = $image->image_path ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}" : null;
                 $image->category_image_full_url = $image->category_image ? asset('upload/ngendev/images/' . rawurlencode(str_replace('%20', ' ', $encodedCategory)) . '/category_image/' . rawurlencode($image->image_path)) : null;
-                $image->name_change = (bool) $image->name_change;
+                $isNameChange = (bool) $image->name_change;
+                $hint = $image->image_hint;
+                $image->name_change = $isNameChange;
+                if ($isNameChange) {
+                    $image->image_hint = $hint;
+                } else {
+                    unset($image->image_hint);
+                }
                 unset($image->image_path);
                 return $image;
             });
@@ -183,7 +190,7 @@ class NgendevCategoryApiController extends Controller
             // Get first image from each remaining category (same order as getCategories)
             foreach ($categories as $category) {
                 $latestImage = NgendevImage::where('category_id', $category->id)
-                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
@@ -193,21 +200,26 @@ class NgendevCategoryApiController extends Controller
                     $category_image_path = $latestImage->image_path
                         ? "ngendev/images/{$encodedCategory}/category_image/{$latestImage->image_path}"
                         : null;
-                    $latestImages->push([
+                    $isNameChange = (bool) $latestImage->name_change;
+                    $itemData = [
                         'id' => $latestImage->id,
                         'ai_prompt' => $latestImage->ai_prompt,
                         'no_of_image' => $latestImage->no_of_image,
-                        'name_change' => (bool) $latestImage->name_change,
+                        'name_change' => $isNameChange,
                         'category_image' => $category_image_path,
                         'category_image_full_url' => $category_image_path ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($latestImage->image_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $latestImage->image_hint;
+                    }
+                    $latestImages->push($itemData);
                 }
             }
 
             // Add Exclusive first record
             if ($exclusiveCategory) {
                 $exclusiveImage = NgendevImage::where('category_id', $exclusiveCategory->id)
-                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
@@ -217,21 +229,26 @@ class NgendevCategoryApiController extends Controller
                     $exclusive_image_path = $exclusiveImage->image_path
                         ? "ngendev/images/{$encodedExclusive}/category_image/{$exclusiveImage->image_path}"
                         : null;
-                    $latestImages->push([
+                    $isNameChange = (bool) $exclusiveImage->name_change;
+                    $itemData = [
                         'id' => $exclusiveImage->id,
                         'ai_prompt' => $exclusiveImage->ai_prompt,
                         'no_of_image' => $exclusiveImage->no_of_image,
-                        'name_change' => (bool) $exclusiveImage->name_change,
+                        'name_change' => $isNameChange,
                         'category_image' => $exclusive_image_path,
                         'category_image_full_url' => $exclusive_image_path ? asset('upload/ngendev/images/' . rawurlencode($exclusiveCategory->category_name) . '/category_image/' . rawurlencode($exclusiveImage->image_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $exclusiveImage->image_hint;
+                    }
+                    $latestImages->push($itemData);
                 }
             }
 
             // Add Trending first record
             if ($trendingCategory) {
                 $trendingImage = NgendevImage::where('category_id', $trendingCategory->id)
-                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change')
+                    ->select('id', 'ai_prompt', 'image_path', 'category_id', 'no_of_image', 'name_change', 'image_hint')
                     ->orderBy('sort_order', 'desc')
                     ->orderBy('id', 'desc')
                     ->first();
@@ -241,14 +258,19 @@ class NgendevCategoryApiController extends Controller
                     $trending_image_path = $trendingImage->image_path
                         ? "ngendev/images/{$encodedTrending}/category_image/{$trendingImage->image_path}"
                         : null;
-                    $latestImages->push([
+                    $isNameChange = (bool) $trendingImage->name_change;
+                    $itemData = [
                         'id' => $trendingImage->id,
                         'ai_prompt' => $trendingImage->ai_prompt,
                         'no_of_image' => $trendingImage->no_of_image,
-                        'name_change' => (bool) $trendingImage->name_change,
+                        'name_change' => $isNameChange,
                         'category_image' => $trending_image_path,
                         'category_image_full_url' => $trending_image_path ? asset('upload/ngendev/images/' . rawurlencode($trendingCategory->category_name) . '/category_image/' . rawurlencode($trendingImage->image_path)) : null,
-                    ]);
+                    ];
+                    if ($isNameChange) {
+                        $itemData['image_hint'] = $trendingImage->image_hint;
+                    }
+                    $latestImages->push($itemData);
                 }
             }
 
@@ -283,7 +305,7 @@ class NgendevCategoryApiController extends Controller
         $encodedCategory = str_replace(' ', '%20', $category->category_name);
 
         $images = NgendevImage::where('category_id', $data['category_id'])
-            ->select('id', 'image_path', 'ai_prompt', 'no_of_image', 'name_change')
+            ->select('id', 'image_path', 'ai_prompt', 'no_of_image', 'name_change', 'image_hint')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
             ->get();
@@ -298,11 +320,12 @@ class NgendevCategoryApiController extends Controller
         }
 
         $images->transform(function($image) use ($encodedCategory, $category) {
-            return [
+            $isNameChange = (bool) $image->name_change;
+            $itemData = [
                 'id' => $image->id,
                 'ai_prompt' => $image->ai_prompt,
                 'no_of_image' => $image->no_of_image,
-                'name_change' => (bool) $image->name_change,
+                'name_change' => $isNameChange,
                 'category_image' => $image->image_path
                     ? "ngendev/images/{$encodedCategory}/category_image/{$image->image_path}"
                     : null,
@@ -310,6 +333,10 @@ class NgendevCategoryApiController extends Controller
                     ? asset('upload/ngendev/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path))
                     : null,
             ];
+            if ($isNameChange) {
+                $itemData['image_hint'] = $image->image_hint;
+            }
+            return $itemData;
         });
 
         return response()->json([
