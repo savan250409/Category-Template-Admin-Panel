@@ -90,6 +90,8 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/images/{id}', [NgendevImageController::class, 'destroy'])->name('images.destroy');
             Route::get('/images-indexing', [NgendevImageController::class, 'indexing'])->name('images.indexing');
             Route::post('/images-update-order', [NgendevImageController::class, 'updateOrder'])->name('images.updateOrder');
+            Route::get('/images-name-change-stats', [NgendevImageController::class, 'categoryNameChangeStats'])->name('images.nameChangeStats');
+            Route::post('/images-bulk-name-change', [NgendevImageController::class, 'bulkToggleNameChange'])->name('images.bulkNameChange');
         });
 
     // Ngendev Categories Routes
@@ -211,6 +213,8 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/videos/{id}', [\App\Http\Controllers\NgendevVideoController::class, 'destroy'])->name('destroy');
             Route::get('/videos-indexing', [\App\Http\Controllers\NgendevVideoController::class, 'indexing'])->name('indexing');
             Route::post('/videos-update-order', [\App\Http\Controllers\NgendevVideoController::class, 'updateOrder'])->name('updateOrder');
+            Route::get('/videos-name-change-stats', [\App\Http\Controllers\NgendevVideoController::class, 'categoryNameChangeStats'])->name('nameChangeStats');
+            Route::post('/videos-bulk-name-change', [\App\Http\Controllers\NgendevVideoController::class, 'bulkToggleNameChange'])->name('bulkNameChange');
         });
 
     /*

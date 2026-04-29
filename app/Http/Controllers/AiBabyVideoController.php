@@ -49,12 +49,12 @@ class AiBabyVideoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'category_id' => 'required|exists:ai_baby_video_categories,id',
-            'video_title' => 'required|string|max:255',
-            'video_path' => 'required|mimes:mp4,mov,avi,wmv|max:51200',
+            'category_id'     => 'required|exists:ai_baby_video_categories,id',
+            'video_title'     => 'required|string|max:255',
+            'video_path'      => 'required|mimes:mp4,mov,avi,wmv|max:51200',
             'video_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt' => 'nullable|string|max:3000',
-            'name_change' => 'boolean',
+            'ai_prompt'       => 'nullable|string|max:3000',
+            'name_change'     => 'boolean',
         ]);
 
         $category = AiVideoCategory::findOrFail($request->category_id);
@@ -93,12 +93,12 @@ class AiBabyVideoController extends Controller
         }
 
         AiBabyVideo::create([
-            'category_id' => $request->category_id,
-            'video_title' => $request->video_title,
-            'video_path' => $videoPath,
+            'category_id'     => $request->category_id,
+            'video_title'     => $request->video_title,
+            'video_path'      => $videoPath,
             'video_thumbnail' => $thumbnailPath,
-            'ai_prompt' => $request->ai_prompt,
-            'name_change' => $request->has('name_change') ? 1 : 0,
+            'ai_prompt'       => $request->ai_prompt,
+            'name_change'     => $request->has('name_change') ? 1 : 0,
         ]);
 
         // Reset sort_order to 0 so this category floats to the top of the API response
@@ -120,12 +120,12 @@ class AiBabyVideoController extends Controller
         $video = AiBabyVideo::findOrFail($id);
 
         $request->validate([
-            'category_id' => 'required|exists:ai_baby_video_categories,id',
-            'video_title' => 'required|string|max:255',
-            'video_path' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
+            'category_id'     => 'required|exists:ai_baby_video_categories,id',
+            'video_title'     => 'required|string|max:255',
+            'video_path'      => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
             'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt' => 'nullable|string|max:3000',
-            'name_change' => 'boolean',
+            'ai_prompt'       => 'nullable|string|max:3000',
+            'name_change'     => 'boolean',
         ]);
 
         $category = AiVideoCategory::findOrFail($request->category_id);
@@ -209,12 +209,12 @@ class AiBabyVideoController extends Controller
         }
 
         $video->update([
-            'category_id' => $request->category_id,
-            'video_title' => $request->video_title,
-            'video_path' => $videoPath,
+            'category_id'     => $request->category_id,
+            'video_title'     => $request->video_title,
+            'video_path'      => $videoPath,
             'video_thumbnail' => $thumbnailPath,
-            'ai_prompt' => $request->ai_prompt,
-            'name_change' => $request->has('name_change') ? 1 : 0,
+            'ai_prompt'       => $request->ai_prompt,
+            'name_change'     => $request->has('name_change') ? 1 : 0,
         ]);
 
         // Reset sort_order to 0 so this category floats to the top of the API response

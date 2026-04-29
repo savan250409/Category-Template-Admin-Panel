@@ -249,6 +249,35 @@ class NgendevImageController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Image order updated successfully!']);
     }
+    public function bulkToggleNameChange(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_categories,id',
+            'name_change' => 'required|in:0,1',
+        ]);
+
+        $value = (int) $request->name_change;
+        $count = NgendevImage::where('category_id', $request->category_id)
+            ->update(['name_change' => $value]);
+
+        return response()->json([
+            'success'       => true,
+            'message'       => "Updated {$count} image(s) — name_change set to " . ($value ? 'true' : 'false') . '.',
+            'updated_count' => $count,
+            'name_change'   => (bool) $value,
+        ]);
+    }
+
+    public function categoryNameChangeStats(Request $request)
+    {
+        $stats = NgendevImage::selectRaw('category_id, SUM(name_change) as true_count, COUNT(*) as total')
+            ->groupBy('category_id')
+            ->get()
+            ->keyBy('category_id');
+
+        return response()->json(['stats' => $stats]);
+    }
+
     public function addSortOrderColumn()
     {
         $tableName = 'ngendev_images';

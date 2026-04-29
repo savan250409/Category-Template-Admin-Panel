@@ -175,7 +175,7 @@ class NgendevVideoApiController extends Controller
                 ->get();
 
             // Separate Exclusive and Trending categories
-            $exclusiveCategory = $categories->firstWhere('category_name', 'Exclusive');
+            $exclusiveCat`egory = $categories->firstWhere('category_name', 'Exclusive');
             $categories = $categories->reject(function ($cat) {
                 return $cat->category_name === 'Exclusive'; });
 

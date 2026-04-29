@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /e/xampp/htdocs/savan_workspace/A_git_code/categor-template-admin-panel/resources/views/ngendev_video* -type f -name \"*.blade.php\")"
+    ]
+  }
+}

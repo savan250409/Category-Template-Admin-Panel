@@ -169,6 +169,9 @@
                 <p class="page-subtitle">Manage all Ngendev images in the system</p>
             </div>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#bulkNameChangeModal">
+                    <i class="bi bi-toggles me-2"></i>Name Change
+                </button>
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
                     <i class="bi bi-arrow-up-down me-2"></i>Indexing
                 </button>
@@ -866,5 +869,165 @@
                 }
             });
         });
+    </script>
+
+    <!-- Bulk Name Change Modal -->
+    <div class="modal fade" id="bulkNameChangeModal" tabindex="-1" aria-labelledby="bulkNameChangeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bulkNameChangeModalLabel">
+                        <i class="bi bi-toggles me-2"></i>Bulk Name Change by Category
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Click <strong>Set True</strong> or <strong>Set False</strong> on a category to update the
+                        <code>name_change</code> field for <strong>all images</strong> in that category at once.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:50px;">#</th>
+                                    <th>Category</th>
+                                    <th class="text-center" style="width:170px;">Current State</th>
+                                    <th class="text-center" style="width:170px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkNameChangeTbody">
+                                @foreach ($categories as $i => $category)
+                                    <tr data-category-id="{{ $category->id }}">
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $category->category_name }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary nc-state-badge">Loading...</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-grid gap-1">
+                                                <button type="button" class="btn btn-sm btn-set-true text-nowrap"
+                                                    style="background-color:#198754;border:1px solid #198754;color:#fff;border-radius:.25rem;"
+                                                    data-category-id="{{ $category->id }}">
+                                                    <i class="bi bi-check-lg"></i> Set True
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-set-false text-nowrap"
+                                                    style="background-color:#dc3545;border:1px solid #dc3545;color:#fff;border-radius:.25rem;width:auto;height:auto;padding:.25rem .5rem;"
+                                                    data-category-id="{{ $category->id }}">
+                                                    <i class="bi bi-x-lg"></i> Set False
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const statsUrl = "{{ route('ngendev.images.nameChangeStats') }}";
+            const bulkUrl = "{{ route('ngendev.images.bulkNameChange') }}";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
+            const modalEl = document.getElementById('bulkNameChangeModal');
+
+            function renderBadge($cell, total, trueCount) {
+                let label, cls;
+                if (total === 0) {
+                    label = 'No images';
+                    cls = 'bg-secondary';
+                } else if (trueCount === total) {
+                    label = 'All True (' + total + ')';
+                    cls = 'bg-success';
+                } else if (trueCount === 0) {
+                    label = 'All False (' + total + ')';
+                    cls = 'bg-danger';
+                } else {
+                    label = 'Mixed (' + trueCount + '/' + total + ' true)';
+                    cls = 'bg-warning text-dark';
+                }
+                $cell.find('.nc-state-badge').removeClass().addClass('badge nc-state-badge ' + cls).text(label);
+            }
+
+            function loadStats() {
+                $.get(statsUrl, function (resp) {
+                    const stats = resp.stats || {};
+                    $('#bulkNameChangeTbody tr').each(function () {
+                        const $row = $(this);
+                        const catId = $row.data('category-id');
+                        const stat = stats[catId];
+                        const total = stat ? parseInt(stat.total) : 0;
+                        const trueCount = stat ? parseInt(stat.true_count) : 0;
+                        renderBadge($row, total, trueCount);
+                    });
+                });
+            }
+
+            modalEl.addEventListener('show.bs.modal', loadStats);
+
+            $('#bulkNameChangeTbody').on('click', '.btn-set-true, .btn-set-false', function () {
+                const $btn = $(this);
+                const categoryId = $btn.data('category-id');
+                const value = $btn.hasClass('btn-set-true') ? 1 : 0;
+                const label = value ? 'true' : 'false';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Set name_change to ' + label + ' for all images in this category?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, set ' + label,
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: value ? '#198754' : '#dc3545',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $btn.prop('disabled', true);
+                    $.ajax({
+                        url: bulkUrl,
+                        type: 'POST',
+                        data: {
+                            _token: csrfToken,
+                            category_id: categoryId,
+                            name_change: value,
+                        },
+                        success: function (resp) {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: resp.message || 'Updated successfully!',
+                                showConfirmButton: false,
+                                timer: 3500,
+                                timerProgressBar: true,
+                            });
+                            loadStats();
+                            if (typeof loadImages === 'function') {
+                                const searchEl = document.getElementById('searchInput');
+                                loadImages(1, searchEl ? searchEl.value : '');
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: (xhr.responseJSON && xhr.responseJSON.message) || 'Failed to update.',
+                            });
+                        },
+                        complete: function () {
+                            $btn.prop('disabled', false);
+                        },
+                    });
+                });
+            });
+        })();
     </script>
 @endsection

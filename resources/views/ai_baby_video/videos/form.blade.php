@@ -283,6 +283,7 @@
             document.getElementById('remove_thumbnail').value = '1';
 
             checkContainerVisibility();
+        }
 
         function checkContainerVisibility() {
             var hasVideo = !document.getElementById('videoPreviewWrapper').classList.contains('d-none');

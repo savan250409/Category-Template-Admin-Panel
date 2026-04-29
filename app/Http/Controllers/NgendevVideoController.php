@@ -261,4 +261,33 @@ class NgendevVideoController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Video order updated successfully!']);
     }
+
+    public function bulkToggleNameChange(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:ngendev_video_categories,id',
+            'name_change' => 'required|in:0,1',
+        ]);
+
+        $value = (int) $request->name_change;
+        $count = NgendevVideo::where('category_id', $request->category_id)
+            ->update(['name_change' => $value]);
+
+        return response()->json([
+            'success'       => true,
+            'message'       => "Updated {$count} video(s) — name_change set to " . ($value ? 'true' : 'false') . '.',
+            'updated_count' => $count,
+            'name_change'   => (bool) $value,
+        ]);
+    }
+
+    public function categoryNameChangeStats(Request $request)
+    {
+        $stats = NgendevVideo::selectRaw('category_id, SUM(name_change) as true_count, COUNT(*) as total')
+            ->groupBy('category_id')
+            ->get()
+            ->keyBy('category_id');
+
+        return response()->json(['stats' => $stats]);
+    }
 }
