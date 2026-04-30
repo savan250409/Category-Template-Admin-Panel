@@ -217,7 +217,10 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <label for="ai_prompt" class="form-label">Prompt</label>
+                        <label for="ai_prompt" class="form-label d-flex justify-content-between align-items-center">
+                            <span>Prompt</span>
+                            <small class="text-muted"><span id="aiPromptCounter">0</span>/2990</small>
+                        </label>
                         <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="6" placeholder="Enter prompt" required></textarea>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -520,9 +523,39 @@
             }
         }
 
+        const PROMPT_LIMIT = 2990;
+
+        function updatePromptCounter() {
+            const ta = document.getElementById('ai_prompt');
+            const counter = document.getElementById('aiPromptCounter');
+            if (!ta || !counter) return;
+            const len = ta.value.length;
+            counter.textContent = len;
+            const over = len > PROMPT_LIMIT;
+            ta.classList.toggle('is-invalid', over);
+            ta.style.borderColor = over ? '#dc3545' : '';
+            counter.style.color = over ? '#dc3545' : '';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('name_change').addEventListener('change', toggleImageHint);
             toggleImageHint();
+
+            const promptEl = document.getElementById('ai_prompt');
+            if (promptEl) {
+                promptEl.addEventListener('input', updatePromptCounter);
+                updatePromptCounter();
+            }
+
+            const hintEl = document.getElementById('image_hint');
+            if (hintEl) {
+                hintEl.addEventListener('input', function () {
+                    if (hintEl.value.trim() !== '') {
+                        hintEl.classList.remove('is-invalid');
+                        hintEl.style.borderColor = '';
+                    }
+                });
+            }
 
             window.previewThumbnail = function(input) {
                 if (input.files && input.files[0]) {
@@ -632,6 +665,7 @@
             document.getElementById('name_change').checked = (nameChange == 1);
             document.getElementById('image_hint').value = imageHint;
             toggleImageHint();
+            updatePromptCounter();
 
             if (thumbnailPath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
@@ -690,12 +724,41 @@
             document.getElementById('name_change').checked = false;
             document.getElementById('image_hint').value = '';
             toggleImageHint();
+            updatePromptCounter();
             document.getElementById('thumbnailPreview').classList.add('d-none');
             document.getElementById('videoPreview').classList.add('d-none');
         }
 
         document.getElementById('ngendevImageForm').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            const promptVal = document.getElementById('ai_prompt').value;
+            if (promptVal.length > PROMPT_LIMIT) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Prompt too long',
+                    text: 'Prompt must not exceed ' + PROMPT_LIMIT + ' characters. Current: ' + promptVal.length + '.'
+                });
+                return;
+            }
+
+            const nameChangeChecked = document.getElementById('name_change').checked;
+            const hintEl = document.getElementById('image_hint');
+            const hintVal = hintEl.value.trim();
+            if (nameChangeChecked && hintVal === '') {
+                hintEl.classList.add('is-invalid');
+                hintEl.style.borderColor = '#dc3545';
+                hintEl.focus();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Image Hint required',
+                    text: 'Image Hint is required when Name Change is enabled.'
+                });
+                return;
+            }
+            hintEl.classList.remove('is-invalid');
+            hintEl.style.borderColor = '';
+
             const formData = new FormData(this);
             const url = this.action;
             const method = document.getElementById('formMethod').value;
@@ -733,12 +796,14 @@
                     });
                 },
                 error: function(xhr) {
-                    console.error('Error:', xhr.responseText);
-
+                    let errMsg = 'An error occurred. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errMsg = xhr.responseJSON.message;
+                    }
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: 'An error occurred. Please try again.'
+                        text: errMsg
                     });
                 }
             });

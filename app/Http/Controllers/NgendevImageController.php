@@ -53,11 +53,13 @@ class NgendevImageController extends Controller
         try {
             $request->validate([
                 'category_id' => 'required|exists:ngendev_categories,id',
-                'ai_prompt'   => 'required|string|max:10000',
+                'ai_prompt'   => 'required|string|max:2990',
                 'ai_model'    => 'nullable|string|max:255',
                 'image'       => 'required|image|mimes:webp|max:10000',
                 'no_of_image' => 'required|integer|min:1',
-                'image_hint'  => 'nullable|string|max:255',
+                'image_hint'  => 'nullable|string|max:255|required_if:name_change,1',
+            ], [
+                'image_hint.required_if' => 'Image Hint is required when Name Change is enabled.',
             ]);
 
             $imageName = null;
@@ -116,12 +118,14 @@ class NgendevImageController extends Controller
         try {
             $request->validate([
                 'category_id' => 'required|exists:ngendev_categories,id',
-                'ai_prompt'   => 'required|string|max:10000',
+                'ai_prompt'   => 'required|string|max:2990',
                 'ai_model'    => 'nullable|string|max:255',
                 'image'       => 'nullable|image|mimes:webp|max:4096',
                 'no_of_image' => 'required|integer|min:1',
                 'name_change' => 'boolean',
-                'image_hint'  => 'nullable|string|max:255',
+                'image_hint'  => 'nullable|string|max:255|required_if:name_change,1',
+            ], [
+                'image_hint.required_if' => 'Image Hint is required when Name Change is enabled.',
             ]);
 
             $image        = NgendevImage::findOrFail($id);

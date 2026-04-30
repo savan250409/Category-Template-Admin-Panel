@@ -48,64 +48,72 @@ class AiBabyVideoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'category_id'     => 'required|exists:ai_baby_video_categories,id',
-            'video_title'     => 'required|string|max:255',
-            'video_path'      => 'required|mimes:mp4,mov,avi,wmv|max:51200',
-            'video_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt'       => 'nullable|string|max:3000',
-            'name_change'     => 'boolean',
-        ]);
+        try {
+            $request->validate([
+                'category_id'     => 'required|exists:ai_baby_video_categories,id',
+                'video_title'     => 'required|string|max:255',
+                'video_path'      => 'required|mimes:mp4,mov,avi,wmv|max:51200',
+                'video_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'ai_prompt'       => 'nullable|string|max:2990',
+                'name_change'     => 'boolean',
+            ]);
 
-        $category = AiVideoCategory::findOrFail($request->category_id);
+            $category = AiVideoCategory::findOrFail($request->category_id);
 
-        $videoPath = null;
-        $thumbnailPath = null;
+            $videoPath     = null;
+            $thumbnailPath = null;
 
-        if ($request->hasFile('video_path')) {
-            $file = $request->file('video_path');
-            $filename = $file->getClientOriginalName();
+            if ($request->hasFile('video_path')) {
+                $file     = $request->file('video_path');
+                $filename = $file->getClientOriginalName();
 
-            $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
-            $videoDestPath = public_path($videoRelativePath);
+                $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
+                $videoDestPath     = public_path($videoRelativePath);
 
-            if (!File::exists($videoDestPath)) {
-                File::makeDirectory($videoDestPath, 0777, true);
+                if (!File::exists($videoDestPath)) {
+                    File::makeDirectory($videoDestPath, 0777, true);
+                }
+
+                $file->move($videoDestPath, $filename);
+                $videoPath = $filename;
             }
 
-            $file->move($videoDestPath, $filename);
-            $videoPath = $filename;
-        }
+            if ($request->hasFile('video_thumbnail')) {
+                $thumbFile     = $request->file('video_thumbnail');
+                $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
 
-        if ($request->hasFile('video_thumbnail')) {
-            $thumbFile = $request->file('video_thumbnail');
-            $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
+                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
+                $thumbDestPath     = public_path($thumbRelativePath);
 
-            $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
-            $thumbDestPath = public_path($thumbRelativePath);
+                if (!File::exists($thumbDestPath)) {
+                    File::makeDirectory($thumbDestPath, 0777, true);
+                }
 
-            if (!File::exists($thumbDestPath)) {
-                File::makeDirectory($thumbDestPath, 0777, true);
+                $thumbFile->move($thumbDestPath, $thumbFilename);
+                $thumbnailPath = $thumbFilename;
             }
 
-            $thumbFile->move($thumbDestPath, $thumbFilename);
-            $thumbnailPath = $thumbFilename;
+            AiBabyVideo::create([
+                'category_id'     => $request->category_id,
+                'video_title'     => $request->video_title,
+                'video_path'      => $videoPath,
+                'video_thumbnail' => $thumbnailPath,
+                'ai_prompt'       => $request->ai_prompt,
+                'name_change'     => $request->has('name_change') ? 1 : 0,
+            ]);
+
+            $category->sort_order = 0;
+            $category->save();
+
+            return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video added successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
+            return redirect()->back()->withInput()->with('error', $errors)->withErrors($e->errors());
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Something went wrong while adding the video. Please try again.');
         }
-
-        AiBabyVideo::create([
-            'category_id'     => $request->category_id,
-            'video_title'     => $request->video_title,
-            'video_path'      => $videoPath,
-            'video_thumbnail' => $thumbnailPath,
-            'ai_prompt'       => $request->ai_prompt,
-            'name_change'     => $request->has('name_change') ? 1 : 0,
-        ]);
-
-        // Reset sort_order to 0 so this category floats to the top of the API response
-        $category->sort_order = 0;
-        $category->save();
-
-        return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video added successfully!');
     }
 
     public function edit($id)
@@ -117,6 +125,7 @@ class AiBabyVideoController extends Controller
 
     public function update(Request $request, $id)
     {
+      try {
         $video = AiBabyVideo::findOrFail($id);
 
         $request->validate([
@@ -124,7 +133,7 @@ class AiBabyVideoController extends Controller
             'video_title'     => 'required|string|max:255',
             'video_path'      => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
             'video_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'ai_prompt'       => 'nullable|string|max:3000',
+            'ai_prompt'       => 'nullable|string|max:2990',
             'name_change'     => 'boolean',
         ]);
 
@@ -222,6 +231,14 @@ class AiBabyVideoController extends Controller
         $category->save();
 
         return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video updated successfully!');
+
+      } catch (\Illuminate\Validation\ValidationException $e) {
+          $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
+          return redirect()->back()->withInput()->with('error', $errors)->withErrors($e->errors());
+
+      } catch (\Exception $e) {
+          return redirect()->back()->withInput()->with('error', 'Something went wrong while updating the video. Please try again.');
+      }
     }
 
     public function destroy($id)

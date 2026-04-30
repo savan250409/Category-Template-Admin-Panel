@@ -169,12 +169,11 @@
         </small>
     </label>
 
-    <textarea 
-        class="form-control" 
-        id="ai_prompt" 
-        name="ai_prompt" 
+    <textarea
+        class="form-control"
+        id="ai_prompt"
+        name="ai_prompt"
         rows="3"
-        maxlength="2990"
         placeholder="Enter AI Prompt">{{ old('ai_prompt', $video->ai_prompt ?? '') }}</textarea>
 
     <div class="form-text text-end">
@@ -223,14 +222,15 @@
             @endif
             @if($errors->any())
                 Swal.fire({
-                    toast: true,
-                    position: 'top-end',
                     icon: 'error',
-                    title: "Validation Error",
-                    text: "{{ $errors->first() }}",
-                    showConfirmButton: false,
-                    timer: 5000,
-                    timerProgressBar: true,
+                    title: 'Validation Error',
+                    text: @json($errors->all()).join(' | '),
+                });
+            @elseif(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: @json(session('error')),
                 });
             @endif
                     });
@@ -296,16 +296,33 @@
     </script>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const PROMPT_LIMIT = 2990;
         const textarea = document.getElementById("ai_prompt");
         const charCount = document.getElementById("charCount");
+        const form = document.getElementById("videoForm");
 
         function updateCount() {
-            charCount.textContent = textarea.value.length;
+            const len = textarea.value.length;
+            charCount.textContent = len;
+            const over = len > PROMPT_LIMIT;
+            textarea.classList.toggle('is-invalid', over);
+            textarea.style.borderColor = over ? '#dc3545' : '';
+            charCount.style.color = over ? '#dc3545' : '';
         }
 
-        updateCount(); // Set initial value (for edit mode)
-
+        updateCount();
         textarea.addEventListener("input", updateCount);
+
+        form.addEventListener("submit", function (e) {
+            if (textarea.value.length > PROMPT_LIMIT) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Prompt too long',
+                    text: 'AI Prompt must not exceed ' + PROMPT_LIMIT + ' characters. Current: ' + textarea.value.length + '.'
+                });
+            }
+        });
     });
 </script>
 @endsection

@@ -11,7 +11,7 @@
                     </div>
 
                     <div class="card-body p-4">
-                        <form action="{{ route('subcategories.saveDetails', $subcategory->id) }}" method="POST"
+                        <form id="saveDetailsForm" action="{{ route('subcategories.saveDetails', $subcategory->id) }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="origin" value="{{ request('origin') }}">
@@ -47,7 +47,8 @@
                                                             <input type="text"
                                                                 name="existing_prompts[{{ $img['file'] }}]"
                                                                 value="{{ $img['prompt'] ?? '' }}"
-                                                                class="form-control form-control-sm">
+                                                                class="form-control form-control-sm prompt-input">
+                                                            <small class="text-muted"><span class="prompt-counter">{{ strlen($img['prompt'] ?? '') }}</span>/2990</small>
                                                         </div>
                                                         <div class="mb-1">
                                                             <label class="small text-muted">{{ request('origin') === 'video' ? 'Video' : 'Image' }} Title</label>
@@ -95,8 +96,72 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: @json($errors->all()).join(' | '),
+                });
+            @elseif(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: @json(session('error')),
+                });
+            @elseif(session('success'))
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: @json(session('success')),
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                });
+            @endif
+
+            const PROMPT_LIMIT = 2990;
+
+            function applyPromptValidity(input) {
+                const counter = input.parentElement.querySelector('.prompt-counter');
+                const len = input.value.length;
+                if (counter) counter.textContent = len;
+                const over = len > PROMPT_LIMIT;
+                input.classList.toggle('is-invalid', over);
+                input.style.borderColor = over ? '#dc3545' : '';
+                if (counter) counter.style.color = over ? '#dc3545' : '';
+            }
+
+            // Initialize counters for any pre-existing prompt inputs
+            document.querySelectorAll('.prompt-input').forEach(applyPromptValidity);
+
+            // Live character counter for any .prompt-input on the page (add + edit)
+            document.body.addEventListener('input', function (e) {
+                if (e.target.classList && e.target.classList.contains('prompt-input')) {
+                    applyPromptValidity(e.target);
+                }
+            });
+
+            // Block submit when any prompt is over the limit
+            const detailsForm = document.getElementById('saveDetailsForm');
+            if (detailsForm) {
+                detailsForm.addEventListener('submit', function (e) {
+                    const overInputs = Array.from(document.querySelectorAll('.prompt-input'))
+                        .filter(el => el.value.length > PROMPT_LIMIT);
+                    if (overInputs.length > 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Prompt too long',
+                            text: overInputs.length + ' prompt(s) exceed ' + PROMPT_LIMIT + ' characters. Please shorten them and try again.'
+                        });
+                    }
+                });
+            }
+
             const origin = '{{ request('origin') }}';
             const wrapper = document.getElementById('newImagesWrapper');
             const addBtn = document.getElementById('addImageBtn');
@@ -114,7 +179,8 @@
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">Prompt</label>
-                <input type="text" name="prompts[]" placeholder="Enter prompt" class="form-control">
+                <input type="text" name="prompts[]" placeholder="Enter prompt" class="form-control prompt-input">
+                <small class="text-muted"><span class="prompt-counter">0</span>/2990</small>
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'} Title</label>
