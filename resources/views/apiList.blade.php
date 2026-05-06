@@ -289,6 +289,49 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Lips Sync Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #e67e22;">Lips Sync Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Lips Sync Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <!-- API 35: Get Lips Sync Categories -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>35. Get Lips Sync Categories</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/asm003/getLipsSyncCategories') }}</span>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Lists all Lips Sync categories.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API 36: Get Lips Sync By Category ID -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>36. Get Lips Sync By Category ID</h5>
+                            <p><span class="param-label">Method:</span> POST</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/asm003/getLipsSyncByCategoryId') }}</span>
+                            </p>
+                            <p><span class="param-label">Parameters:</span><br>
+                                <code>category_id</code> (required) e.g. <code>1</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all Lips Sync items for a specific category.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

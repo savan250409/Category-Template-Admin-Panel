@@ -257,6 +257,31 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\AiBabyVideoModuleSettingController::class, 'destroy'])->name('destroy');
         });
     Route::post('/ai-video-categories/toggle-status', [\App\Http\Controllers\AiVideoCategoryController::class, 'toggleStatus'])->name('ai-video-categories.toggle-status');
+    /*
+    |--------------------------------------------------------------------------
+    | Lips Sync Module Routes
+    |--------------------------------------------------------------------------
+    */
+    // Lips Sync Categories — URL: /ai/lips-sync-categories
+    Route::prefix('ai/lips-sync-categories')->name('lips-sync.categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LipsSyncCategoryController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\LipsSyncCategoryController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\LipsSyncCategoryController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\LipsSyncCategoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\LipsSyncCategoryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\LipsSyncCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Lips Sync (Items) — URL: /ai/lips-sync
+    Route::prefix('ai/lips-sync')->name('lips-sync.items.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LipsSyncController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\LipsSyncController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\LipsSyncController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\LipsSyncController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\LipsSyncController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\LipsSyncController::class, 'destroy'])->name('destroy');
+    });
+
     // Top Slider Module
     Route::prefix('top-slider')->name('top-slider.')->group(function () {
         // Categories

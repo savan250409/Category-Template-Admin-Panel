@@ -158,7 +158,7 @@
                     @foreach ($categories as $cat)
                         @php
                             $catId = 'cat-' . Str::slug($cat->name, '-');
-                            
+
                             $isImageOrigin = !request()->has('origin') || request('origin') === 'image';
 
                             $subActive =
@@ -493,6 +493,44 @@
                 </ul>
             </li>
 
+            {{-- Lips Sync Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Lips Sync Module
+            </li>
+            @php
+                $isLipsSyncActive = request()->routeIs('lips-sync.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isLipsSyncActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#lipsSyncCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-music-note-beamed me-2 text-info"></i>
+                        <span class="fw-semibold">Lips Sync Module</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                <ul id="lipsSyncCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isLipsSyncActive ? 'block' : 'none' }};">
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('lips-sync.categories.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('lips-sync.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>
+                            <span>Lips Sync Category</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('lips-sync.items.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('lips-sync.items.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-collection-play me-2"></i>
+                            <span>Lips Sync</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API
@@ -694,13 +732,13 @@
             function restoreSidebarState() {
                 const activePath = localStorage.getItem('sidebar_active_path');
                 if (activePath) {
-                    
+
                     // Always default behavior over localstorage highlighting since blade sets it correctly
                     let backendActiveFound = false;
                     document.querySelectorAll('#sidebar-nav a.nav-link.active').forEach(a => {
                          backendActiveFound = true;
                     });
-                    
+
                     if(!backendActiveFound) {
                         document.querySelectorAll('#sidebar-nav a.nav-link').forEach(a => {
                             const p = normalizePath(a.getAttribute('href') || '');
@@ -734,7 +772,7 @@
     <script>
         document.getElementById('clearCacheBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             Swal.fire({
                 title: 'Clear Cache & Logs?',
                 text: "This will clear all application cache and truncate log files.",

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\NgendevVideoApiController;
 use App\Http\Controllers\Api\VideoCategoryController;
 use App\Http\Controllers\Api\FilterAiImageApiController;
 use App\Http\Controllers\Api\TopSliderApiController;
+use App\Http\Controllers\Api\LipsSyncApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,10 @@ Route::middleware('jwt.auth')->group(function () {
     // Filter AI Image Module API
     Route::get('/v1/filter/getFilterAiCategories', [FilterAiImageApiController::class, 'getCategories']);
     Route::post('/v1/filter/getFilterAiImageByCategoryId', [FilterAiImageApiController::class, 'getAiImageByCategoryId']);
+
+    // Lips Sync Module API
+    Route::get('/v1/getLipsSyncCategories', [LipsSyncApiController::class, 'getLipsSyncCategories']);
+    Route::post('/v1/getLipsSyncByCategoryId', [LipsSyncApiController::class, 'getLipsSyncByCategoryId']);
 });
 
 
