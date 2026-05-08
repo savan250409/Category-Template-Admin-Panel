@@ -531,6 +531,44 @@
                 </ul>
             </li>
 
+            {{-- Dynamic Photo Frame Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Dynamic Photo Frame Module
+            </li>
+            @php
+                $isDynamicFrameActive = request()->routeIs('dynamic-photo-frame.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isDynamicFrameActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#dynamicFrameCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-easel-fill me-2 text-info"></i>
+                        <span class="fw-semibold">Dynamic Photo Frame</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                <ul id="dynamicFrameCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isDynamicFrameActive ? 'block' : 'none' }};">
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('dynamic-photo-frame.categories.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('dynamic-photo-frame.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>Dynamic Photo Frame Category</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('dynamic-photo-frame.frames.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('dynamic-photo-frame.frames.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-images me-2"></i>
+                            <span>Dynamic Photo Frame</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\VideoCategoryController;
 use App\Http\Controllers\Api\FilterAiImageApiController;
 use App\Http\Controllers\Api\TopSliderApiController;
 use App\Http\Controllers\Api\LipsSyncApiController;
+use App\Http\Controllers\Api\DynamicPhotoFrameApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,10 @@ Route::middleware('jwt.auth')->group(function () {
     // Lips Sync Module API
     Route::get('/v1/getLipsSyncCategories', [LipsSyncApiController::class, 'getLipsSyncCategories']);
     Route::post('/v1/getLipsSyncByCategoryId', [LipsSyncApiController::class, 'getLipsSyncByCategoryId']);
+
+    // Dynamic Photo Frame Module API
+    Route::get('/get_dynamic_photo_frame_category', [DynamicPhotoFrameApiController::class, 'getDynamicPhotoFrameCategories']);
+    Route::post('/get_dynamic_photo_frame_by_category_id', [DynamicPhotoFrameApiController::class, 'getDynamicPhotoFrameByCategoryId']);
 });
 
 

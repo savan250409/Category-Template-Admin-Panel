@@ -332,6 +332,55 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Dynamic Photo Frame Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #9b59b6;">Dynamic Photo Frame Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Dynamic Photo Frame Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <!-- API 37: Get Dynamic Photo Frame Categories -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>37. Get Dynamic Photo Frame Categories</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/get_dynamic_photo_frame_category') }}</span>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all dynamic photo frame categories in descending order.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API 38: Get Dynamic Photo Frames By Category -->
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>38. Get Dynamic Photo Frames By Category</h5>
+                            <p><span class="param-label">Method:</span> POST</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/get_dynamic_photo_frame_by_category_id') }}</span>
+                            </p>
+                            <p><span class="param-label">Parameters:</span><br>
+                                <code>category_id</code> (required) e.g. <code>1</code>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all dynamic photo frames for a specific category in descending order. Returns zip file URL, input count, and thumbnail.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

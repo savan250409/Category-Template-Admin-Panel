@@ -282,6 +282,31 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::delete('/{id}', [\App\Http\Controllers\LipsSyncController::class, 'destroy'])->name('destroy');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dynamic Photo Frame Module Routes
+    |--------------------------------------------------------------------------
+    */
+    // Dynamic Photo Frame Categories — URL: /dynamic-photo-frame/categories
+    Route::prefix('dynamic-photo-frame/categories')->name('dynamic-photo-frame.categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\DynamicPhotoFrameCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Dynamic Photo Frames — URL: /dynamic-photo-frame/frames
+    Route::prefix('dynamic-photo-frame/frames')->name('dynamic-photo-frame.frames.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'destroy'])->name('destroy');
+    });
+
     // Top Slider Module
     Route::prefix('top-slider')->name('top-slider.')->group(function () {
         // Categories
