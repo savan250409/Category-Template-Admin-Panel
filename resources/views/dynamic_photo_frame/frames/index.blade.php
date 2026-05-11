@@ -3,7 +3,7 @@
 @section('container')
     <style>
         .stats-badge { background-color: #eaecf4; color: #5a5c69; padding: .5rem 1rem; border-radius: .35rem; font-size: .85rem; font-weight: 700; }
-        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; }
+        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; position: relative; }
         .table-responsive { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
         .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .data-table th { background-color: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
@@ -53,6 +53,8 @@
         .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
         .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
         .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
+
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, .7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: .35rem; }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -62,7 +64,7 @@
                 <p class="text-muted">Manage dynamic photo frames</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span class="ms-1">{{ $frames->total() }}</span> Frames</span>
+                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span id="totalCount" class="ms-1">{{ $frames->total() }}</span> Frames</span>
                 <a href="{{ route('dynamic-photo-frame.frames.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg me-2"></i>Add Frame
                 </a>
@@ -96,143 +98,15 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th class="col-name">Category Name</th>
-                            <th class="col-zip">Zip File</th>
-                            <th class="col-input">Input Count</th>
-                            <th class="col-thumb">Thumbnail</th>
-                            <th class="col-action text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($frames as $frame)
-                            <tr>
-                                <td><strong>{{ $frame->category->category_name ?? 'N/A' }}</strong></td>
-                                <td>
-                                    @if ($frame->zip_file && $frame->category)
-                                        <a class="zip-link" href="{{ asset('upload/dynamic_photo_frame/' . $frame->category->category_name . '/zip/' . $frame->zip_file) }}" target="_blank" title="{{ $frame->zip_file }}">
-                                            <i class="bi bi-file-earmark-zip me-1"></i>{{ \Illuminate\Support\Str::limit($frame->zip_file, 30) }}
-                                        </a>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-                                <td>{{ $frame->input_count }}</td>
-                                <td>
-                                    @if ($frame->thumbnail && $frame->category)
-                                        <img src="{{ asset('upload/dynamic_photo_frame/' . $frame->category->category_name . '/thumbnail/' . $frame->thumbnail) }}" class="frame-thumb" alt="">
-                                    @else
-                                        <div class="frame-thumb bg-light d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('dynamic-photo-frame.frames.edit', $frame->id) }}" class="action-btn edit-btn" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button type="button" class="action-btn delete-btn" data-id="{{ $frame->id }}" data-name="{{ $frame->category->category_name ?? 'this frame' }}" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        <form id="deleteForm-{{ $frame->id }}" action="{{ route('dynamic-photo-frame.frames.destroy', $frame->id) }}" method="POST" style="display:none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5">
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon"><i class="bi bi-images"></i></div>
-                                        <h4>No frames found</h4>
-                                        <p class="text-muted">Add your first dynamic photo frame to get started.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div id="ajax-container">
+                @include('dynamic_photo_frame.frames.table')
             </div>
-
-            @if ($frames->total() > 0)
-                <div class="pagination-container">
-                    <div class="pagination-info">
-                        Showing {{ $frames->firstItem() }} to {{ $frames->lastItem() }} of {{ $frames->total() }} entries
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            @if ($frames->onFirstPage())
-                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                            @else
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $frames->appends(request()->except('page'))->previousPageUrl() }}">Previous</a>
-                                </li>
-                            @endif
-
-                            @php
-                                $currentPage = $frames->currentPage();
-                                $lastPage = $frames->lastPage();
-                            @endphp
-
-                            @if ($lastPage <= 8)
-                                @foreach ($frames->getUrlRange(1, $lastPage) as $page => $url)
-                                    <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ $url . '&' . http_build_query(request()->except('page')) }}">{{ $page }}</a>
-                                    </li>
-                                @endforeach
-                            @else
-                                @php
-                                    $start = max(1, $currentPage - 3);
-                                    $end = min($lastPage, $start + 7);
-                                    if ($end - $start < 7) {
-                                        $start = max(1, $end - 7);
-                                    }
-                                @endphp
-
-                                @if ($start > 1)
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $frames->url(1) . '&' . http_build_query(request()->except('page')) }}">1</a>
-                                    </li>
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                @endif
-
-                                @foreach ($frames->getUrlRange($start, $end) as $page => $url)
-                                    <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ $url . '&' . http_build_query(request()->except('page')) }}">{{ $page }}</a>
-                                    </li>
-                                @endforeach
-
-                                @if ($end < $lastPage)
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $frames->url($lastPage) . '&' . http_build_query(request()->except('page')) }}">{{ $lastPage }}</a>
-                                    </li>
-                                @endif
-                            @endif
-
-                            @if ($frames->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $frames->appends(request()->except('page'))->nextPageUrl() }}">Next</a>
-                                </li>
-                            @else
-                                <li class="page-item disabled"><span class="page-link">Next</span></li>
-                            @endif
-                        </ul>
-                    </nav>
-                </div>
-            @endif
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 4000, timerProgressBar: true });
             @endif
@@ -240,66 +114,76 @@
                 Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')) });
             @endif
 
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const name = this.getAttribute('data-name');
-                    Swal.fire({
-                        title: 'Delete frame?',
-                        text: 'This will delete the frame from "' + name + '" and its files.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#bb2d3b',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('deleteForm-' + id).submit();
-                        }
-                    });
+            // Delete confirmation (delegated so it works after AJAX swaps)
+            $(document).on('click', '.delete-btn', function () {
+                const id = $(this).attr('data-id');
+                const name = $(this).attr('data-name');
+                Swal.fire({
+                    title: 'Delete frame?',
+                    text: 'This will delete the frame from "' + name + '" and its files.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bb2d3b',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('deleteForm-' + id).submit();
+                    }
                 });
             });
 
-            function applyParams(updater) {
-                const params = new URLSearchParams(window.location.search);
-                updater(params);
-                params.delete('page');
-                window.location.search = params.toString();
+            // AJAX loader
+            function loadFrames(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
+
+                $.ajax({
+                    url: "{{ route('dynamic-photo-frame.frames.index') }}",
+                    type: 'GET',
+                    data: {
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
+                        category_id: $('#category_filter').val(),
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        $('#ajax-container').html(res.html);
+                        $('#totalCount').text(res.total);
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load frames.' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
+                    }
+                });
             }
 
-            document.getElementById('per_page').addEventListener('change', function () {
-                applyParams(p => p.set('per_page', this.value));
-            });
+            // Filter handlers
+            $('#per_page').on('change', function () { loadFrames(1); });
+            $('#category_filter').on('change', function () { loadFrames(1); });
 
-            document.getElementById('category_filter').addEventListener('change', function () {
-                applyParams(p => {
-                    if (this.value) p.set('category_id', this.value);
-                    else p.delete('category_id');
-                });
-            });
-
-            const searchInput = document.getElementById('searchInput');
+            // Search with debounce
             let searchTimer = null;
-            searchInput.addEventListener('keyup', function () {
+            $('#searchInput').on('keyup', function (e) {
                 clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => {
-                    applyParams(p => {
-                        if (this.value) p.set('search', this.value);
-                        else p.delete('search');
-                    });
-                }, 500);
-            });
-            searchInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
-                    clearTimeout(searchTimer);
-                    applyParams(p => {
-                        if (this.value) p.set('search', this.value);
-                        else p.delete('search');
-                    });
+                    loadFrames(1);
+                    return;
                 }
+                searchTimer = setTimeout(() => loadFrames(1), 500);
             });
-            document.getElementById('clearSearch').addEventListener('click', function () {
-                searchInput.value = '';
-                applyParams(p => p.delete('search'));
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadFrames(1);
+            });
+
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadFrames(page);
             });
         });
     </script>

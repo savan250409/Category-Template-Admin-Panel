@@ -38,6 +38,13 @@ class BabyAiHomeSliderController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html'  => view('baby_ai_home_slider.table', compact('sliders'))->render(),
+                'total' => $sliders->total(),
+            ]);
+        }
+
         $usedTypes  = BabyAiHomeSlider::pluck('source_type')->toArray();
         $canAddMore = count(array_diff(self::SOURCE_TYPES, $usedTypes)) > 0;
 

@@ -22,7 +22,10 @@ class AiVideoCategoryController extends Controller
         $categories = $query->orderBy('sort_order', 'asc')->orderBy('updated_at', 'desc')->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
-            return view('ai_baby_video.categories.index', compact('categories', 'perPage', 'search'));
+            return response()->json([
+                'html'  => view('ai_baby_video.categories.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
         }
 
         return view('ai_baby_video.categories.index', compact('categories', 'perPage', 'search'));

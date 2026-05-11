@@ -2,301 +2,188 @@
 @section('title', 'AI Baby Video Management')
 @section('container')
     <style>
-        .stats-badge {
-            background: #eaecf4;
-            color: #5a5c69;
-            padding: .5rem 1rem;
-            border-radius: .35rem;
-            font-size: .85rem;
-            font-weight: 700;
-        }
+        .stats-badge { background-color: #eaecf4; color: #5a5c69; padding: .5rem 1rem; border-radius: .35rem; font-size: .85rem; font-weight: 700; }
+        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; position: relative; }
+        .table-responsive { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+        .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
+        .data-table th { background-color: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
+        .data-table td { padding: .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; word-wrap: break-word; }
+        .data-table .col-category { width: 16%; }
+        .data-table .col-thumb { width: 14%; }
+        .data-table .col-title { width: 20%; }
+        .data-table .col-prompt { width: 26%; }
+        .data-table .col-name-change { width: 12%; }
+        .data-table .col-action { width: 12%; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: .35rem; color: #fff !important; text-decoration: none; transition: all 0.2s; border: none; }
+        .action-btn i { font-size: 0.9rem; color: #fff !important; }
+        .edit-btn { background-color: #0dcaf0; }
+        .delete-btn { background-color: #bb2d3b; }
+        .video-thumb { width: 90px; height: 60px; object-fit: cover; border-radius: .35rem; }
+        .empty-state { text-align: center; padding: 3rem 1rem; }
+        .empty-state-icon { font-size: 3.5rem; color: #b7b9cc; margin-bottom: 1rem; }
 
-        .main-card {
-            background: #fff;
-            border-radius: .35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        /* Filters row (matches Dynamic Photo Frame module) */
+        .filters-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters-left { display: flex; align-items: center; gap: .75rem; }
+        .custom-select-arrow {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235a5c69' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 14px 12px;
+            padding-right: 2.25rem;
+            cursor: pointer;
         }
+        .per-page-select { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem .75rem; width: 88px; background-color: #fff; }
+        .category-filter { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem 1rem; min-width: 220px; background-color: #fff; }
+        .search-container { display: flex; justify-content: flex-end; }
+        .search-container .input-group { width: 350px; }
+        .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
 
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        /* Pagination (matches Dynamic Photo Frame module) */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination .page-item { list-style: none; }
+        .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; transition: all .15s ease-in-out; }
+        .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
+        .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
+        .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
+        .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
 
-        .data-table th {
-            background: #f8f9fc;
-            color: #5a5c69;
-            font-weight: 700;
-            padding: .75rem;
-            border-bottom: 1px solid #e3e6f0;
-        }
-
-        .data-table td {
-            padding: .75rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #e3e6f0;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: .35rem;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .edit-btn {
-            background-color: var(--bs-info);
-        }
-
-        .delete-btn {
-            background-color: var(--bs-danger);
-            border: none;
-        }
-
-        .form-card {
-            background: #fff;
-            border-radius: .35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .img-thumbnail {
-            max-height: 100px;
-            object-fit: contain;
-        }
-
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e3e6f0;
-        }
-
-        .pagination-info {
-            color: #6e707e;
-            font-size: .9rem;
-        }
-
-        .pagination {
-            margin: 0;
-        }
-
-        .page-item .page-link {
-            color: #4e73df;
-            padding: .375rem .75rem;
-            border: 1px solid #dddfeb;
-            font-size: .9rem;
-        }
-
-        .page-item.active .page-link {
-            background: #4e73df;
-            border-color: #4e73df;
-            color: white;
-        }
-
-        .page-item.disabled .page-link {
-            color: #b7b9cc;
-        }
-
-        .page-link:hover {
-            background: #eaecf4;
-            border-color: #dddfeb;
-        }
-
-        .search-container {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .search-input {
-            border: 1px solid #d1d3e2;
-            border-radius: .35rem;
-            padding: .5rem 1rem;
-            width: 300px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-
-        .empty-state-icon {
-            font-size: 3.5rem;
-            color: #b7b9cc;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state-title {
-            color: #5a5c69;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state-text {
-            color: #858796;
-            margin-bottom: 1.5rem;
-        }
-
-        .video-preview {
-            max-width: 150px;
-            max-height: 100px;
-        }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, .7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: .35rem; }
     </style>
 
     <div class="container mt-4 mb-5">
         <div class="page-header d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="page-title"><i class="bi bi-camera-video me-2"></i>AI Baby Video Management</h1>
-                <p class="page-subtitle">Manage all videos in the system</p>
+                <h1 class="page-title text-primary"><i class="bi bi-camera-video me-2"></i>AI Baby Video Management</h1>
+                <p class="text-muted">Manage all videos in the system</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span
-                        id="totalCount">{{ $videos->total() }}</span> Videos</span>
-                <a href="{{ route('ai-baby-video.videos.create') }}" class="btn btn-primary"><i
-                        class="bi bi-plus-lg me-2"></i>Add Video</a>
+                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span id="totalCount" class="ms-1">{{ $videos->total() }}</span> Videos</span>
+                <a href="{{ route('ai-baby-video.videos.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Add Video
+                </a>
             </div>
         </div>
 
-
-
-
         <div class="main-card">
-            <div class="search-container gap-2">
-                <select id="categoryFilter" class="form-select" style="width: 200px;">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                            {{ $category->category_name }}
-                        </option>
-                    @endforeach
-                </select>
-                <div class="input-group" style="width: 350px;">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search by title or prompt..."
-                        value="{{ request('search') }}">
-                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                        <i class="bi bi-x"></i>
-                    </button>
+            <div class="filters-row">
+                <div class="filters-left">
+                    <span>Show</span>
+                    <select id="per_page" class="per-page-select custom-select-arrow">
+                        @foreach ([10, 25, 50, 100] as $opt)
+                            <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                    <span>entries</span>
+                    <select id="category_filter" class="category-filter custom-select-arrow">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by title or prompt..." value="{{ $search }}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div id="videosTableContainer">
+            <div id="ajax-container">
                 @include('ai_baby_video.videos.table')
             </div>
         </div>
     </div>
-@endsection
 
-@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        let searchTimeout = null;
-
         $(document).ready(function () {
             @if(session('success'))
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: "{{ session('success') }}",
-                    showConfirmButton: false,
-                    timer: 5000,
-                    timerProgressBar: true,
-                });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 4000, timerProgressBar: true });
+            @endif
+            @if(session('error'))
+                Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')) });
             @endif
 
-            @if ($errors->any())
+            // Delete confirmation (delegated so it works after AJAX swaps)
+            $(document).on('click', '.delete-btn', function () {
+                const id = $(this).attr('data-id');
+                const title = $(this).attr('data-title');
                 Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: "Validation Error",
-                    text: "{{ $errors->first() }}",
-                    showConfirmButton: false,
-                    timer: 5000,
-                    timerProgressBar: true,
+                    title: 'Delete video?',
+                    text: 'This will delete the video "' + (title || 'this video') + '" and its files.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bb2d3b',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('deleteForm-' + id).submit();
+                    }
                 });
-            @endif
+            });
 
-            // Search input handler
-            $(document).on('keyup', '#searchInput', function () {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
+            // AJAX loader
+            function loadVideos(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
+
+                $.ajax({
+                    url: "{{ route('ai-baby-video.videos.index') }}",
+                    type: 'GET',
+                    data: {
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
+                        category_id: $('#category_filter').val(),
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        $('#ajax-container').html(res.html);
+                        $('#totalCount').text(res.total);
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load videos.' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
+                    }
+                });
+            }
+
+            // Filter handlers
+            $('#per_page').on('change', function () { loadVideos(1); });
+            $('#category_filter').on('change', function () { loadVideos(1); });
+
+            // Search with debounce
+            let searchTimer = null;
+            $('#searchInput').on('keyup', function (e) {
+                clearTimeout(searchTimer);
+                if (e.key === 'Enter') {
                     loadVideos(1);
-                }, 500);
+                    return;
+                }
+                searchTimer = setTimeout(() => loadVideos(1), 500);
             });
-
-            // Category filter handler
-            $(document).on('change', '#categoryFilter', function () {
-                loadVideos(1);
-            });
-
-            // Clear search handler
-            $(document).on('click', '#clearSearch', function () {
+            $('#clearSearch').on('click', function () {
                 $('#searchInput').val('');
-                $('#categoryFilter').val('');
                 loadVideos(1);
             });
 
-            // Handle AJAX pagination
-            $(document).on('click', '.pagination a', function (e) {
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
                 e.preventDefault();
-                let page = $(this).attr('href').split('page=')[1];
-                loadVideos(page);
+                const page = $(this).attr('data-page');
+                if (page) loadVideos(page);
             });
         });
-
-        function loadVideos(page) {
-            const search = $('#searchInput').val();
-            const category_id = $('#categoryFilter').val();
-
-            $.ajax({
-                url: "{{ route('ai-baby-video.videos.index') }}",
-                type: 'GET',
-                data: {
-                    page: page,
-                    search: search,
-                    category_id: category_id
-                },
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function (res) {
-                    $('#videosTableContainer').html(res.html);
-                    $('#totalCount').text(res.total);
-
-                    // Re-initialize tooltips
-                    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                    tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
-                },
-                error: function (xhr) {
-                    console.error('AJAX Error:', xhr.responseText);
-                }
-            });
-        }
-
-        function confirmDelete(button) {
-            const id = $(button).data('id');
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: `Are you sure you want to delete this video?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('deleteForm-' + id).submit();
-                }
-            });
-        }
     </script>
 @endsection

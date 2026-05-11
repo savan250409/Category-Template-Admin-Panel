@@ -12,32 +12,37 @@ class AiBabyVideoController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = AiVideoCategory::where('status', 1)->get();
+        $perPage    = (int) $request->input('per_page', 10);
+        $search     = $request->input('search', '');
+        $categoryId = $request->input('category_id', '');
+
+        $categories = AiVideoCategory::where('status', 1)->orderBy('category_name')->get();
 
         $query = AiBabyVideo::with('category');
 
-        if ($request->has('category_id') && $request->category_id != '') {
-            $query->where('category_id', $request->category_id);
+        if ($categoryId !== '') {
+            $query->where('category_id', $categoryId);
         }
 
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('ai_prompt', 'like', "%{$search}%")
                     ->orWhere('video_title', 'like', "%{$search}%");
             });
         }
 
-        $videos = $query->latest()->paginate(10);
+        $videos = $query->orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('ai_baby_video.videos.table', compact('videos'))->render(),
+                'html'  => view('ai_baby_video.videos.table', compact('videos'))->render(),
                 'total' => $videos->total(),
             ]);
         }
 
-        return view('ai_baby_video.videos.index', compact('categories', 'videos'));
+        return view('ai_baby_video.videos.index', compact('categories', 'videos', 'perPage', 'search', 'categoryId'));
     }
 
     public function create()

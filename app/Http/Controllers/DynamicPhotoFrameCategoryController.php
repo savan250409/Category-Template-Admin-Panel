@@ -25,6 +25,13 @@ class DynamicPhotoFrameCategoryController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html'  => view('dynamic_photo_frame.categories.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
+        }
+
         return view('dynamic_photo_frame.categories.index', compact('categories', 'perPage', 'search'));
     }
 

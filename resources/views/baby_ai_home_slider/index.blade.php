@@ -3,7 +3,7 @@
 @section('container')
     <style>
         .stats-badge { background-color: #eaecf4; color: #5a5c69; padding: .5rem 1rem; border-radius: .35rem; font-size: .85rem; font-weight: 700; }
-        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; }
+        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; position: relative; }
         .table-responsive { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
         .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .data-table th { background-color: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
@@ -56,6 +56,8 @@
         .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
         .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
         .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
+
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, .7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: .35rem; }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -65,7 +67,7 @@
                 <p class="text-muted">Manage Baby AI home screen slider (max 1 entry per source type)</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span class="ms-1">{{ $sliders->total() }}</span> / 3 Sliders</span>
+                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span id="totalCount" class="ms-1">{{ $sliders->total() }}</span> / 3 Sliders</span>
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal" @if($sliders->total() === 0) disabled title="No sliders to reorder" @endif>
                     <i class="bi bi-arrow-up-down me-2"></i>Index
                 </button>
@@ -108,154 +110,9 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th class="col-type">Source Type</th>
-                            <th class="col-source">Source Category</th>
-                            <th class="col-title">Title</th>
-                            <th class="col-preview">Preview</th>
-                            <th class="col-status">Status</th>
-                            <th class="col-action text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($sliders as $slider)
-                            <tr id="row-{{ $slider->id }}">
-                                <td>
-                                    <span class="type-badge {{ $slider->source_type }}">
-                                        @if ($slider->source_type === 'image') Image
-                                        @elseif ($slider->source_type === 'video') Video
-                                        @else Dynamic Frame
-                                        @endif
-                                    </span>
-                                </td>
-                                <td><strong>{{ $slider->source_name }}</strong></td>
-                                <td>{{ $slider->title ?: '—' }}</td>
-                                <td>
-                                    @php $base = 'upload/baby_ai_home_slider/' . $slider->source_type . '/'; @endphp
-                                    @if ($slider->source_type === 'video')
-                                        @if ($slider->video_thumbnail)
-                                            <img src="{{ asset($base . $slider->video_thumbnail) }}" class="preview-thumb" alt="">
-                                        @elseif ($slider->video)
-                                            <video src="{{ asset($base . $slider->video) }}" class="preview-thumb" muted></video>
-                                        @else
-                                            <div class="preview-thumb bg-light d-flex align-items-center justify-content-center"><i class="bi bi-camera-video text-muted"></i></div>
-                                        @endif
-                                    @else
-                                        @if ($slider->image)
-                                            <img src="{{ asset($base . $slider->image) }}" class="preview-thumb" alt="">
-                                        @else
-                                            <div class="preview-thumb bg-light d-flex align-items-center justify-content-center"><i class="bi bi-image text-muted"></i></div>
-                                        @endif
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="form-check form-switch d-flex align-items-center gap-2">
-                                        <input class="form-check-input slider-status-toggle" type="checkbox" role="switch" id="status-{{ $slider->id }}" data-id="{{ $slider->id }}" {{ $slider->is_on ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="status-{{ $slider->id }}">
-                                            <span id="badge-{{ $slider->id }}" class="badge {{ $slider->is_on ? 'bg-success' : 'bg-danger' }}">{{ $slider->is_on ? 'ON' : 'OFF' }}</span>
-                                        </label>
-                                    </div>
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('baby-ai-home-slider.edit', $slider->id) }}" class="action-btn edit-btn" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button type="button" class="action-btn delete-btn" data-id="{{ $slider->id }}" data-name="{{ $slider->source_name }}" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        <form id="deleteForm-{{ $slider->id }}" action="{{ route('baby-ai-home-slider.destroy', $slider->id) }}" method="POST" style="display:none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6">
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon"><i class="bi bi-house-heart"></i></div>
-                                        <h4>No Sliders Found</h4>
-                                        <p class="text-muted">Add up to 3 home screen sliders — one for each source type.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div id="ajax-container">
+                @include('baby_ai_home_slider.table')
             </div>
-
-            @if ($sliders->total() > 0)
-                <div class="pagination-container">
-                    <div class="pagination-info">
-                        Showing {{ $sliders->firstItem() }} to {{ $sliders->lastItem() }} of {{ $sliders->total() }} entries
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            @if ($sliders->onFirstPage())
-                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                            @else
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $sliders->appends(request()->except('page'))->previousPageUrl() }}">Previous</a>
-                                </li>
-                            @endif
-
-                            @php
-                                $currentPage = $sliders->currentPage();
-                                $lastPage = $sliders->lastPage();
-                            @endphp
-
-                            @if ($lastPage <= 8)
-                                @foreach ($sliders->getUrlRange(1, $lastPage) as $page => $url)
-                                    <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ $url . '&' . http_build_query(request()->except('page')) }}">{{ $page }}</a>
-                                    </li>
-                                @endforeach
-                            @else
-                                @php
-                                    $start = max(1, $currentPage - 3);
-                                    $end = min($lastPage, $start + 7);
-                                    if ($end - $start < 7) {
-                                        $start = max(1, $end - 7);
-                                    }
-                                @endphp
-
-                                @if ($start > 1)
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $sliders->url(1) . '&' . http_build_query(request()->except('page')) }}">1</a>
-                                    </li>
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                @endif
-
-                                @foreach ($sliders->getUrlRange($start, $end) as $page => $url)
-                                    <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ $url . '&' . http_build_query(request()->except('page')) }}">{{ $page }}</a>
-                                    </li>
-                                @endforeach
-
-                                @if ($end < $lastPage)
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $sliders->url($lastPage) . '&' . http_build_query(request()->except('page')) }}">{{ $lastPage }}</a>
-                                    </li>
-                                @endif
-                            @endif
-
-                            @if ($sliders->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $sliders->appends(request()->except('page'))->nextPageUrl() }}">Next</a>
-                                </li>
-                            @else
-                                <li class="page-item disabled"><span class="page-link">Next</span></li>
-                            @endif
-                        </ul>
-                    </nav>
-                </div>
-            @endif
         </div>
     </div>
 
@@ -297,7 +154,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 4000, timerProgressBar: true });
             @endif
@@ -305,66 +162,100 @@
                 Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')) });
             @endif
 
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const name = this.getAttribute('data-name');
-                    Swal.fire({
-                        title: 'Delete slider?',
-                        text: 'This will delete the slider for "' + name + '" and its files.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#bb2d3b',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('deleteForm-' + id).submit();
-                        }
-                    });
+            // Delete confirmation (delegated so it works after AJAX swaps)
+            $(document).on('click', '.delete-btn', function () {
+                const id = $(this).attr('data-id');
+                const name = $(this).attr('data-name');
+                Swal.fire({
+                    title: 'Delete slider?',
+                    text: 'This will delete the slider for "' + name + '" and its files.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bb2d3b',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('deleteForm-' + id).submit();
+                    }
                 });
             });
 
-            function applyParams(updater) {
-                const params = new URLSearchParams(window.location.search);
-                updater(params);
-                params.delete('page');
-                window.location.search = params.toString();
+            // AJAX loader
+            function loadSliders(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
+
+                $.ajax({
+                    url: "{{ route('baby-ai-home-slider.index') }}",
+                    type: 'GET',
+                    data: {
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
+                        source_type: $('#source_filter').val(),
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        $('#ajax-container').html(res.html);
+                        $('#totalCount').text(res.total);
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load sliders.' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
+                    }
+                });
             }
 
-            document.getElementById('per_page').addEventListener('change', function () {
-                applyParams(p => p.set('per_page', this.value));
-            });
+            // Filter handlers
+            $('#per_page').on('change', function () { loadSliders(1); });
+            $('#source_filter').on('change', function () { loadSliders(1); });
 
-            document.getElementById('source_filter').addEventListener('change', function () {
-                applyParams(p => {
-                    if (this.value) p.set('source_type', this.value);
-                    else p.delete('source_type');
-                });
-            });
-
-            const searchInput = document.getElementById('searchInput');
+            // Search with debounce
             let searchTimer = null;
-            searchInput.addEventListener('keyup', function () {
+            $('#searchInput').on('keyup', function (e) {
                 clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => {
-                    applyParams(p => {
-                        if (this.value) p.set('search', this.value);
-                        else p.delete('search');
-                    });
-                }, 500);
-            });
-            searchInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
-                    clearTimeout(searchTimer);
-                    applyParams(p => {
-                        if (this.value) p.set('search', this.value);
-                        else p.delete('search');
-                    });
+                    loadSliders(1);
+                    return;
                 }
+                searchTimer = setTimeout(() => loadSliders(1), 500);
             });
-            document.getElementById('clearSearch').addEventListener('click', function () {
-                searchInput.value = '';
-                applyParams(p => p.delete('search'));
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadSliders(1);
+            });
+
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadSliders(page);
+            });
+
+            // Status toggle (delegated)
+            $(document).on('change', '.slider-status-toggle', function () {
+                const id = $(this).data('id');
+                const isOn = $(this).is(':checked');
+                const badge = $('#badge-' + id);
+                $.ajax({
+                    url: "{{ route('baby-ai-home-slider.toggleStatus') }}",
+                    method: 'POST',
+                    data: { _token: "{{ csrf_token() }}", id: id, is_on: isOn ? 1 : 0 },
+                    success: function (res) {
+                        if (res.success) {
+                            if (isOn) badge.removeClass('bg-danger').addClass('bg-success').text('ON');
+                            else badge.removeClass('bg-success').addClass('bg-danger').text('OFF');
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 2000 });
+                        } else {
+                            $('#status-' + id).prop('checked', !isOn);
+                        }
+                    },
+                    error: function () {
+                        $('#status-' + id).prop('checked', !isOn);
+                    }
+                });
             });
 
             // Indexing modal
@@ -446,36 +337,16 @@
                         btn.innerHTML = originalText;
                         if (response.success) {
                             bootstrap.Modal.getInstance(indexingModalEl).hide();
-                            Swal.fire({ icon: 'success', title: 'Success', text: response.message }).then(() => { window.location.reload(); });
+                            Swal.fire({ icon: 'success', title: 'Success', text: response.message }).then(() => {
+                                // refresh table via AJAX instead of full reload
+                                loadSliders(1);
+                            });
                         }
                     },
                     error: function () {
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save order.' });
-                    }
-                });
-            });
-
-            $(document).on('change', '.slider-status-toggle', function () {
-                const id = $(this).data('id');
-                const isOn = $(this).is(':checked');
-                const badge = $('#badge-' + id);
-                $.ajax({
-                    url: "{{ route('baby-ai-home-slider.toggleStatus') }}",
-                    method: 'POST',
-                    data: { _token: "{{ csrf_token() }}", id: id, is_on: isOn ? 1 : 0 },
-                    success: function (res) {
-                        if (res.success) {
-                            if (isOn) badge.removeClass('bg-danger').addClass('bg-success').text('ON');
-                            else badge.removeClass('bg-success').addClass('bg-danger').text('OFF');
-                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 2000 });
-                        } else {
-                            $('#status-' + id).prop('checked', !isOn);
-                        }
-                    },
-                    error: function () {
-                        $('#status-' + id).prop('checked', !isOn);
                     }
                 });
             });
