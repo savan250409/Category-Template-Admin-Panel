@@ -290,6 +290,30 @@
                     </div>
                 </div>
 
+                <!-- Baby AI Home Screen Slider Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #d35400;">Baby AI Home Screen Slider Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Baby AI Home Screen Slider Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Baby AI Home Screen Slider</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/v1/baby-ai/getHomeScreenSlider') }}</span>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Retrieves all Baby AI home screen slider entries (max 3 — one each for image sub category, video category, and dynamic frame category). Each entry returns source_type, source_id, source_name, title, description, and the relevant image / video / video_thumbnail URL.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Lips Sync Module Divider -->
                 <div class="version-divider mt-5">
                     <hr class="divider-line">

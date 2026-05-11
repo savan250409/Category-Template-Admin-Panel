@@ -9,38 +9,64 @@ use Illuminate\Http\Request;
 
 class DynamicPhotoFrameApiController extends Controller
 {
-    public function getDynamicPhotoFrameCategories()
-    {
-        $categories = DynamicPhotoFrameCategory::select('id', 'category_name', 'image', 'sort_order')
-            ->where('status', 1)
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('id', 'desc')
+public function getDynamicPhotoFrameCategories()
+{
+    $categories = DynamicPhotoFrameCategory::select('id', 'category_name', 'image', 'sort_order')
+        ->where('status', 1)
+        ->orderBy('id', 'desc') // latest records first
+        ->get();
+
+    if ($categories->isEmpty()) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'No categories found',
+            'data'    => [],
+        ], 404);
+    }
+
+    $data = $categories->map(function ($category) {
+        $frames = DynamicPhotoFrame::where('dynamic_photo_frame_category_id', $category->id)
+            ->orderBy('id', 'desc') // latest frames first
+            ->limit(4)
             ->get();
 
-        if ($categories->isEmpty()) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'No categories found',
-                'data'    => [],
-            ], 404);
-        }
+        $categoryName = $category->category_name;
 
-        $data = $categories->map(function ($category) {
+        $framesData = $frames->map(function ($frame) use ($categoryName) {
             return [
-                'id'            => $category->id,
-                'category_name' => $category->category_name,
-                'full_url'      => $category->image
-                    ? $this->buildAssetUrl(['upload', 'dynamic_photo_frame', $category->category_name, 'category image', $category->image])
+                'id'                 => $frame->id,
+                'zip_file_full_url'  => $frame->zip_file
+                    ? $this->buildAssetUrl(['upload', 'dynamic_photo_frame', $categoryName, 'zip', $frame->zip_file])
+                    : null,
+                'input_count'        => (int) $frame->input_count,
+                'thumbnail_full_url' => $frame->thumbnail
+                    ? $this->buildAssetUrl(['upload', 'dynamic_photo_frame', $categoryName, 'thumbnail', $frame->thumbnail])
                     : null,
             ];
         });
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Categories fetched successfully',
-            'data'    => $data,
-        ]);
-    }
+        return [
+            'id'            => $category->id,
+            'category_name' => $category->category_name,
+            'full_url'      => $category->image
+                ? $this->buildAssetUrl([
+                    'upload',
+                    'dynamic_photo_frame',
+                    $category->category_name,
+                    'category image',
+                    $category->image
+                ])
+                : null,
+            'frames'        => $framesData,
+        ];
+    });
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Categories fetched successfully',
+        'data'    => $data,
+    ]);
+}
 
     public function getDynamicPhotoFrameByCategoryId(Request $request)
     {

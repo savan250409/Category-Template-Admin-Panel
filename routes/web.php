@@ -307,6 +307,21 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::delete('/{id}', [\App\Http\Controllers\DynamicPhotoFrameController::class, 'destroy'])->name('destroy');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Baby AI Home Screen Slider Module Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('baby-ai-home-slider')->name('baby-ai-home-slider.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'destroy'])->name('destroy');
+        Route::post('/toggle-status', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'toggleStatus'])->name('toggleStatus');
+    });
+
     // Top Slider Module
     Route::prefix('top-slider')->name('top-slider.')->group(function () {
         // Categories

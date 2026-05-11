@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\FilterAiImageApiController;
 use App\Http\Controllers\Api\TopSliderApiController;
 use App\Http\Controllers\Api\LipsSyncApiController;
 use App\Http\Controllers\Api\DynamicPhotoFrameApiController;
+use App\Http\Controllers\Api\BabyAiHomeSliderApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +70,7 @@ Route::get('baby/getAllCategoryNames', [CategoryController::class, 'getAllCatego
 Route::get('video/getAllCategoryNames', [VideoCategoryController::class, 'getAllCategoryNames']);
 Route::get('v1/ngd/video/getAllCategoryNames', [NgendevVideoApiController::class, 'getAllCategoryNames']);
 Route::get('v1/top-slider/getTopSlider', [TopSliderApiController::class, 'getTopSlider']);
+Route::get('v1/baby-ai/getHomeScreenSlider', [BabyAiHomeSliderApiController::class, 'getHomeScreenSlider']);
 
 // Simple Test API without token
 Route::get('test-api', function (Request $request) {

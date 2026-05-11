@@ -569,6 +569,22 @@
                 </ul>
             </li>
 
+            {{-- Baby AI Home Screen Slider Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Baby AI Home Screen Slider
+            </li>
+            @php
+                $isBabyAiHomeSliderActive = request()->routeIs('baby-ai-home-slider.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ $isBabyAiHomeSliderActive ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('baby-ai-home-slider.index') }}" style="transition: all 0.2s;">
+                    <i class="bi bi-house-heart-fill me-2 text-warning"></i>
+                    <span class="fw-semibold">Baby AI Home Screen Slider</span>
+                </a>
+            </li>
+
             {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 API
