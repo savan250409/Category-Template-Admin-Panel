@@ -318,6 +318,8 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::put('/{id}', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'destroy'])->name('destroy');
         Route::post('/toggle-status', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'toggleStatus'])->name('toggleStatus');
+        Route::get('/indexing', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'indexing'])->name('indexing');
+        Route::post('/update-order', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'updateOrder'])->name('updateOrder');
     });
 
     // Top Slider Module

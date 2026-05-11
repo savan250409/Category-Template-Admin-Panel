@@ -228,6 +228,50 @@ class BabyAiHomeSliderController extends Controller
         return response()->json(['success' => true, 'message' => 'Status updated successfully!']);
     }
 
+    public function indexing(Request $request)
+    {
+        if (!$request->ajax()) {
+            return redirect()->route('baby-ai-home-slider.index');
+        }
+
+        $sliders = BabyAiHomeSlider::orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $data = $sliders->map(function ($slider) {
+            $typeLabel = match ($slider->source_type) {
+                'image'         => 'Image',
+                'video'         => 'Video',
+                'dynamic_frame' => 'Dynamic Frame',
+                default         => ucfirst($slider->source_type),
+            };
+            return [
+                'id'          => $slider->id,
+                'source_type' => $slider->source_type,
+                'type_label'  => $typeLabel,
+                'source_name' => $slider->source_name,
+                'title'       => $slider->title,
+            ];
+        });
+
+        return response()->json(['sliders' => $data]);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $request->validate([
+            'order'              => 'required|array',
+            'order.*.id'         => 'required|exists:baby_ai_home_sliders,id',
+            'order.*.sort_order' => 'required|integer|min:0',
+        ]);
+
+        foreach ($request->order as $item) {
+            BabyAiHomeSlider::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Order updated successfully!']);
+    }
+
     private function validateSourceExists(string $type, $id): void
     {
         $exists = match ($type) {

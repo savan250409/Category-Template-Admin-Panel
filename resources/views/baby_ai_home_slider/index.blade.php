@@ -66,6 +66,9 @@
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span class="ms-1">{{ $sliders->total() }}</span> / 3 Sliders</span>
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal" @if($sliders->total() === 0) disabled title="No sliders to reorder" @endif>
+                    <i class="bi bi-arrow-up-down me-2"></i>Index
+                </button>
                 @if ($canAddMore)
                     <a href="{{ route('baby-ai-home-slider.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-2"></i>Add Slider
@@ -256,8 +259,43 @@
         </div>
     </div>
 
+    <!-- Indexing Modal -->
+    <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="indexingModalLabel">
+                        <i class="bi bi-arrow-up-down me-2"></i>Slider Indexing
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Drag and drop to reorder the sliders. The sequence here controls the API response order.
+                    </div>
+                    <div id="sortable-container" class="list-group" style="min-height: 200px;">
+                        <div class="col-12 text-center text-muted py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading sliders...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveOrderBtn">
+                        <i class="bi bi-save me-2"></i>Save Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             @if(session('success'))
@@ -327,6 +365,96 @@
             document.getElementById('clearSearch').addEventListener('click', function () {
                 searchInput.value = '';
                 applyParams(p => p.delete('search'));
+            });
+
+            // Indexing modal
+            let sortableInstance = null;
+            const indexingModalEl = document.getElementById('indexingModal');
+
+            if (indexingModalEl) {
+                indexingModalEl.addEventListener('show.bs.modal', loadSlidersForIndexing);
+            }
+
+            function typeBadgeClass(t) {
+                if (t === 'image') return 'type-badge image';
+                if (t === 'video') return 'type-badge video';
+                return 'type-badge dynamic_frame';
+            }
+
+            function loadSlidersForIndexing() {
+                const container = document.getElementById('sortable-container');
+                container.innerHTML = '<div class="col-12 text-center text-muted py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading...</p></div>';
+
+                $.ajax({
+                    url: "{{ route('baby-ai-home-slider.indexing') }}",
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.sliders && response.sliders.length > 0) {
+                            container.innerHTML = '';
+                            response.sliders.forEach((s, index) => {
+                                const titleHtml = s.title ? ' &mdash; <span class="text-muted">' + $('<div>').text(s.title).html() + '</span>' : '';
+                                const html = `
+                                    <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${s.id}" style="cursor: move;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-grip-vertical me-2 text-muted fs-5"></i>
+                                            <span class="fw-bold me-2">${index + 1}.</span>
+                                            <span class="${typeBadgeClass(s.source_type)} me-2">${s.type_label}</span>
+                                            <span><strong>${$('<div>').text(s.source_name || '').html()}</strong>${titleHtml}</span>
+                                        </div>
+                                    </div>`;
+                                container.insertAdjacentHTML('beforeend', html);
+                            });
+                            if (sortableInstance) sortableInstance.destroy();
+                            sortableInstance = new Sortable(container, {
+                                animation: 150, ghostClass: 'bg-light',
+                                onEnd: function () {
+                                    document.querySelectorAll('#sortable-container .list-group-item').forEach((item, index) => {
+                                        item.querySelector('.fw-bold').textContent = (index + 1) + '.';
+                                    });
+                                }
+                            });
+                        } else {
+                            container.innerHTML = '<div class="col-12 text-center text-muted py-5"><p>No sliders found</p></div>';
+                        }
+                    },
+                    error: function () {
+                        container.innerHTML = '<div class="col-12 text-center text-danger py-5"><p>Failed to load sliders.</p></div>';
+                    }
+                });
+            }
+
+            document.getElementById('saveOrderBtn').addEventListener('click', function () {
+                const items = document.querySelectorAll('#sortable-container .list-group-item.sortable-item');
+                if (!items.length) return;
+
+                const orderData = [];
+                items.forEach((item, index) => {
+                    orderData.push({ id: item.getAttribute('data-id'), sort_order: index + 1 });
+                });
+
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'Saving...';
+
+                $.ajax({
+                    url: "{{ route('baby-ai-home-slider.updateOrder') }}",
+                    method: 'POST',
+                    data: { _token: "{{ csrf_token() }}", order: orderData },
+                    success: function (response) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        if (response.success) {
+                            bootstrap.Modal.getInstance(indexingModalEl).hide();
+                            Swal.fire({ icon: 'success', title: 'Success', text: response.message }).then(() => { window.location.reload(); });
+                        }
+                    },
+                    error: function () {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save order.' });
+                    }
+                });
             });
 
             $(document).on('change', '.slider-status-toggle', function () {
