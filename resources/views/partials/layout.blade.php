@@ -58,11 +58,12 @@
 <body>
     <aside id="sidebar" class="sidebar">
         <div class="p-3 border-bottom">
-            <a class="sidebar-brand d-flex align-items-center" href="{{ url('dashboard') }}">
+            <a class="sidebar-brand d-flex align-items-center" href="{{ route('dashboard.clearGroup') }}">
                 <span class="fw-bold fs-5 text-white">NGD Admin</span>
             </a>
         </div>
 
+        @php $sidebarGroup = session('dashboard_group'); @endphp
         <ul class="sidebar-nav flex-column p-2" id="sidebar-nav" style="background:#1e1e2d; min-height:100vh;">
 
             {{-- Dashboard --}}
@@ -77,15 +78,23 @@
                     <span>Dashboard</span>
                 </a>
             </li>
+            @if ($sidebarGroup)
+                <li class="nav-item mb-1">
+                    <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 text-light"
+                        href="{{ route('dashboard.clearGroup') }}" style="background:#2a2a3b;">
+                        <i class="bi bi-arrow-left-right me-2 text-info"></i>
+                        <span>Switch Group ({{ $sidebarGroup === 'baby' ? 'AI Baby' : 'AI NGD' }})</span>
+                    </a>
+                </li>
+            @endif
 
+            @if ($sidebarGroup === 'baby')
             {{-- AI Image Module Header --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 AI Baby Image Module
             </li>
 
             @php
-                use App\Models\AiImageCategory;
-
                 $currentRoute = request()->route()->getName();
                 $currentSubId = request()->route('id');
                 $currentPath = request()->path();
@@ -95,7 +104,7 @@
                     str_contains($currentPath, 'subcategories/subcategory') ||
                     str_contains($currentPath, 'subcategories/subcategories');
 
-                $categories = AiImageCategory::orderBy('id')->get();
+                $categories = \App\Models\AiImageCategory::orderBy('id')->get();
                 $allSubs = $allSubs ?? \App\Models\Subcategory::select('id', 'title', 'category_name')->get()->groupBy('category_name');
 
                 $isBabyPhotoActive = false;
@@ -257,7 +266,9 @@
                     });
                 });
             </script>
+            @endif
 
+            @if ($sidebarGroup === 'baby')
             {{-- AI Baby Video Module --}}
             @php
                 $isBabyVideoSettingActive = request()->routeIs('ai-baby-video-module-setting.*');
@@ -313,7 +324,9 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
+            @if ($sidebarGroup === 'ngd')
             {{-- AI Image NGD Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                AI Image NGD Module
@@ -530,7 +543,9 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
+            @if ($sidebarGroup === 'baby')
             {{-- Dynamic Photo Frame Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Dynamic Photo Frame Module
@@ -584,6 +599,7 @@
                     <span class="fw-semibold">Baby AI Home Screen Slider</span>
                 </a>
             </li>
+            @endif
 
             {{-- API URL --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">

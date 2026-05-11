@@ -4,27 +4,70 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Subcategory;
+use App\Models\AiImageCategory;
+use App\Models\AiVideoCategory;
+use App\Models\AiBabyVideo;
+use App\Models\DynamicPhotoFrameCategory;
+use App\Models\DynamicPhotoFrame;
+use App\Models\BabyAiHomeSlider;
+use App\Models\NgendevCategory;
+use App\Models\NgendevImage;
+use App\Models\NgendevVideoCategory;
+use App\Models\NgendevVideo;
+use App\Models\FilterAiImageCategory;
+use App\Models\FilterAiImage;
+use App\Models\TopSliderCategory;
+use App\Models\LipsSyncCategory;
+use App\Models\LipsSyncItem;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $categories = Subcategory::select('category_name')
-            ->distinct()
-            ->get()
-            ->map(function ($cat) {
-                // Get first subcategory ID for this category
-                $firstSub = Subcategory::where('category_name', $cat->category_name)
-                    ->orderByDesc('id') // optional: latest subcategory first
-                    ->first();
+        $group  = session('dashboard_group');
+        $counts = [];
 
-                return [
-                    'category_name' => $cat->category_name,
-                    'subcategories_count' => Subcategory::where('category_name', $cat->category_name)->count(),
-                    'redirect_url' => $firstSub ? route('subcategories.show', $firstSub->id) : '#', // fallback if no subcategories exist
-                ];
-            });
+        if ($group === 'baby') {
+            $counts = [
+                'image_categories'    => AiImageCategory::count(),
+                'image_subcategories' => Subcategory::count(),
+                'video_categories'    => AiVideoCategory::count(),
+                'videos'              => AiBabyVideo::count(),
+                'frame_categories'    => DynamicPhotoFrameCategory::count(),
+                'frames'              => DynamicPhotoFrame::count(),
+                'sliders'             => BabyAiHomeSlider::count(),
+            ];
+        } elseif ($group === 'ngd') {
+            $counts = [
+                'ngd_image_categories' => NgendevCategory::count(),
+                'ngd_images'           => NgendevImage::count(),
+                'ngd_video_categories' => NgendevVideoCategory::count(),
+                'ngd_videos'           => NgendevVideo::count(),
+                'filter_categories'    => FilterAiImageCategory::count(),
+                'filter_images'        => FilterAiImage::count(),
+                'top_slider_categories'=> TopSliderCategory::count(),
+                'lips_sync_categories' => LipsSyncCategory::count(),
+                'lips_sync_items'      => LipsSyncItem::count(),
+            ];
+        }
 
-        return view('dashboard', compact('categories'));
+        return view('dashboard', compact('group', 'counts'));
+    }
+
+    public function selectGroup(Request $request, $group)
+    {
+        if (!in_array($group, ['baby', 'ngd'])) {
+            return redirect()->route('dashboard');
+        }
+
+        $request->session()->put('dashboard_group', $group);
+
+        return redirect()->route('dashboard');
+    }
+
+    public function clearGroup(Request $request)
+    {
+        $request->session()->forget('dashboard_group');
+        return redirect()->route('dashboard');
     }
 }

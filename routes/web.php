@@ -38,11 +38,9 @@ Route::get('/', [AdminController::class, 'index'])->name('login');
 Route::post('/login', [AdminController::class, 'login'])->name('admin-auth');
 
 Route::middleware(['admin_auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/select/{group}', [DashboardController::class, 'selectGroup'])->name('dashboard.selectGroup');
+    Route::get('/dashboard/clear-group', [DashboardController::class, 'clearGroup'])->name('dashboard.clearGroup');
 
     Route::get('/apiList', function () {
         return view('apiList');
