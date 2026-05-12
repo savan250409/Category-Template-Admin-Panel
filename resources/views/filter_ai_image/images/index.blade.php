@@ -2,210 +2,69 @@
 @section('title', 'Filter AI Images Management')
 @section('container')
     <style>
-        .stats-badge {
-            background: #eaecf4;
-            color: #5a5c69;
-            padding: .5rem 1rem;
-            border-radius: .35rem;
-            font-size: .85rem;
-            font-weight: 700;
-        }
+        .stats-badge { background: #eaecf4; color: #5a5c69; padding: .5rem 1rem; border-radius: .35rem; font-size: .85rem; font-weight: 700; }
+        .main-card { background: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; position: relative; }
+        .table-responsive { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+        .data-table th { background: #f8f9fc; color: #4e73df; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 1rem .75rem; border-bottom: 2px solid #e3e6f0; }
+        .data-table td { padding: 1.25rem .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; color: #5a5c69; font-size: 0.9rem; word-wrap: break-word; }
+        .data-table tr:hover { background-color: #f8f9fc; transition: background-color 0.2s ease; }
+        .data-table .col-category { width: 15%; }
+        .data-table .col-name { width: 15%; }
+        .data-table .col-thumb { width: 14%; }
+        .data-table .col-prompt { width: 40%; }
+        .data-table .col-action { width: 16%; }
+        .category-badge { background: rgba(78, 115, 223, 0.1); color: #4e73df; padding: 0.4rem 0.8rem; border-radius: 2rem; font-weight: 700; font-size: 0.75rem; }
+        .img-container { width: 100px; height: 60px; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #fff; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .prompt-text { color: #858796; font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: .35rem; color: #fff !important; text-decoration: none; transition: all 0.2s; border: none; }
+        .action-btn i { font-size: 0.9rem; color: #fff !important; }
+        .edit-btn { background-color: #0dcaf0; }
+        .delete-btn { background-color: #bb2d3b; }
+        .form-card { background: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; }
+        .img-thumbnail { max-height: 100px; object-fit: contain; }
+        .empty-state { text-align: center; padding: 3rem 1rem; }
+        .empty-state-icon { font-size: 3.5rem; color: #b7b9cc; margin-bottom: 1rem; }
+        .empty-state-title { color: #5a5c69; margin-bottom: 0.5rem; }
+        .empty-state-text { color: #858796; margin-bottom: 1.5rem; }
+        .sortable-ghost { opacity: 0.4; }
+        .sortable-chosen { transform: scale(1.05); }
+        .sortable-drag { transform: rotate(5deg); }
+        .sortable-item:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
 
-        .main-card {
-            background: #fff;
-            border-radius: .35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        /* Filters row */
+        .filters-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters-left { display: flex; align-items: center; gap: .75rem; }
+        .custom-select-arrow {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235a5c69' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 14px 12px;
+            padding-right: 2.25rem;
+            cursor: pointer;
         }
+        .per-page-select { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem .75rem; width: 88px; background-color: #fff; }
+        .category-filter { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem 1rem; min-width: 220px; background-color: #fff; }
+        .search-container { display: flex; justify-content: flex-end; }
+        .search-container .input-group { width: 350px; }
+        .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
 
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination .page-item { list-style: none; }
+        .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; transition: all .15s ease-in-out; }
+        .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
+        .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
+        .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
+        .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
 
-        .data-table th {
-            background: #f8f9fc;
-            color: #4e73df;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            padding: 1rem .75rem;
-            border-bottom: 2px solid #e3e6f0;
-        }
-
-        .data-table td {
-            padding: 1.25rem .75rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #e3e6f0;
-            color: #5a5c69;
-            font-size: 0.9rem;
-        }
-
-        .data-table tr:hover {
-            background-color: #f8f9fc;
-            transition: background-color 0.2s ease;
-        }
-
-        .category-badge {
-            background: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
-            padding: 0.4rem 0.8rem;
-            border-radius: 2rem;
-            font-weight: 700;
-            font-size: 0.75rem;
-        }
-
-        .img-container {
-            width: 100px;
-            height: 60px;
-            overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border: 2px solid #fff;
-        }
-
-        .img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .prompt-text {
-            color: #858796;
-            font-size: 0.8rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            line-height: 1.4;
-            max-width: 300px;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: .35rem;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .edit-btn {
-            background-color: var(--bs-info);
-        }
-
-        .delete-btn {
-            background-color: var(--bs-danger);
-            border: none;
-        }
-
-        .form-card {
-            background: #fff;
-            border-radius: .35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .img-thumbnail {
-            max-height: 100px;
-            object-fit: contain;
-        }
-
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e3e6f0;
-        }
-
-        .pagination-info {
-            color: #6e707e;
-            font-size: .9rem;
-        }
-
-        .pagination {
-            margin: 0;
-        }
-
-        .page-item .page-link {
-            color: #4e73df;
-            padding: .375rem .75rem;
-            border: 1px solid #dddfeb;
-            font-size: .9rem;
-        }
-
-        .page-item.active .page-link {
-            background: #4e73df;
-            border-color: #4e73df;
-            color: white;
-        }
-
-        .page-item.disabled .page-link {
-            color: #b7b9cc;
-        }
-
-        .page-link:hover {
-            background: #eaecf4;
-            border-color: #dddfeb;
-        }
-
-        .search-container {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .search-input {
-            border: 1px solid #d1d3e2;
-            border-radius: .35rem;
-            padding: .5rem 1rem;
-            width: 300px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-
-        .empty-state-icon {
-            font-size: 3.5rem;
-            color: #b7b9cc;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state-title {
-            color: #5a5c69;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state-text {
-            color: #858796;
-            margin-bottom: 1.5rem;
-        }
-
-        .sortable-ghost {
-            opacity: 0.4;
-        }
-
-        .sortable-chosen {
-            transform: scale(1.05);
-        }
-
-        .sortable-drag {
-            transform: rotate(5deg);
-        }
-
-        .sortable-item:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, .7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: .35rem; }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -214,31 +73,21 @@
                 <h1 class="page-title"><i class="bi bi-robot me-2"></i>Filter AI Images Management</h1>
                 <p class="page-subtitle">Manage all Filter AI images in the system</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center">
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#indexingModal">
                     <i class="bi bi-arrow-up-down me-2"></i>Indexing
                 </button>
-                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span
-                        id="totalCount">{{ $images->total() }}</span> Images</span>
+                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span id="totalCount">{{ $images->total() }}</span> Images</span>
             </div>
         </div>
-
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i><strong>{{ session('success') }}</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
 
         <div class="form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 id="formTitle"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Filter AI Image</h4>
-                <button type="button" id="cancelEdit" class="btn btn-outline-secondary d-none"><i
-                        class="bi bi-x-lg me-1"></i>Cancel Edit</button>
+                <button type="button" id="cancelEdit" class="btn btn-outline-secondary d-none"><i class="bi bi-x-lg me-1"></i>Cancel Edit</button>
             </div>
 
-            <form id="filterAiImageForm" method="POST" enctype="multipart/form-data"
-                action="{{ route('filter-ai-image.images.store') }}">
+            <form id="filterAiImageForm" method="POST" enctype="multipart/form-data" action="{{ route('filter-ai-image.images.store') }}">
                 @csrf
                 <input type="hidden" id="formMethod" name="_method" value="POST">
                 <input type="hidden" id="editId" name="id" value="">
@@ -262,8 +111,7 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="image" class="form-label">Image</label>
-                        <input type="file" class="form-control" id="image" name="image" accept=".webp"
-                            onchange="previewImage(this)">
+                        <input type="file" class="form-control" id="image" name="image" accept=".webp" onchange="previewImage(this)">
                         <small class="text-warning fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>Only .webp images are allowed</small>
                         <div class="form-text">Upload image (max 4 MB)</div>
                         <div id="imagePreview" class="mt-2 d-none">
@@ -272,177 +120,45 @@
                     </div>
                 </div>
                 <div class="d-grid mt-3">
-                    <button type="submit" class="btn btn-primary py-2" id="submitBtn"><i class="bi bi-plus-lg me-2"></i>Add
-                        Image</button>
+                    <button type="submit" class="btn btn-primary py-2" id="submitBtn"><i class="bi bi-plus-lg me-2"></i>Add Image</button>
                 </div>
             </form>
         </div>
 
         <div class="main-card">
-            <div class="search-container">
-                <div class="input-group" style="width: 350px;">
-                    <input type="text" id="searchInput" class="form-control"
-                        placeholder="Search by name, prompt, model, or category..." value="{{ request('search') }}">
-                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                        <i class="bi bi-x"></i>
-                    </button>
+            <div class="filters-row">
+                <div class="filters-left">
+                    <span>Show</span>
+                    <select id="per_page" class="per-page-select custom-select-arrow">
+                        @foreach ([10, 25, 50, 100] as $opt)
+                            <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                    <span>entries</span>
+                    <select id="category_filter" class="category-filter custom-select-arrow">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, prompt, or category..." value="{{ $search }}" autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div id="imagesTableContainer">
-                @if ($images->isEmpty())
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="bi bi-robot"></i>
-                        </div>
-                        <h4 class="empty-state-title">No Filter AI Images Found</h4>
-                        <p class="empty-state-text">Get started by adding your first Filter AI image</p>
-                    </div>
-                @else
-                    @section('table')
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th width="15%">Category</th>
-                                        <th width="15%">Name</th>
-                                        <th width="15%">Image</th>
-                                        <th width="40%">Prompt</th>
-                                        <th width="15%" class="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($images as $img)
-                                        <tr id="row-{{ $img->id }}">
-                                            <td><span class="category-badge">{{ $img->category->category_name ?? 'N/A' }}</span></td>
-                                            <td><span class="fw-bold text-dark">{{ $img->name ?? 'N/A' }}</span></td>
-                                            <td>
-                                                @if ($img->image_path)
-                                                    <div class="img-container">
-                                                        <img src="{{ asset('upload/filter_ai_image/images/' . $img->category->category_name . '/category_image/' . $img->image_path) }}"
-                                                            alt="{{ $img->name }}">
-                                                    </div>
-                                                @else
-                                                    <div class="img-container d-flex align-items-center justify-content-center bg-light">
-                                                        <i class="bi bi-image text-muted"></i>
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="prompt-text" title="{{ $img->ai_prompt }}">
-                                                    {{ $img->ai_prompt }}
-                                                </div>
-                                            </td>
-                                            <td class="text-end">
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="action-btn edit-btn"
-                                                        data-id="{{ $img->id }}"
-                                                        data-category="{{ $img->category_id }}"
-                                                        data-name="{{ $img->name }}"
-                                                        data-prompt="{{ $img->ai_prompt }}"
-                                                        data-image="{{ $img->image_path }}" onclick="editImage(this)">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                    <form id="deleteForm-{{ $img->id }}"
-                                                        action="{{ route('filter-ai-image.images.destroy', $img->id) }}"
-                                                        method="POST" class="d-inline">
-                                                        @csrf @method('DELETE')
-                                                        <button type="button" class="action-btn delete-btn"
-                                                            data-id="{{ $img->id }}"
-                                                            data-category="{{ $img->category->category_name ?? 'N/A' }}"
-                                                            onclick="confirmDelete(this)">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @show
-
-                    @section('pagination')
-                        <div class="pagination-container">
-                            <div class="pagination-info">
-                                Showing {{ $images->firstItem() }} to {{ $images->lastItem() }} of {{ $images->total() }}
-                                entries
-                            </div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    @if ($images->onFirstPage())
-                                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link ajax-pagination"
-                                                href="{{ $images->previousPageUrl() }}&search={{ request('search') }}">Previous</a>
-                                        </li>
-                                    @endif
-
-                                    @php
-                                        $currentPage = $images->currentPage();
-                                        $lastPage = $images->lastPage();
-                                    @endphp
-
-                                    @if ($lastPage <= 8)
-                                        @foreach ($images->getUrlRange(1, $lastPage) as $page => $url)
-                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
-                                            </li>
-                                        @endforeach
-                                    @else
-                                        @php
-                                            $start = max(1, $currentPage - 3);
-                                            $end = min($lastPage, $start + 7);
-                                            if ($end - $start < 7) {
-                                                $start = max(1, $end - 7);
-                                            }
-                                        @endphp
-
-                                        @if ($start > 1)
-                                            <li class="page-item">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $images->url(1) }}&search={{ request('search') }}">1</a>
-                                            </li>
-                                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                                        @endif
-
-                                        @foreach ($images->getUrlRange($start, $end) as $page => $url)
-                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
-                                            </li>
-                                        @endforeach
-
-                                        @if ($end < $lastPage)
-                                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                                            <li class="page-item">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $images->url($lastPage) }}&search={{ request('search') }}">{{ $lastPage }}</a>
-                                            </li>
-                                        @endif
-                                    @endif
-
-                                    @if ($images->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link ajax-pagination"
-                                                href="{{ $images->nextPageUrl() }}&search={{ request('search') }}">Next</a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled"><span class="page-link">Next</span></li>
-                                    @endif
-                                </ul>
-                            </nav>
-                        </div>
-                    @show
-                @endif
+            <div id="ajax-container">
+                @include('filter_ai_image.images.table')
             </div>
         </div>
-
     </div>
 
+    <!-- Indexing Modal -->
     <div class="modal fade" id="indexingModal" tabindex="-1" aria-labelledby="indexingModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -490,98 +206,34 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- jQuery and Bootstrap are loaded by the layout (head/body) -- don't reload them here --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
-        let searchTimeout = null;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            window.previewImage = function(input) {
-                if (input.files && input.files[0]) {
-                    const file = input.files[0];
-
-                    if (!file.name.toLowerCase().endsWith('.webp')) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Invalid File Format',
-                            text: 'Only .webp images are allowed! Please select a .webp file.'
-                        });
-                        input.value = '';
-                        document.getElementById('imagePreview').classList.add('d-none');
-                        return;
-                    }
-
-                    const maxSize = 4 * 1024 * 1024;
-                    if (file.size > maxSize) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'File Too Large',
-                            text: 'The selected image exceeds 4 MB. Please choose a smaller file.'
-                        });
-                        input.value = '';
-                        return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('previewImg').src = e.target.result;
-                        document.getElementById('imagePreview').classList.remove('d-none');
-                    };
-                    reader.readAsDataURL(file);
+        window.previewImage = function (input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (!file.name.toLowerCase().endsWith('.webp')) {
+                    Swal.fire({ icon: 'warning', title: 'Invalid File Format', text: 'Only .webp images are allowed! Please select a .webp file.' });
+                    input.value = '';
+                    document.getElementById('imagePreview').classList.add('d-none');
+                    return;
                 }
-            };
-
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function() {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        loadImages(1, this.value);
-                    }, 500);
-                });
+                const maxSize = 4 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    Swal.fire({ icon: 'error', title: 'File Too Large', text: 'The selected image exceeds 4 MB. Please choose a smaller file.' });
+                    input.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
             }
-
-            document.getElementById('clearSearch').addEventListener('click', function() {
-                searchInput.value = '';
-                loadImages(1, '');
-            });
-
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    clearTimeout(searchTimeout);
-                    loadImages(1, this.value);
-                }
-            });
-        });
-
-        function loadImages(page, search = '') {
-            $.ajax({
-                url: "{{ route('filter-ai-image.images.index') }}",
-                type: 'GET',
-                data: {
-                    page: page,
-                    search: search
-                },
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function(res) {
-                    $('#imagesTableContainer').html(res.table + res.pagination);
-                    $('#totalCount').text(res.total);
-                    $('.ajax-pagination').off('click').on('click', function(e) {
-                        e.preventDefault();
-                        const url = new URL($(this).attr('href'));
-                        const searchParam = url.searchParams.get('search') || '';
-                        loadImages(url.searchParams.get('page') || 1, searchParam);
-                    });
-                },
-                error: function(xhr) {
-                    console.error('AJAX Error:', xhr.responseText);
-                }
-            });
-        }
+        };
 
         function editImage(button) {
             const id = button.getAttribute('data-id');
@@ -590,10 +242,8 @@
             const prompt = button.getAttribute('data-prompt');
             const imagePath = button.getAttribute('data-image');
 
-            document.getElementById('formTitle').innerHTML =
-                '<i class="bi bi-pencil-square me-2 text-info"></i>Edit Filter AI Image';
-            document.getElementById('submitBtn').innerHTML =
-                '<i class="bi bi-save me-2"></i>Update Image';
+            document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-info"></i>Edit Filter AI Image';
+            document.getElementById('submitBtn').innerHTML = '<i class="bi bi-save me-2"></i>Update Image';
             document.getElementById('cancelEdit').classList.remove('d-none');
 
             document.getElementById('filterAiImageForm').action = "{{ url('filter-ai-image/images') }}/" + id;
@@ -604,22 +254,22 @@
             document.getElementById('ai_prompt').value = prompt;
 
             if (imagePath) {
-                const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
+                const categoryName = button.closest('tr').querySelector('.category-badge').textContent.trim();
                 const imgUrl = "{{ asset('upload/filter_ai_image/images') }}/" + categoryName + '/category_image/' + imagePath;
                 document.getElementById('previewImg').src = imgUrl;
                 document.getElementById('imagePreview').classList.remove('d-none');
             } else {
                 document.getElementById('imagePreview').classList.add('d-none');
             }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function confirmDelete(button) {
             const id = button.getAttribute('data-id');
-            const categoryName = button.getAttribute('data-category');
-
             Swal.fire({
                 title: 'Are you sure?',
-                text: `Are you sure you want to delete this Filter AI image?`,
+                text: 'Are you sure you want to delete this Filter AI image?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -633,15 +283,9 @@
             });
         }
 
-        document.getElementById('cancelEdit').addEventListener('click', function() {
-            resetForm();
-        });
-
         function resetForm() {
-            document.getElementById('formTitle').innerHTML =
-                '<i class="bi bi-plus-circle me-2 text-primary"></i>Add New Filter AI Image';
-            document.getElementById('submitBtn').innerHTML =
-                '<i class="bi bi-plus-lg me-2"></i>Add Image';
+            document.getElementById('formTitle').innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>Add New Filter AI Image';
+            document.getElementById('submitBtn').innerHTML = '<i class="bi bi-plus-lg me-2"></i>Add Image';
             document.getElementById('cancelEdit').classList.add('d-none');
             document.getElementById('filterAiImageForm').action = "{{ route('filter-ai-image.images.store') }}";
             document.getElementById('formMethod').value = 'POST';
@@ -650,221 +294,237 @@
             document.getElementById('imagePreview').classList.add('d-none');
         }
 
-        document.getElementById('filterAiImageForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const url = this.action;
-            const method = document.getElementById('formMethod').value;
-            const searchTerm = document.getElementById('searchInput').value;
+        $(document).ready(function () {
+            // AJAX loader
+            function loadImages(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
 
-            Swal.fire({
-                title: method === 'POST' ? 'Adding Image...' : 'Updating Image...',
-                text: 'Please wait while we process your request',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function(response) {
-                    loadImages(1, searchTerm);
-                    resetForm();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: method === 'POST' ? 'Image added successfully!' :
-                            'Image updated successfully!',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                },
-                error: function(xhr) {
-                    let errMsg = 'An error occurred. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errMsg = xhr.responseJSON.message;
+                $.ajax({
+                    url: "{{ route('filter-ai-image.images.index') }}",
+                    type: 'GET',
+                    data: {
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
+                        category_id: $('#category_filter').val(),
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res && typeof res.html === 'string') {
+                            $('#ajax-container').html(res.html);
+                            $('#totalCount').text(res.total ?? 0);
+                        } else {
+                            console.error('Unexpected response:', res);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Unexpected server response. See console.' });
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('AJAX error', xhr.status, xhr.responseText);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load images (' + xhr.status + ').' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
                     }
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: errMsg
-                    });
-                }
-            });
-        });
-
-        let sortableInstance = null;
-        let currentCategoryId = null;
-
-        document.getElementById('categorySelect').addEventListener('change', function() {
-            const categoryId = this.value;
-            if (categoryId) {
-                loadCategoryImages(categoryId);
-                currentCategoryId = categoryId;
-            } else {
-                document.getElementById('imagesContainer').innerHTML = `
-                    <div class="col-12 text-center text-muted py-5">
-                        <i class="bi bi-image fs-1"></i>
-                        <p class="mt-2">Select a category to view and reorder images</p>
-                    </div>
-                `;
-                document.getElementById('saveOrderBtn').style.display = 'none';
-                if (sortableInstance) {
-                    sortableInstance.destroy();
-                    sortableInstance = null;
-                }
+                });
             }
-        });
+            window.loadImages = loadImages;
 
-        function loadCategoryImages(categoryId) {
-            document.getElementById('imagesContainer').innerHTML = `
-                <div class="col-12 text-center text-muted py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading images...</p>
-                </div>
-            `;
+            // Filter handlers
+            $('#per_page').on('change', function () { loadImages(1); });
+            $('#category_filter').on('change', function () { loadImages(1); });
 
-            $.ajax({
-                url: "{{ route('filter-ai-image.images.indexing') }}",
-                type: 'GET',
-                data: {
-                    category_id: categoryId
-                },
-                success: function(response) {
-                    if (response.images && response.images.length > 0) {
-                        displayImages(response.images);
-                        initializeSortable();
-                        document.getElementById('saveOrderBtn').style.display = 'inline-block';
-                    } else {
-                        document.getElementById('imagesContainer').innerHTML = `
-                            <div class="col-12 text-center text-muted py-5">
-                                <i class="bi bi-image fs-1"></i>
-                                <p class="mt-2">No images found for this category</p>
-                            </div>
-                        `;
-                        document.getElementById('saveOrderBtn').style.display = 'none';
+            // Search with debounce
+            let searchTimer = null;
+            $('#searchInput').on('keyup', function (e) {
+                clearTimeout(searchTimer);
+                if (e.key === 'Enter') {
+                    loadImages(1);
+                    return;
+                }
+                searchTimer = setTimeout(() => loadImages(1), 500);
+            });
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadImages(1);
+            });
+
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadImages(page);
+            });
+
+            $('#cancelEdit').on('click', function () { resetForm(); });
+
+            $('#filterAiImageForm').on('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const url = this.action;
+                const method = document.getElementById('formMethod').value;
+
+                Swal.fire({
+                    title: method === 'POST' ? 'Adding Image...' : 'Updating Image...',
+                    text: 'Please wait while we process your request',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function () {
+                        loadImages(1);
+                        resetForm();
+                        Swal.fire({
+                            icon: 'success', title: 'Success!',
+                            text: method === 'POST' ? 'Image added successfully!' : 'Image updated successfully!',
+                            timer: 2000, showConfirmButton: false
+                        });
+                    },
+                    error: function (xhr) {
+                        let errMsg = 'An error occurred. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) errMsg = xhr.responseJSON.message;
+                        Swal.fire({ icon: 'error', title: 'Error!', text: errMsg });
                     }
-                },
-                error: function(xhr) {
-                    console.error('Error loading images:', xhr.responseText);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: 'Failed to load images for this category.'
-                    });
-                }
-            });
-        }
-
-        function displayImages(images) {
-            const container = document.getElementById('imagesContainer');
-            container.innerHTML = '';
-
-            images.forEach((image, index) => {
-                const imageHtml = `
-                    <div class="col-md-3 mb-3" data-image-id="${image.id}">
-                        <div class="card sortable-item" style="cursor: move;">
-                            <div class="card-body p-2">
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge bg-primary me-2">${index + 1}</span>
-                                    <small class="text-muted">ID: ${image.id}</small>
-                                </div>
-                                ${image.image_url ?
-                                    `<img src="${image.image_url}"
-                                                 class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
-                                                 alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                                 style="height: 120px; display: none;">
-                                                <i class="bi bi-image text-muted fs-4"></i>
-                                            </div>` :
-                                    `<div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                                 style="height: 120px;">
-                                                <i class="bi bi-image text-muted fs-4"></i>
-                                             </div>`
-                                }
-                                <div class="mt-2">
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                        <strong>${image.name || 'No Name'}</strong><br>
-                                        ${image.ai_prompt ? image.ai_prompt.substring(0, 40) + '...' : 'No prompt'}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += imageHtml;
-            });
-        }
-
-        function initializeSortable() {
-            if (sortableInstance) {
-                sortableInstance.destroy();
-            }
-
-            const container = document.getElementById('imagesContainer');
-            sortableInstance = new Sortable(container, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                dragClass: 'sortable-drag'
-            });
-        }
-
-        document.getElementById('saveOrderBtn').addEventListener('click', function() {
-            const items = document.querySelectorAll('#imagesContainer [data-image-id]');
-            const orderData = [];
-
-            items.forEach((item, index) => {
-                orderData.push({
-                    id: item.getAttribute('data-image-id'),
-                    sort_order: index + 1
                 });
             });
 
-            Swal.fire({
-                title: 'Saving Order...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
+            // Indexing modal
+            let sortableInstance = null;
+            let currentCategoryId = null;
+
+            $('#categorySelect').on('change', function () {
+                const categoryId = this.value;
+                if (categoryId) {
+                    loadCategoryImages(categoryId);
+                    currentCategoryId = categoryId;
+                } else {
+                    document.getElementById('imagesContainer').innerHTML = `
+                        <div class="col-12 text-center text-muted py-5">
+                            <i class="bi bi-image fs-1"></i>
+                            <p class="mt-2">Select a category to view and reorder images</p>
+                        </div>`;
+                    document.getElementById('saveOrderBtn').style.display = 'none';
+                    if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
                 }
             });
 
-            $.ajax({
-                url: "{{ route('filter-ai-image.images.updateOrder') }}",
-                type: 'POST',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    category_id: currentCategoryId,
-                    order: orderData
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Order updated successfully!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    loadImages(1, document.getElementById('searchInput').value);
-                },
-                error: function(xhr) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: 'Failed to update order.'
-                    });
-                }
+            function loadCategoryImages(categoryId) {
+                document.getElementById('imagesContainer').innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Loading images...</p>
+                    </div>`;
+
+                $.ajax({
+                    url: "{{ route('filter-ai-image.images.indexing') }}",
+                    type: 'GET',
+                    data: { category_id: categoryId },
+                    success: function (response) {
+                        if (response.images && response.images.length > 0) {
+                            displayImages(response.images);
+                            initializeSortable();
+                            document.getElementById('saveOrderBtn').style.display = 'inline-block';
+                        } else {
+                            document.getElementById('imagesContainer').innerHTML = `
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="bi bi-image fs-1"></i>
+                                    <p class="mt-2">No images found for this category</p>
+                                </div>`;
+                            document.getElementById('saveOrderBtn').style.display = 'none';
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to load images for this category.' });
+                    }
+                });
+            }
+
+            function displayImages(images) {
+                const container = document.getElementById('imagesContainer');
+                container.innerHTML = '';
+                images.forEach((image, index) => {
+                    const imageHtml = `
+                        <div class="col-md-3 mb-3" data-image-id="${image.id}">
+                            <div class="card sortable-item" style="cursor: move;">
+                                <div class="card-body p-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-primary me-2">${index + 1}</span>
+                                        <small class="text-muted">ID: ${image.id}</small>
+                                    </div>
+                                    ${image.image_url ?
+                                        `<img src="${image.image_url}" class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;" alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px; display: none;">
+                                            <i class="bi bi-image text-muted fs-4"></i>
+                                        </div>` :
+                                        `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                                            <i class="bi bi-image text-muted fs-4"></i>
+                                         </div>`
+                                    }
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                            <strong>${image.name || 'No Name'}</strong><br>
+                                            ${image.ai_prompt ? image.ai_prompt.substring(0, 40) + '...' : 'No prompt'}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    container.innerHTML += imageHtml;
+                });
+            }
+
+            function initializeSortable() {
+                if (sortableInstance) sortableInstance.destroy();
+                const container = document.getElementById('imagesContainer');
+                sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    dragClass: 'sortable-drag',
+                    onEnd: function () {
+                        const items = document.querySelectorAll('#imagesContainer .col-md-3');
+                        items.forEach((item, index) => {
+                            const badge = item.querySelector('.badge');
+                            if (badge) badge.textContent = index + 1;
+                        });
+                    }
+                });
+            }
+
+            $('#saveOrderBtn').on('click', function () {
+                if (!currentCategoryId) return;
+                const items = document.querySelectorAll('#imagesContainer [data-image-id]');
+                const orderData = [];
+                items.forEach((item, index) => {
+                    orderData.push({ id: item.getAttribute('data-image-id'), sort_order: index + 1 });
+                });
+
+                Swal.fire({
+                    title: 'Saving Order...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: "{{ route('filter-ai-image.images.updateOrder') }}",
+                    type: 'POST',
+                    data: { _token: "{{ csrf_token() }}", category_id: currentCategoryId, order: orderData },
+                    success: function () {
+                        Swal.fire({ icon: 'success', title: 'Success!', text: 'Order updated successfully!', timer: 1500, showConfirmButton: false });
+                        loadImages(1);
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to update order.' });
+                    }
+                });
             });
         });
     </script>

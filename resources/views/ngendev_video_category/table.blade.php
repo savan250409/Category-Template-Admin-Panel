@@ -83,16 +83,70 @@
     </table>
 </div>
 
-<div class="d-none" id="total-count-hidden">{{ $categories->total() }}</div>
+@if ($categories->total() > 0)
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing {{ $categories->firstItem() }} to {{ $categories->lastItem() }} of {{ $categories->total() }} entries
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @if ($categories->onFirstPage())
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                @else
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="{{ $categories->currentPage() - 1 }}">Previous</a>
+                    </li>
+                @endif
 
-@if ($categories->hasPages())
-    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-        <div class="text-muted small">
-            Showing {{ $categories->firstItem() ?? 0 }} to {{ $categories->lastItem() ?? 0 }} of
-            {{ $categories->total() }} categories
-        </div>
-        <div>
-            {{ $categories->links('pagination::bootstrap-5') }}
-        </div>
+                @php
+                    $currentPage = $categories->currentPage();
+                    $lastPage = $categories->lastPage();
+                @endphp
+
+                @if ($lastPage <= 8)
+                    @for ($p = 1; $p <= $lastPage; $p++)
+                        <li class="page-item {{ $p == $currentPage ? 'active' : '' }}">
+                            <a class="page-link" href="#" data-page="{{ $p }}">{{ $p }}</a>
+                        </li>
+                    @endfor
+                @else
+                    @php
+                        $start = max(1, $currentPage - 3);
+                        $end = min($lastPage, $start + 7);
+                        if ($end - $start < 7) {
+                            $start = max(1, $end - 7);
+                        }
+                    @endphp
+
+                    @if ($start > 1)
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="1">1</a>
+                        </li>
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    @endif
+
+                    @for ($p = $start; $p <= $end; $p++)
+                        <li class="page-item {{ $p == $currentPage ? 'active' : '' }}">
+                            <a class="page-link" href="#" data-page="{{ $p }}">{{ $p }}</a>
+                        </li>
+                    @endfor
+
+                    @if ($end < $lastPage)
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="{{ $lastPage }}">{{ $lastPage }}</a>
+                        </li>
+                    @endif
+                @endif
+
+                @if ($categories->hasMorePages())
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="{{ $categories->currentPage() + 1 }}">Next</a>
+                    </li>
+                @else
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                @endif
+            </ul>
+        </nav>
     </div>
 @endif

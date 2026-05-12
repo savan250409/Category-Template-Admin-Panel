@@ -2,49 +2,31 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th class="col-category">Category</th>
-                <th class="col-thumb">Thumbnail</th>
-                <th class="col-title">Title</th>
-                <th class="col-prompt">AI Prompt</th>
-                <th class="col-name-change">Name Change</th>
-                <th class="col-action text-end">Action</th>
+                <th class="col-name">Name</th>
+                <th class="col-thumb">Image</th>
+                <th class="col-action text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($videos as $video)
-                <tr id="row-{{ $video->id }}">
-                    <td><strong>{{ $video->category?->category_name ?? 'N/A' }}</strong></td>
+            @forelse ($categories as $category)
+                <tr id="row-{{ $category->id }}">
+                    <td><strong>{{ $category->category_name }}</strong></td>
                     <td>
-                        @if ($video->video_thumbnail)
-                            @if (\Illuminate\Support\Str::startsWith($video->video_thumbnail, 'upload/'))
-                                <img src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @else
-                                <img src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @endif
+                        @if ($category->image)
+                            <img src="{{ asset('upload/lips_sync/' . $category->category_name . '/category image/' . $category->image) }}" class="cat-thumb" alt="">
                         @else
-                            <div class="video-thumb bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-image text-muted"></i>
-                            </div>
-                        @endif
-                    </td>
-                    <td>{{ $video->video_title }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($video->ai_prompt, 50) }}</td>
-                    <td>
-                        @if ($video->name_change)
-                            <span class="badge bg-success">Yes</span>
-                        @else
-                            <span class="badge bg-secondary">No</span>
+                            <span class="text-muted">No image</span>
                         @endif
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('ai-baby-video.videos.edit', $video->id) }}" class="action-btn edit-btn" title="Edit">
+                            <a href="{{ route('lips-sync.categories.edit', $category->id) }}" class="action-btn edit-btn" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <button type="button" class="action-btn delete-btn" data-id="{{ $video->id }}" data-title="{{ $video->video_title }}" title="Delete">
+                            <button type="button" class="action-btn delete-btn" data-id="{{ $category->id }}" data-name="{{ $category->category_name }}" title="Delete">
                                 <i class="bi bi-trash"></i>
                             </button>
-                            <form id="deleteForm-{{ $video->id }}" action="{{ route('ai-baby-video.videos.destroy', $video->id) }}" method="POST" style="display:none;">
+                            <form id="deleteForm-{{ $category->id }}" action="{{ route('lips-sync.categories.destroy', $category->id) }}" method="POST" style="display:none;">
                                 @csrf
                                 @method('DELETE')
                             </form>
@@ -53,11 +35,11 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="3">
                         <div class="empty-state">
-                            <div class="empty-state-icon"><i class="bi bi-camera-video"></i></div>
-                            <h4>No Videos Found</h4>
-                            <p class="text-muted">No videos match your current search criteria.</p>
+                            <div class="empty-state-icon"><i class="bi bi-folder-x"></i></div>
+                            <h4>No Categories Found</h4>
+                            <p class="text-muted">Add your first Lips Sync category to get started.</p>
                         </div>
                     </td>
                 </tr>
@@ -66,24 +48,24 @@
     </table>
 </div>
 
-@if ($videos->total() > 0)
+@if ($categories->total() > 0)
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing {{ $videos->firstItem() }} to {{ $videos->lastItem() }} of {{ $videos->total() }} entries
+            Showing {{ $categories->firstItem() }} to {{ $categories->lastItem() }} of {{ $categories->total() }} entries
         </div>
         <nav aria-label="Page navigation">
             <ul class="pagination">
-                @if ($videos->onFirstPage())
+                @if ($categories->onFirstPage())
                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
                 @else
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() - 1 }}">Previous</a>
+                        <a class="page-link" href="#" data-page="{{ $categories->currentPage() - 1 }}">Previous</a>
                     </li>
                 @endif
 
                 @php
-                    $currentPage = $videos->currentPage();
-                    $lastPage = $videos->lastPage();
+                    $currentPage = $categories->currentPage();
+                    $lastPage = $categories->lastPage();
                 @endphp
 
                 @if ($lastPage <= 8)
@@ -122,9 +104,9 @@
                     @endif
                 @endif
 
-                @if ($videos->hasMorePages())
+                @if ($categories->hasMorePages())
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() + 1 }}">Next</a>
+                        <a class="page-link" href="#" data-page="{{ $categories->currentPage() + 1 }}">Next</a>
                     </li>
                 @else
                     <li class="page-item disabled"><span class="page-link">Next</span></li>

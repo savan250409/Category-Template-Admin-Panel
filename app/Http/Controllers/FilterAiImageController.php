@@ -13,37 +13,40 @@ class FilterAiImageController extends Controller
 {
     public function index(Request $request)
     {
+        $perPage    = (int) $request->input('per_page', 10);
+        $search     = (string) $request->input('search', '');
+        $categoryId = (string) $request->input('category_id', '');
+
         $categories = FilterAiImageCategory::orderBy('created_at', 'desc')->get();
 
         $query = FilterAiImage::with('category')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc');
 
-        if ($search = $request->get('search')) {
+        if ($categoryId !== '') {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('ai_prompt', 'like', "%{$search}%")
-                  ->orWhere('ai_model', 'like', "%{$search}%")
                   ->orWhereHas('category', function ($q2) use ($search) {
                       $q2->where('category_name', 'like', "%{$search}%");
                   });
             });
         }
 
-        $images = $query->paginate(10)
-            ->appends(['search' => $request->get('search')]);
+        $images = $query->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
-            $view = view('filter_ai_image.images.index', compact('images', 'categories'))->renderSections();
-
             return response()->json([
-                'table' => $view['table'],
-                'pagination' => $view['pagination'],
+                'html'  => view('filter_ai_image.images.table', compact('images'))->render(),
                 'total' => $images->total(),
             ]);
         }
 
-        return view('filter_ai_image.images.index', compact('categories', 'images'));
+        return view('filter_ai_image.images.index', compact('categories', 'images', 'perPage', 'search', 'categoryId'));
     }
 
     public function store(Request $request)

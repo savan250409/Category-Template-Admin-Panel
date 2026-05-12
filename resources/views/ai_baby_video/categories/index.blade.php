@@ -176,13 +176,20 @@
                         per_page: $('#per_page').val(),
                         search: $('#searchInput').val(),
                     },
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    dataType: 'json',
                     success: function (res) {
-                        $('#ajax-container').html(res.html);
-                        $('#totalCount').text(res.total);
+                        if (res && typeof res.html === 'string') {
+                            $('#ajax-container').html(res.html);
+                            $('#totalCount').text(res.total ?? 0);
+                        } else {
+                            console.error('Unexpected response:', res);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Unexpected server response. See console.' });
+                        }
                     },
-                    error: function () {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load categories.' });
+                    error: function (xhr) {
+                        console.error('AJAX error', xhr.status, xhr.responseText);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load categories (' + xhr.status + ').' });
                     },
                     complete: function () {
                         $card.find('.loading-overlay').remove();

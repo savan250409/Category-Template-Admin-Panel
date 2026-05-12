@@ -13,8 +13,8 @@ class AiBabyVideoController extends Controller
     public function index(Request $request)
     {
         $perPage    = (int) $request->input('per_page', 10);
-        $search     = $request->input('search', '');
-        $categoryId = $request->input('category_id', '');
+        $search     = (string) $request->input('search', '');
+        $categoryId = (string) $request->input('category_id', '');
 
         $categories = AiVideoCategory::where('status', 1)->orderBy('category_name')->get();
 

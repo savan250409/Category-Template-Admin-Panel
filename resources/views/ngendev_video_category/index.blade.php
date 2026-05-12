@@ -17,6 +17,7 @@
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
             padding: 1.5rem;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .data-table {
@@ -86,31 +87,48 @@
             border-radius: 5px;
         }
 
+        /* Filters row */
+        .filters-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters-left { display: flex; align-items: center; gap: .75rem; }
+        .custom-select-arrow {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235a5c69' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 14px 12px;
+            padding-right: 2.25rem;
+            cursor: pointer;
+        }
+        .per-page-select { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem .75rem; width: 88px; background-color: #fff; }
+        .search-container { display: flex; justify-content: flex-end; }
+        .search-container .input-group { width: 350px; }
+        .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
+
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination .page-item { list-style: none; }
+        .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; transition: all .15s ease-in-out; }
+        .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
+        .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
+        .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
+        .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
+
         .loading-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, .8);
+            background: rgba(255, 255, 255, .7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10;
-        }
-
-        .pagination .page-link {
-            cursor: pointer;
-            padding: .5rem .75rem;
-            margin: 0 .1rem;
             border-radius: .35rem;
-            border: 1px solid #e3e6f0;
-        }
-
-        .pagination .page-item.active .page-link {
-            background-color: #4e73df;
-            border-color: #4e73df;
-            color: #fff;
         }
     </style>
 
@@ -122,7 +140,7 @@
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="stats-badge">
-                    <i class="bi bi-collection"></i> Total: <span id="total-categories">{{ $categories->total() }}</span>
+                    <i class="bi bi-collection"></i> Total: <span id="totalCount">{{ $categories->total() }}</span>
                     Categories
                 </span>
                 <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
@@ -154,12 +172,31 @@
             </div>
         @endif
 
-        <div class="main-card position-relative">
-            <div id="table-content">
+        <div class="main-card">
+            <div class="filters-row">
+                <div class="filters-left">
+                    <span>Show</span>
+                    <select id="per_page" class="per-page-select custom-select-arrow">
+                        @foreach ([10, 25, 50, 100] as $opt)
+                            <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                    <span>entries</span>
+                </div>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search categories..." value="{{ $search }}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ajax-container">
                 @include('ngendev_video_category.table')
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Indexing Modal -->
@@ -221,11 +258,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         let selectedCategoryId = null;
-        let currentPage = 1;
-        let currentPerPage = {{ $perPage }};
-        let currentSearch = '{{ $search }}';
 
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             // Auto dismiss alerts after 5 sec
             ['success-alert', 'error-alert'].forEach(id => {
                 const alertEl = document.getElementById(id);
@@ -236,7 +270,7 @@
                 }
             });
 
-            // Delete
+            // Delete (delegated so it works after AJAX swaps)
             $(document).on('click', '.delete-btn', function () {
                 selectedCategoryId = $(this).data('id');
                 $('#categoryToDelete').text($(this).data('name'));
@@ -248,70 +282,69 @@
                 }
             });
 
-            // Search
-            $('#search-form').on('submit', function (e) {
-                e.preventDefault();
-                currentSearch = $('#search-input').val();
-                currentPage = 1;
-                loadTableData();
-            });
-
-            // Per Page
-            $('#per-page-select').on('change', function () {
-                currentPerPage = $(this).val();
-                currentPage = 1;
-                loadTableData();
-            });
-
-            // Pagination click
-            $(document).on('click', '.pagination .page-link', function (e) {
-                e.preventDefault();
-                const page = $(this).data('page');
-                if (page) {
-                    currentPage = page;
-                    loadTableData();
-                }
-            });
-
-            function loadTableData() {
-                // Remove existing overlay if any
-                $('.loading-overlay').remove();
-
-                // Append overlay
-                $('#table-content').append(
-                    '<div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>'
-                );
+            // AJAX loader
+            function loadCategories(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
 
                 $.ajax({
-                    url: '{{ route('ngendev-video-categories.index') }}',
+                    url: "{{ route('ngendev-video-categories.index') }}",
+                    type: 'GET',
                     data: {
-                        page: currentPage,
-                        per_page: currentPerPage,
-                        search: currentSearch,
-                        ajax: true
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
                     },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    dataType: 'json',
                     success: function (res) {
-                        $('#table-content').html(res);
-
-                        // Update total
-                        const total = $('#table-content').find('#total-count-hidden').text();
-                        if (total) {
-                            $('#total-categories').text(total);
+                        if (res && typeof res.html === 'string') {
+                            $('#ajax-container').html(res.html);
+                            $('#totalCount').text(res.total ?? 0);
+                            // Re-init tooltips after content swap
+                            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                            tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+                        } else {
+                            console.error('Unexpected response:', res);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Unexpected server response. See console.' });
                         }
-
-                        // Tooltips
-                        const tooltipTriggerList = [].slice.call(document.querySelectorAll(
-                            '[data-bs-toggle="tooltip"]'));
-                        tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
                     },
-                    error: function () {
-                        $('.loading-overlay').remove(); // Remove overlay on error
-                        $('#table-content').prepend(
-                            '<div class="alert alert-danger alert-dismissible fade show">Error loading data. Please try again.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'
-                        );
+                    error: function (xhr) {
+                        console.error('AJAX error', xhr.status, xhr.responseText);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load categories (' + xhr.status + ').' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
                     }
                 });
             }
+            // Expose for other handlers (indexing save callback)
+            window.loadCategories = loadCategories;
+
+            // Filter handlers
+            $('#per_page').on('change', function () { loadCategories(1); });
+
+            // Search with debounce
+            let searchTimer = null;
+            $('#searchInput').on('keyup', function (e) {
+                clearTimeout(searchTimer);
+                if (e.key === 'Enter') {
+                    loadCategories(1);
+                    return;
+                }
+                searchTimer = setTimeout(() => loadCategories(1), 500);
+            });
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadCategories(1);
+            });
+
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadCategories(page);
+            });
 
             // Indexing Logic
             let sortableInstance = null;
@@ -324,13 +357,12 @@
             function loadCategoriesForIndexing() {
                 const container = document.getElementById('categoriesContainer');
                 container.innerHTML = `
-                                            <div class="col-12 text-center text-muted py-5">
-                                                <div class="spinner-border text-primary" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </div>
-                                                <p class="mt-2">Loading categories...</p>
-                                            </div>
-                                        `;
+                    <div class="col-12 text-center text-muted py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading categories...</p>
+                    </div>`;
 
                 $.ajax({
                     url: "{{ route('ngendev-video-categories.indexing') }}",
@@ -341,21 +373,19 @@
                             initializeSortable();
                         } else {
                             container.innerHTML = `
-                                                        <div class="col-12 text-center text-muted py-5">
-                                                            <i class="bi bi-tags fs-1"></i>
-                                                            <p class="mt-2">No categories found</p>
-                                                        </div>
-                                                    `;
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="bi bi-tags fs-1"></i>
+                                    <p class="mt-2">No categories found</p>
+                                </div>`;
                         }
                     },
                     error: function (xhr) {
                         console.error('Error loading categories:', xhr.responseText);
                         container.innerHTML = `
-                                                     <div class="col-12 text-center text-danger py-5">
-                                                        <i class="bi bi-exclamation-triangle fs-1"></i>
-                                                        <p class="mt-2">Error loading categories</p>
-                                                    </div>
-                                                `;
+                            <div class="col-12 text-center text-danger py-5">
+                                <i class="bi bi-exclamation-triangle fs-1"></i>
+                                <p class="mt-2">Error loading categories</p>
+                            </div>`;
                     }
                 });
             }
@@ -365,17 +395,15 @@
                 container.innerHTML = '';
 
                 categories.forEach((category, index) => {
-                    // console.log(category);
                     const categoryHtml = `
-                                                <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
-                                                        <span class="fw-bold me-2">${index + 1}.</span>
-                                                        <span>${category.category_name}</span>
-                                                    </div>
-                                                    <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
-                                                </div>
-                                            `;
+                        <div class="list-group-item d-flex align-items-center justify-content-between sortable-item" data-id="${category.id}" style="cursor: move;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                                <span class="fw-bold me-2">${index + 1}.</span>
+                                <span>${category.category_name}</span>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">ID: ${category.id}</span>
+                        </div>`;
                     container.innerHTML += categoryHtml;
                 });
             }
@@ -434,7 +462,6 @@
                         btn.innerHTML = originalText;
 
                         if (response.success) {
-                            // Close modal
                             const modal = bootstrap.Modal.getInstance(indexingModal);
                             modal.hide();
 
@@ -444,7 +471,8 @@
                                 text: response.message,
                                 confirmButtonText: 'OK'
                             }).then(() => {
-                                window.location.href = response.redirect_url;
+                                // refresh table via AJAX instead of full reload
+                                loadCategories(1);
                             });
                         }
                     },
@@ -462,7 +490,7 @@
                 });
             });
 
-            // Status Toggle
+            // Status Toggle (delegated)
             $(document).on('change', '.status-toggle', function () {
                 const id = $(this).data('id');
                 const isChecked = $(this).is(':checked');
@@ -546,6 +574,8 @@
                                 icon: 'success',
                                 title: res.message
                             });
+                            // Reload table to reflect coupled categories' new statuses
+                            loadCategories(1);
                         }
                     },
                     error: function (xhr) {
@@ -561,7 +591,7 @@
                 });
             });
 
-            // Type Change
+            // Type Change (delegated)
             $(document).on('change', '.type-select', function () {
                 const id = $(this).data('id');
                 const type = $(this).val();
@@ -588,6 +618,8 @@
                                 icon: 'success',
                                 title: res.message
                             });
+                            // Refresh so the status toggle disabled state / values update
+                            loadCategories(1);
                         }
                     },
                     error: function (xhr) {

@@ -12,13 +12,21 @@ class NgendevVideoController extends Controller
 {
     public function index(Request $request)
     {
+        $perPage    = (int) $request->input('per_page', 10);
+        $search     = (string) $request->input('search', '');
+        $categoryId = (string) $request->input('category_id', '');
+
         $categories = NgendevVideoCategory::orderBy('created_at', 'desc')->get();
 
         $query = NgendevVideo::with('category')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc');
 
-        if ($search = $request->get('search')) {
+        if ($categoryId !== '') {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('ai_prompt', 'like', "%{$search}%")
                   ->orWhere('ai_model', 'like', "%{$search}%")
@@ -28,19 +36,16 @@ class NgendevVideoController extends Controller
             });
         }
 
-        $videos = $query->paginate(10)->appends(['search' => $request->get('search')]);
+        $videos = $query->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
-            $view = view('ngendev_video.index', compact('videos', 'categories'))->renderSections();
-
             return response()->json([
-                'table' => $view['table'],
-                'pagination' => $view['pagination'],
+                'html'  => view('ngendev_video.table', compact('videos'))->render(),
                 'total' => $videos->total(),
             ]);
         }
 
-        return view('ngendev_video.index', compact('categories', 'videos'));
+        return view('ngendev_video.index', compact('categories', 'videos', 'perPage', 'search', 'categoryId'));
     }
 
     public function store(Request $request)

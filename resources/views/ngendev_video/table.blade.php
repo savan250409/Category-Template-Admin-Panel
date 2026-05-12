@@ -2,33 +2,45 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th class="col-category">Category</th>
-                <th class="col-thumb">Thumbnail</th>
-                <th class="col-title">Title</th>
-                <th class="col-prompt">AI Prompt</th>
-                <th class="col-name-change">Name Change</th>
-                <th class="col-action text-end">Action</th>
+                <th>Category</th>
+                <th>Model</th>
+                <th>Thumbnail</th>
+                <th>Video</th>
+                <th>Prompt</th>
+                <th>No Of Video</th>
+                <th>Name Change</th>
+                <th>Image Hint</th>
+                <th class="text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($videos as $video)
                 <tr id="row-{{ $video->id }}">
                     <td><strong>{{ $video->category?->category_name ?? 'N/A' }}</strong></td>
+                    <td>{{ $video->ai_model ?? 'Ngendev Video' }}</td>
                     <td>
                         @if ($video->video_thumbnail)
-                            @if (\Illuminate\Support\Str::startsWith($video->video_thumbnail, 'upload/'))
-                                <img src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @else
-                                <img src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @endif
+                            <img src="{{ asset('upload/ngendev/videos/' . ($video->category?->category_name ?? 'unknown') . '/video_thumbnail/' . $video->video_thumbnail) }}"
+                                width="80">
                         @else
-                            <div class="video-thumb bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-image text-muted"></i>
-                            </div>
+                            <div class="text-muted">No thumbnail</div>
                         @endif
                     </td>
-                    <td>{{ $video->video_title }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($video->ai_prompt, 50) }}</td>
+                    <td>
+                        @if ($video->video_path)
+                            <video src="{{ asset('upload/ngendev/videos/' . ($video->category?->category_name ?? 'unknown') . '/category_video/' . $video->video_path) }}"
+                                width="80" controls></video>
+                        @else
+                            <div class="text-muted">No video</div>
+                        @endif
+                    </td>
+                    <td>
+                        <div class="text-truncate" style="max-width:300px;"
+                            title="{{ $video->ai_prompt }}">
+                            {{ $video->ai_prompt }}
+                        </div>
+                    </td>
+                    <td>{{ $video->no_of_video ?? $video->no_of_image }}</td>
                     <td>
                         @if ($video->name_change)
                             <span class="badge bg-success">Yes</span>
@@ -36,28 +48,50 @@
                             <span class="badge bg-secondary">No</span>
                         @endif
                     </td>
+                    <td>
+                        @if ($video->name_change && $video->image_hint)
+                            <div class="text-truncate" style="max-width:200px;" title="{{ $video->image_hint }}">{{ $video->image_hint }}</div>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('ai-baby-video.videos.edit', $video->id) }}" class="action-btn edit-btn" title="Edit">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <button type="button" class="action-btn delete-btn" data-id="{{ $video->id }}" data-title="{{ $video->video_title }}" title="Delete">
-                                <i class="bi bi-trash"></i>
+                            <button type="button" class="action-btn edit-btn"
+                                data-id="{{ $video->id }}"
+                                data-category="{{ $video->category_id }}"
+                                data-model="{{ $video->ai_model }}"
+                                data-prompt="{{ $video->ai_prompt }}"
+                                data-noofvideo="{{ $video->no_of_video ?? $video->no_of_image }}"
+                                data-namechange="{{ $video->name_change }}"
+                                data-imagehint="{{ $video->image_hint }}"
+                                data-thumbnail="{{ $video->video_thumbnail }}"
+                                data-video="{{ $video->video_path }}" onclick="editImage(this)">
+                                <i class="bi bi-pencil"></i>
                             </button>
-                            <form id="deleteForm-{{ $video->id }}" action="{{ route('ai-baby-video.videos.destroy', $video->id) }}" method="POST" style="display:none;">
-                                @csrf
-                                @method('DELETE')
+                            <form id="deleteForm-{{ $video->id }}"
+                                action="{{ route('ngendev-videos.destroy', $video->id) }}"
+                                method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="button" class="action-btn delete-btn"
+                                    data-id="{{ $video->id }}"
+                                    data-category="{{ $video->category?->category_name ?? 'N/A' }}"
+                                    onclick="confirmDelete(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="9">
                         <div class="empty-state">
-                            <div class="empty-state-icon"><i class="bi bi-camera-video"></i></div>
-                            <h4>No Videos Found</h4>
-                            <p class="text-muted">No videos match your current search criteria.</p>
+                            <div class="empty-state-icon">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <h4 class="empty-state-title">No Ngendev Videos Found</h4>
+                            <p class="empty-state-text">Get started by adding your first Ngendev video</p>
                         </div>
                     </td>
                 </tr>

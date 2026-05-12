@@ -25,6 +25,13 @@ class LipsSyncCategoryController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html'  => view('lips_sync.categories.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
+        }
+
         return view('lips_sync.categories.index', compact('categories', 'perPage', 'search'));
     }
 

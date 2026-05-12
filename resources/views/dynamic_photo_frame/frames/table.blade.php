@@ -12,10 +12,10 @@
         <tbody>
             @forelse ($frames as $frame)
                 <tr>
-                    <td><strong>{{ $frame->category->category_name ?? 'N/A' }}</strong></td>
+                    <td><strong>{{ $frame->category?->category_name ?? 'N/A' }}</strong></td>
                     <td>
                         @if ($frame->zip_file && $frame->category)
-                            <a class="zip-link" href="{{ asset('upload/dynamic_photo_frame/' . $frame->category->category_name . '/zip/' . $frame->zip_file) }}" target="_blank" title="{{ $frame->zip_file }}">
+                            <a class="zip-link" href="{{ asset('upload/dynamic_photo_frame/' . $frame->category?->category_name . '/zip/' . $frame->zip_file) }}" target="_blank" title="{{ $frame->zip_file }}">
                                 <i class="bi bi-file-earmark-zip me-1"></i>{{ \Illuminate\Support\Str::limit($frame->zip_file, 30) }}
                             </a>
                         @else
@@ -25,7 +25,7 @@
                     <td>{{ $frame->input_count }}</td>
                     <td>
                         @if ($frame->thumbnail && $frame->category)
-                            <img src="{{ asset('upload/dynamic_photo_frame/' . $frame->category->category_name . '/thumbnail/' . $frame->thumbnail) }}" class="frame-thumb" alt="">
+                            <img src="{{ asset('upload/dynamic_photo_frame/' . $frame->category?->category_name . '/thumbnail/' . $frame->thumbnail) }}" class="frame-thumb" alt="">
                         @else
                             <div class="frame-thumb bg-light d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>
@@ -37,7 +37,7 @@
                             <a href="{{ route('dynamic-photo-frame.frames.edit', $frame->id) }}" class="action-btn edit-btn" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <button type="button" class="action-btn delete-btn" data-id="{{ $frame->id }}" data-name="{{ $frame->category->category_name ?? 'this frame' }}" title="Delete">
+                            <button type="button" class="action-btn delete-btn" data-id="{{ $frame->id }}" data-name="{{ $frame->category?->category_name ?? 'this frame' }}" title="Delete">
                                 <i class="bi bi-trash"></i>
                             </button>
                             <form id="deleteForm-{{ $frame->id }}" action="{{ route('dynamic-photo-frame.frames.destroy', $frame->id) }}" method="POST" style="display:none;">

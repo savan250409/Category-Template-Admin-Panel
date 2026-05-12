@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File _tmp_grep.ps1)",
+      "Bash(del _tmp_grep.ps1)",
+      "Bash(powershell -NoProfile -Command \"Remove-Item _tmp_grep.ps1 -ErrorAction SilentlyContinue\")"
     ]
   }
 }

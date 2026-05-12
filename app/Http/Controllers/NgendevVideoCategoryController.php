@@ -13,12 +13,12 @@ class NgendevVideoCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = intval($request->input('per_page', 10));
-        $search = $request->input('search', '');
+        $perPage = (int) $request->input('per_page', 10);
+        $search = (string) $request->input('search', '');
 
         $query = NgendevVideoCategory::query();
 
-        if ($search) {
+        if ($search !== '') {
             $query->where('category_name', 'like', '%' . $search . '%');
         }
 
@@ -27,7 +27,10 @@ class NgendevVideoCategoryController extends Controller
         $coupleActive = AiVideoNgdSetting::value('couple_active');
 
         if ($request->ajax()) {
-            return view('ngendev_video_category.table', compact('categories', 'perPage', 'search', 'coupleActive'));
+            return response()->json([
+                'html'  => view('ngendev_video_category.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
         }
 
         return view('ngendev_video_category.index', compact('categories', 'perPage', 'search', 'coupleActive'));

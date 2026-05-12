@@ -3,10 +3,17 @@
 @section('container')
     <style>
         .stats-badge { background-color: #eaecf4; color: #5a5c69; padding: .5rem 1rem; border-radius: .35rem; font-size: .85rem; font-weight: 700; }
-        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; }
-        .data-table { width: 100%; border-collapse: collapse; }
+        .main-card { background-color: #fff; border-radius: .35rem; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15); padding: 1.5rem; margin-bottom: 2rem; position: relative; }
+        .table-responsive { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+        .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .data-table th { background-color: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
-        .data-table td { padding: .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; }
+        .data-table td { padding: .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; word-wrap: break-word; }
+        .data-table .col-thumb { width: 12%; }
+        .data-table .col-title { width: 24%; }
+        .data-table .col-category { width: 18%; }
+        .data-table .col-song { width: 12%; }
+        .data-table .col-video { width: 14%; }
+        .data-table .col-action { width: 20%; }
         .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: .35rem; color: #fff !important; text-decoration: none; transition: all 0.2s; border: none; }
         .action-btn i { font-size: 0.9rem; color: #fff !important; }
         .edit-btn { background-color: #0dcaf0; }
@@ -16,6 +23,39 @@
         .play-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #0d6efd; color: #0d6efd; border-radius: 50%; background: #fff; cursor: pointer; transition: all .2s; }
         .play-btn:hover { background: #0d6efd; color: #fff; }
         .empty-state { text-align: center; padding: 3rem 1rem; }
+
+        /* Filters row */
+        .filters-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters-left { display: flex; align-items: center; gap: .75rem; }
+        .custom-select-arrow {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235a5c69' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 14px 12px;
+            padding-right: 2.25rem;
+            cursor: pointer;
+        }
+        .per-page-select { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem .75rem; width: 88px; background-color: #fff; }
+        .category-filter { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem 1rem; min-width: 220px; background-color: #fff; }
+        .search-container { display: flex; justify-content: flex-end; }
+        .search-container .input-group { width: 350px; }
+        .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
+
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination .page-item { list-style: none; }
+        .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; transition: all .15s ease-in-out; }
+        .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
+        .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
+        .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
+        .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
+
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, .7); display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: .35rem; }
     </style>
 
     <div class="container mt-4 mb-5">
@@ -25,7 +65,7 @@
                 <p class="text-muted">Manage all Lips Sync items in the system</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="stats-badge"><i class="bi bi-collection"></i> Total:<span class="ms-1">{{ $items->total() }}</span>Items</span>
+                <span class="stats-badge"><i class="bi bi-collection"></i> Total: <span id="totalCount" class="ms-1">{{ $items->total() }}</span> Items</span>
                 <a href="{{ route('lips-sync.items.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg me-2"></i>Add Lips Sync
                 </a>
@@ -33,106 +73,34 @@
         </div>
 
         <div class="main-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
+            <div class="filters-row">
+                <div class="filters-left">
                     <span>Show</span>
-                    <select id="per_page" class="form-select form-select-sm d-inline-block mx-1" style="width: 80px;">
+                    <select id="per_page" class="per-page-select custom-select-arrow">
                         @foreach ([10, 25, 50, 100] as $opt)
                             <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
                         @endforeach
                     </select>
                     <span>entries</span>
-                </div>
-                <div class="d-flex gap-2">
-                    <select id="category_filter" class="form-select form-select-sm" style="width: 200px;">
+                    <select id="category_filter" class="category-filter custom-select-arrow">
                         <option value="">All Categories</option>
                         @foreach ($categories as $cat)
                             <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>{{ $cat->category_name }}</option>
                         @endforeach
                     </select>
-                    <input type="text" id="title_search" class="form-control form-control-sm" placeholder="Search Title..." value="{{ $search }}" style="width: 240px;">
+                </div>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by title..." value="{{ $search }}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Thumbnail</th>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Song</th>
-                            <th>Video</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($items as $item)
-                            <tr>
-                                <td>
-                                    @if ($item->video_thumbnail && $item->category)
-                                        <img src="{{ asset('upload/lips_sync/' . $item->category->category_name . '/thumbnail/' . $item->video_thumbnail) }}" class="item-thumb" alt="">
-                                    @else
-                                        <div class="item-thumb bg-light d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
-                                    @endif
-                                </td>
-                                <td><strong>{{ $item->title }}</strong></td>
-                                <td>{{ $item->category->category_name ?? 'N/A' }}</td>
-                                <td>
-                                    @if ($item->song && $item->category)
-                                        <button type="button" class="play-btn play-song-btn"
-                                            data-src="{{ asset('upload/lips_sync/' . $item->category->category_name . '/song/' . $item->song) }}"
-                                            title="Play song">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($item->video && $item->category)
-                                        <video src="{{ asset('upload/lips_sync/' . $item->category->category_name . '/video/' . $item->video) }}" class="video-thumb" muted></video>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('lips-sync.items.edit', $item->id) }}" class="action-btn edit-btn" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button type="button" class="action-btn delete-btn" data-id="{{ $item->id }}" data-name="{{ $item->title }}" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        <form id="deleteForm-{{ $item->id }}" action="{{ route('lips-sync.items.destroy', $item->id) }}" method="POST" style="display:none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6">
-                                    <div class="empty-state">
-                                        <i class="bi bi-music-note-list" style="font-size: 3rem; color: #b7b9cc;"></i>
-                                        <h4 class="mt-2">No Lips Sync items found</h4>
-                                        <p class="text-muted">Add your first item to get started.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted small">
-                    Showing {{ $items->firstItem() ?? 0 }} to {{ $items->lastItem() ?? 0 }} of {{ $items->total() }} entries
-                </div>
-                <div>{{ $items->appends(request()->except('page'))->links() }}</div>
+            <div id="ajax-container">
+                @include('lips_sync.items.table')
             </div>
         </div>
     </div>
@@ -142,7 +110,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 4000, timerProgressBar: true });
             @endif
@@ -150,72 +118,107 @@
                 Swal.fire({ icon: 'error', title: 'Error', text: @json(session('error')) });
             @endif
 
-            // Delete confirm
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const name = this.getAttribute('data-name');
-                    Swal.fire({
-                        title: 'Delete item?',
-                        text: 'This will delete "' + name + '" and its files.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#bb2d3b',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('deleteForm-' + id).submit();
-                        }
-                    });
+            // Delete (delegated)
+            $(document).on('click', '.delete-btn', function () {
+                const id = $(this).attr('data-id');
+                const name = $(this).attr('data-name');
+                Swal.fire({
+                    title: 'Delete item?',
+                    text: 'This will delete "' + name + '" and its files.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bb2d3b',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('deleteForm-' + id).submit();
+                    }
                 });
             });
 
-            // Per-page / filter / search
-            const params = new URLSearchParams(window.location.search);
-            document.getElementById('per_page').addEventListener('change', function () {
-                params.set('per_page', this.value); params.delete('page');
-                window.location.search = params.toString();
-            });
-            document.getElementById('category_filter').addEventListener('change', function () {
-                if (this.value) params.set('category_id', this.value); else params.delete('category_id');
-                params.delete('page');
-                window.location.search = params.toString();
-            });
+            // AJAX loader
+            function loadItems(page) {
+                const $card = $('.main-card');
+                $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
+
+                $.ajax({
+                    url: "{{ route('lips-sync.items.index') }}",
+                    type: 'GET',
+                    data: {
+                        page: page || 1,
+                        per_page: $('#per_page').val(),
+                        search: $('#searchInput').val(),
+                        category_id: $('#category_filter').val(),
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res && typeof res.html === 'string') {
+                            $('#ajax-container').html(res.html);
+                            $('#totalCount').text(res.total ?? 0);
+                        } else {
+                            console.error('Unexpected response:', res);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Unexpected server response. See console.' });
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('AJAX error', xhr.status, xhr.responseText);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load items (' + xhr.status + ').' });
+                    },
+                    complete: function () {
+                        $card.find('.loading-overlay').remove();
+                    }
+                });
+            }
+
+            // Filter handlers
+            $('#per_page').on('change', function () { loadItems(1); });
+            $('#category_filter').on('change', function () { loadItems(1); });
+
+            // Search with debounce
             let searchTimer = null;
-            document.getElementById('title_search').addEventListener('input', function () {
+            $('#searchInput').on('keyup', function (e) {
                 clearTimeout(searchTimer);
-                const val = this.value;
-                searchTimer = setTimeout(() => {
-                    if (val) params.set('search', val); else params.delete('search');
-                    params.delete('page');
-                    window.location.search = params.toString();
-                }, 500);
+                if (e.key === 'Enter') {
+                    loadItems(1);
+                    return;
+                }
+                searchTimer = setTimeout(() => loadItems(1), 500);
+            });
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadItems(1);
             });
 
-            // Song player
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadItems(page);
+            });
+
+            // Song player (delegated so it works after AJAX swaps)
             const player = document.getElementById('songPlayer');
             let currentBtn = null;
-            document.querySelectorAll('.play-song-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const src = this.getAttribute('data-src');
-                    if (currentBtn === this && !player.paused) {
-                        player.pause();
-                        this.querySelector('i').className = 'bi bi-play-fill';
-                        currentBtn = null;
-                        return;
-                    }
-                    if (currentBtn && currentBtn !== this) {
-                        currentBtn.querySelector('i').className = 'bi bi-play-fill';
-                    }
-                    player.src = src;
-                    player.play();
-                    this.querySelector('i').className = 'bi bi-pause-fill';
-                    currentBtn = this;
-                });
+            $(document).on('click', '.play-song-btn', function () {
+                const src = $(this).attr('data-src');
+                if (currentBtn === this && !player.paused) {
+                    player.pause();
+                    $(this).find('i').attr('class', 'bi bi-play-fill');
+                    currentBtn = null;
+                    return;
+                }
+                if (currentBtn && currentBtn !== this) {
+                    $(currentBtn).find('i').attr('class', 'bi bi-play-fill');
+                }
+                player.src = src;
+                player.play();
+                $(this).find('i').attr('class', 'bi bi-pause-fill');
+                currentBtn = this;
             });
             player.addEventListener('ended', function () {
                 if (currentBtn) {
-                    currentBtn.querySelector('i').className = 'bi bi-play-fill';
+                    $(currentBtn).find('i').attr('class', 'bi bi-play-fill');
                     currentBtn = null;
                 }
             });

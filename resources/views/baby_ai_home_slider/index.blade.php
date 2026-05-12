@@ -150,7 +150,7 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- jQuery is loaded by the layout -- don't reload --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
@@ -194,13 +194,20 @@
                         search: $('#searchInput').val(),
                         source_type: $('#source_filter').val(),
                     },
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    dataType: 'json',
                     success: function (res) {
-                        $('#ajax-container').html(res.html);
-                        $('#totalCount').text(res.total);
+                        if (res && typeof res.html === 'string') {
+                            $('#ajax-container').html(res.html);
+                            $('#totalCount').text(res.total ?? 0);
+                        } else {
+                            console.error('Unexpected response:', res);
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Unexpected server response. See console.' });
+                        }
                     },
-                    error: function () {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load sliders.' });
+                    error: function (xhr) {
+                        console.error('AJAX error', xhr.status, xhr.responseText);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load sliders (' + xhr.status + ').' });
                     },
                     complete: function () {
                         $card.find('.loading-overlay').remove();

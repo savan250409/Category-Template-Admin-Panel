@@ -2,49 +2,55 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th class="col-category">Category</th>
                 <th class="col-thumb">Thumbnail</th>
                 <th class="col-title">Title</th>
-                <th class="col-prompt">AI Prompt</th>
-                <th class="col-name-change">Name Change</th>
-                <th class="col-action text-end">Action</th>
+                <th class="col-category">Category</th>
+                <th class="col-song">Song</th>
+                <th class="col-video">Video</th>
+                <th class="col-action text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($videos as $video)
-                <tr id="row-{{ $video->id }}">
-                    <td><strong>{{ $video->category?->category_name ?? 'N/A' }}</strong></td>
+            @forelse ($items as $item)
+                <tr>
                     <td>
-                        @if ($video->video_thumbnail)
-                            @if (\Illuminate\Support\Str::startsWith($video->video_thumbnail, 'upload/'))
-                                <img src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @else
-                                <img src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @endif
+                        @if ($item->video_thumbnail && $item->category)
+                            <img src="{{ asset('upload/lips_sync/' . $item->category?->category_name . '/thumbnail/' . $item->video_thumbnail) }}" class="item-thumb" alt="">
                         @else
-                            <div class="video-thumb bg-light d-flex align-items-center justify-content-center">
+                            <div class="item-thumb bg-light d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>
                             </div>
                         @endif
                     </td>
-                    <td>{{ $video->video_title }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($video->ai_prompt, 50) }}</td>
+                    <td><strong>{{ $item->title }}</strong></td>
+                    <td>{{ $item->category?->category_name ?? 'N/A' }}</td>
                     <td>
-                        @if ($video->name_change)
-                            <span class="badge bg-success">Yes</span>
+                        @if ($item->song && $item->category)
+                            <button type="button" class="play-btn play-song-btn"
+                                data-src="{{ asset('upload/lips_sync/' . $item->category?->category_name . '/song/' . $item->song) }}"
+                                title="Play song">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
                         @else
-                            <span class="badge bg-secondary">No</span>
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if ($item->video && $item->category)
+                            <video src="{{ asset('upload/lips_sync/' . $item->category?->category_name . '/video/' . $item->video) }}" class="video-thumb" muted></video>
+                        @else
+                            <span class="text-muted">—</span>
                         @endif
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('ai-baby-video.videos.edit', $video->id) }}" class="action-btn edit-btn" title="Edit">
+                            <a href="{{ route('lips-sync.items.edit', $item->id) }}" class="action-btn edit-btn" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <button type="button" class="action-btn delete-btn" data-id="{{ $video->id }}" data-title="{{ $video->video_title }}" title="Delete">
+                            <button type="button" class="action-btn delete-btn" data-id="{{ $item->id }}" data-name="{{ $item->title }}" title="Delete">
                                 <i class="bi bi-trash"></i>
                             </button>
-                            <form id="deleteForm-{{ $video->id }}" action="{{ route('ai-baby-video.videos.destroy', $video->id) }}" method="POST" style="display:none;">
+                            <form id="deleteForm-{{ $item->id }}" action="{{ route('lips-sync.items.destroy', $item->id) }}" method="POST" style="display:none;">
                                 @csrf
                                 @method('DELETE')
                             </form>
@@ -55,9 +61,9 @@
                 <tr>
                     <td colspan="6">
                         <div class="empty-state">
-                            <div class="empty-state-icon"><i class="bi bi-camera-video"></i></div>
-                            <h4>No Videos Found</h4>
-                            <p class="text-muted">No videos match your current search criteria.</p>
+                            <i class="bi bi-music-note-list" style="font-size: 3rem; color: #b7b9cc;"></i>
+                            <h4 class="mt-2">No Lips Sync items found</h4>
+                            <p class="text-muted">No items match your current search criteria.</p>
                         </div>
                     </td>
                 </tr>
@@ -66,24 +72,24 @@
     </table>
 </div>
 
-@if ($videos->total() > 0)
+@if ($items->total() > 0)
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing {{ $videos->firstItem() }} to {{ $videos->lastItem() }} of {{ $videos->total() }} entries
+            Showing {{ $items->firstItem() }} to {{ $items->lastItem() }} of {{ $items->total() }} entries
         </div>
         <nav aria-label="Page navigation">
             <ul class="pagination">
-                @if ($videos->onFirstPage())
+                @if ($items->onFirstPage())
                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
                 @else
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() - 1 }}">Previous</a>
+                        <a class="page-link" href="#" data-page="{{ $items->currentPage() - 1 }}">Previous</a>
                     </li>
                 @endif
 
                 @php
-                    $currentPage = $videos->currentPage();
-                    $lastPage = $videos->lastPage();
+                    $currentPage = $items->currentPage();
+                    $lastPage = $items->lastPage();
                 @endphp
 
                 @if ($lastPage <= 8)
@@ -122,9 +128,9 @@
                     @endif
                 @endif
 
-                @if ($videos->hasMorePages())
+                @if ($items->hasMorePages())
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() + 1 }}">Next</a>
+                        <a class="page-link" href="#" data-page="{{ $items->currentPage() + 1 }}">Next</a>
                     </li>
                 @else
                     <li class="page-item disabled"><span class="page-link">Next</span></li>

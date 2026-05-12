@@ -3,61 +3,59 @@
         <thead>
             <tr>
                 <th class="col-category">Category</th>
-                <th class="col-thumb">Thumbnail</th>
-                <th class="col-title">Title</th>
-                <th class="col-prompt">AI Prompt</th>
-                <th class="col-name-change">Name Change</th>
-                <th class="col-action text-end">Action</th>
+                <th class="col-name">Name</th>
+                <th class="col-thumb">Image</th>
+                <th class="col-prompt">Prompt</th>
+                <th class="col-action text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($videos as $video)
-                <tr id="row-{{ $video->id }}">
-                    <td><strong>{{ $video->category?->category_name ?? 'N/A' }}</strong></td>
+            @forelse ($images as $img)
+                <tr id="row-{{ $img->id }}">
+                    <td><span class="category-badge">{{ $img->category?->category_name ?? 'N/A' }}</span></td>
+                    <td><span class="fw-bold text-dark">{{ $img->name ?? 'N/A' }}</span></td>
                     <td>
-                        @if ($video->video_thumbnail)
-                            @if (\Illuminate\Support\Str::startsWith($video->video_thumbnail, 'upload/'))
-                                <img src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @else
-                                <img src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
-                            @endif
+                        @if ($img->image_path && $img->category)
+                            <div class="img-container">
+                                <img src="{{ asset('upload/filter_ai_image/images/' . $img->category?->category_name . '/category_image/' . $img->image_path) }}" alt="{{ $img->name }}">
+                            </div>
                         @else
-                            <div class="video-thumb bg-light d-flex align-items-center justify-content-center">
+                            <div class="img-container d-flex align-items-center justify-content-center bg-light">
                                 <i class="bi bi-image text-muted"></i>
                             </div>
                         @endif
                     </td>
-                    <td>{{ $video->video_title }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($video->ai_prompt, 50) }}</td>
                     <td>
-                        @if ($video->name_change)
-                            <span class="badge bg-success">Yes</span>
-                        @else
-                            <span class="badge bg-secondary">No</span>
-                        @endif
+                        <div class="prompt-text" title="{{ $img->ai_prompt }}">
+                            {{ $img->ai_prompt }}
+                        </div>
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('ai-baby-video.videos.edit', $video->id) }}" class="action-btn edit-btn" title="Edit">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <button type="button" class="action-btn delete-btn" data-id="{{ $video->id }}" data-title="{{ $video->video_title }}" title="Delete">
-                                <i class="bi bi-trash"></i>
+                            <button type="button" class="action-btn edit-btn"
+                                data-id="{{ $img->id }}"
+                                data-category="{{ $img->category_id }}"
+                                data-name="{{ $img->name }}"
+                                data-prompt="{{ $img->ai_prompt }}"
+                                data-image="{{ $img->image_path }}" onclick="editImage(this)" title="Edit">
+                                <i class="bi bi-pencil"></i>
                             </button>
-                            <form id="deleteForm-{{ $video->id }}" action="{{ route('ai-baby-video.videos.destroy', $video->id) }}" method="POST" style="display:none;">
-                                @csrf
-                                @method('DELETE')
+                            <form id="deleteForm-{{ $img->id }}" action="{{ route('filter-ai-image.images.destroy', $img->id) }}" method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="button" class="action-btn delete-btn" data-id="{{ $img->id }}" data-category="{{ $img->category?->category_name ?? 'N/A' }}" onclick="confirmDelete(this)" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="empty-state">
-                            <div class="empty-state-icon"><i class="bi bi-camera-video"></i></div>
-                            <h4>No Videos Found</h4>
-                            <p class="text-muted">No videos match your current search criteria.</p>
+                            <div class="empty-state-icon"><i class="bi bi-robot"></i></div>
+                            <h4 class="empty-state-title">No Filter AI Images Found</h4>
+                            <p class="empty-state-text">No images match your current search criteria.</p>
                         </div>
                     </td>
                 </tr>
@@ -66,24 +64,24 @@
     </table>
 </div>
 
-@if ($videos->total() > 0)
+@if ($images->total() > 0)
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing {{ $videos->firstItem() }} to {{ $videos->lastItem() }} of {{ $videos->total() }} entries
+            Showing {{ $images->firstItem() }} to {{ $images->lastItem() }} of {{ $images->total() }} entries
         </div>
         <nav aria-label="Page navigation">
             <ul class="pagination">
-                @if ($videos->onFirstPage())
+                @if ($images->onFirstPage())
                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
                 @else
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() - 1 }}">Previous</a>
+                        <a class="page-link" href="#" data-page="{{ $images->currentPage() - 1 }}">Previous</a>
                     </li>
                 @endif
 
                 @php
-                    $currentPage = $videos->currentPage();
-                    $lastPage = $videos->lastPage();
+                    $currentPage = $images->currentPage();
+                    $lastPage = $images->lastPage();
                 @endphp
 
                 @if ($lastPage <= 8)
@@ -122,9 +120,9 @@
                     @endif
                 @endif
 
-                @if ($videos->hasMorePages())
+                @if ($images->hasMorePages())
                     <li class="page-item">
-                        <a class="page-link" href="#" data-page="{{ $videos->currentPage() + 1 }}">Next</a>
+                        <a class="page-link" href="#" data-page="{{ $images->currentPage() + 1 }}">Next</a>
                     </li>
                 @else
                     <li class="page-item disabled"><span class="page-link">Next</span></li>

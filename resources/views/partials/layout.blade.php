@@ -29,6 +29,9 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- jQuery loaded early so inline view scripts can use $ before @yield('container') is rendered --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <style>
         #sidebar-nav .nav-link {
             transition: all 0.2s ease-in-out;

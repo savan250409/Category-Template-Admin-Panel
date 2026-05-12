@@ -14,38 +14,42 @@ use Illuminate\Support\Facades\DB;
 class NgendevImageController extends Controller
 {
     public function index(Request $request)
-{
-    $categories = NgendevCategory::orderBy('created_at', 'desc')->get();
+    {
+        $perPage    = (int) $request->input('per_page', 10);
+        $search     = (string) $request->input('search', '');
+        $categoryId = (string) $request->input('category_id', '');
 
-    $query = NgendevImage::with('category')
-        ->orderBy('sort_order', 'asc')
-        ->orderBy('id', 'desc');
+        $categories = NgendevCategory::orderBy('created_at', 'desc')->get();
 
-    if ($search = $request->get('search')) {
-        $query->where(function ($q) use ($search) {
-            $q->where('ai_prompt', 'like', "%{$search}%")
-              ->orWhere('ai_model', 'like', "%{$search}%")
-              ->orWhereHas('category', function ($q2) use ($search) {
-                  $q2->where('category_name', 'like', "%{$search}%");
-              });
-        });
+        $query = NgendevImage::with('category')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc');
+
+        if ($categoryId !== '') {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('ai_prompt', 'like', "%{$search}%")
+                  ->orWhere('ai_model', 'like', "%{$search}%")
+                  ->orWhereHas('category', function ($q2) use ($search) {
+                      $q2->where('category_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $images = $query->paginate($perPage)->withQueryString();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html'  => view('ngendev.images.table', compact('images'))->render(),
+                'total' => $images->total(),
+            ]);
+        }
+
+        return view('ngendev.images.index', compact('categories', 'images', 'perPage', 'search', 'categoryId'));
     }
-
-    $images = $query->paginate(10)
-        ->appends(['search' => $request->get('search')]);
-
-    if ($request->ajax()) {
-        $view = view('ngendev.images.index', compact('images', 'categories'))->renderSections();
-
-        return response()->json([
-            'table' => $view['table'],
-            'pagination' => $view['pagination'],
-            'total' => $images->total(),
-        ]);
-    }
-
-    return view('ngendev.images.index', compact('categories', 'images'));
-}
 
 
     public function store(Request $request)

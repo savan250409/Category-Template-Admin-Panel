@@ -26,7 +26,10 @@ class NgendevCategoryController extends Controller
         $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
 
         if ($request->ajax()) {
-            return view('ngendev.categories.table', compact('categories', 'perPage', 'search', 'coupleActive'));
+            return response()->json([
+                'html'  => view('ngendev.categories.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
         }
 
         return view('ngendev.categories.index', compact('categories', 'perPage', 'search', 'coupleActive'));

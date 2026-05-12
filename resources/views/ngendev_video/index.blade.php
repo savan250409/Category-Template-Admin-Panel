@@ -17,6 +17,7 @@
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, .15);
             padding: 1.5rem;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .data-table {
@@ -71,58 +72,36 @@
             object-fit: contain;
         }
 
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e3e6f0;
+        /* Filters row */
+        .filters-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters-left { display: flex; align-items: center; gap: .75rem; }
+        .custom-select-arrow {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235a5c69' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 14px 12px;
+            padding-right: 2.25rem;
+            cursor: pointer;
         }
+        .per-page-select { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem .75rem; width: 88px; background-color: #fff; }
+        .category-filter { border: 1px solid #d1d3e2; border-radius: .35rem; padding: .5rem 1rem; min-width: 220px; background-color: #fff; }
+        .search-container { display: flex; justify-content: flex-end; }
+        .search-container .input-group { width: 350px; }
+        .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
 
-        .pagination-info {
-            color: #6e707e;
-            font-size: .9rem;
-        }
-
-        .pagination {
-            margin: 0;
-        }
-
-        .page-item .page-link {
-            color: #4e73df;
-            padding: .375rem .75rem;
-            border: 1px solid #dddfeb;
-            font-size: .9rem;
-        }
-
-        .page-item.active .page-link {
-            background: #4e73df;
-            border-color: #4e73df;
-            color: white;
-        }
-
-        .page-item.disabled .page-link {
-            color: #b7b9cc;
-        }
-
-        .page-link:hover {
-            background: #eaecf4;
-            border-color: #dddfeb;
-        }
-
-        .search-container {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .search-input {
-            border: 1px solid #d1d3e2;
-            border-radius: .35rem;
-            padding: .5rem 1rem;
-            width: 300px;
-        }
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination .page-item { list-style: none; }
+        .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; transition: all .15s ease-in-out; }
+        .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
+        .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }
+        .pagination .page-item .page-link:hover { background-color: #eaecf4; border-color: #dddfeb; color: #2e59d9; }
+        .pagination .page-item.active .page-link:hover { background-color: #4e73df; color: #fff; }
 
         .empty-state {
             text-align: center;
@@ -159,6 +138,20 @@
 
         .sortable-item:hover {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: .35rem;
         }
     </style>
 
@@ -265,193 +258,35 @@
         </div>
 
         <div class="main-card">
-            <div class="search-container">
-                <div class="input-group" style="width: 350px;">
-                    <input type="text" id="searchInput" class="form-control"
-                        placeholder="Search by prompt, model, or category..." value="{{ request('search') }}">
-                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                        <i class="bi bi-x"></i>
-                    </button>
+            <div class="filters-row">
+                <div class="filters-left">
+                    <span>Show</span>
+                    <select id="per_page" class="per-page-select custom-select-arrow">
+                        @foreach ([10, 25, 50, 100] as $opt)
+                            <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                    <span>entries</span>
+                    <select id="category_filter" class="category-filter custom-select-arrow">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control"
+                            placeholder="Search by prompt, model, or category..." value="{{ $search }}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div id="imagesTableContainer">
-                @if ($videos->isEmpty())
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="bi bi-robot"></i>
-                        </div>
-                        <h4 class="empty-state-title">No Ngendev Videos Found</h4>
-                        <p class="empty-state-text">Get started by adding your first Ngendev video</p>
-                    </div>
-                @else
-                    @section('table')
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Model</th>
-                                        <th>Thumbnail</th>
-                                        <th>Video</th>
-                                        <th>Prompt</th>
-                                        <th>No Of Video</th>
-                                        <th>Name Change</th>
-                                        <th>Image Hint</th>
-                                        <th class="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($videos as $video)
-                                        <tr id="row-{{ $video->id }}">
-                                            <td><strong>{{ $video->category->category_name ?? 'N/A' }}</strong></td>
-                                            <td>{{ $video->ai_model ?? 'Ngendev Video' }}</td>
-                                            <td>
-                                                @if ($video->video_thumbnail)
-                                                    <img src="{{ asset('upload/ngendev/videos/' . ($video->category->category_name ?? 'unknown') . '/video_thumbnail/' . $video->video_thumbnail) }}"
-                                                        width="80">
-                                                @else
-                                                    <div class="text-muted">No thumbnail</div>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($video->video_path)
-                                                    <video src="{{ asset('upload/ngendev/videos/' . ($video->category->category_name ?? 'unknown') . '/category_video/' . $video->video_path) }}"
-                                                        width="80" controls></video>
-                                                @else
-                                                    <div class="text-muted">No video</div>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="text-truncate" style="max-width:300px;"
-                                                    title="{{ $video->ai_prompt }}">
-                                                    {{ $video->ai_prompt }}
-                                                </div>
-                                            </td>
-                                            <td>{{ $video->no_of_video ?? $video->no_of_image }}</td>
-                                            <td>
-                                                @if($video->name_change)
-                                                    <span class="badge bg-success">Yes</span>
-                                                @else
-                                                    <span class="badge bg-secondary">No</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($video->name_change && $video->image_hint)
-                                                    <div class="text-truncate" style="max-width:200px;" title="{{ $video->image_hint }}">{{ $video->image_hint }}</div>
-                                                @else
-                                                    <span class="text-muted">-</span>
-                                                @endif
-                                            </td>
-                                            <td class="text-end">
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="action-btn edit-btn"
-                                                        data-id="{{ $video->id }}"
-                                                        data-category="{{ $video->category_id }}"
-                                                        data-model="{{ $video->ai_model }}"
-                                                        data-prompt="{{ $video->ai_prompt }}"
-                                                        data-noofvideo="{{ $video->no_of_video ?? $video->no_of_image }}"
-                                                        data-namechange="{{ $video->name_change }}"
-                                                        data-imagehint="{{ $video->image_hint }}"
-                                                        data-thumbnail="{{ $video->video_thumbnail }}"
-                                                        data-video="{{ $video->video_path }}" onclick="editImage(this)">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                    <form id="deleteForm-{{ $video->id }}"
-                                                        action="{{ route('ngendev-videos.destroy', $video->id) }}"
-                                                        method="POST" class="d-inline">
-                                                        @csrf @method('DELETE')
-                                                        <button type="button" class="action-btn delete-btn"
-                                                            data-id="{{ $video->id }}"
-                                                            data-category="{{ $video->category->category_name ?? 'N/A' }}"
-                                                            onclick="confirmDelete(this)">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @show
-
-                    @section('pagination')
-                        <div class="pagination-container">
-                            <div class="pagination-info">
-                                Showing {{ $videos->firstItem() }} to {{ $videos->lastItem() }} of {{ $videos->total() }}
-                                entries
-                            </div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    @if ($videos->onFirstPage())
-                                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link ajax-pagination"
-                                                href="{{ $videos->previousPageUrl() }}&search={{ request('search') }}">Previous</a>
-                                        </li>
-                                    @endif
-
-                                    @php
-                                        $currentPage = $videos->currentPage();
-                                        $lastPage = $videos->lastPage();
-                                    @endphp
-
-                                    @if ($lastPage <= 8)
-                                        @foreach ($videos->getUrlRange(1, $lastPage) as $page => $url)
-                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
-                                            </li>
-                                        @endforeach
-                                    @else
-                                        @php
-                                            $start = max(1, $currentPage - 3);
-                                            $end = min($lastPage, $start + 7);
-                                            if ($end - $start < 7) {
-                                                $start = max(1, $end - 7);
-                                            }
-                                        @endphp
-
-                                        @if ($start > 1)
-                                            <li class="page-item">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $videos->url(1) }}&search={{ request('search') }}">1</a>
-                                            </li>
-                                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                                        @endif
-
-                                        @foreach ($videos->getUrlRange($start, $end) as $page => $url)
-                                            <li class="page-item {{ $page == $currentPage ? 'active' : '' }}">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $url }}&search={{ request('search') }}">{{ $page }}</a>
-                                            </li>
-                                        @endforeach
-
-                                        @if ($end < $lastPage)
-                                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                                            <li class="page-item">
-                                                <a class="page-link ajax-pagination"
-                                                    href="{{ $videos->url($lastPage) }}&search={{ request('search') }}">{{ $lastPage }}</a>
-                                            </li>
-                                        @endif
-                                    @endif
-
-                                    @if ($videos->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link ajax-pagination"
-                                                href="{{ $videos->nextPageUrl() }}&search={{ request('search') }}">Next</a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled"><span class="page-link">Next</span></li>
-                                    @endif
-                                </ul>
-                            </nav>
-                        </div>
-                    @show
-                @endif
+            <div id="ajax-container">
+                @include('ngendev_video.table')
             </div>
         </div>
 
@@ -504,14 +339,11 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- jQuery and Bootstrap are loaded by the layout (head/body) -- don't reload them here --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
-        let searchTimeout = null;
-
         function toggleImageHint() {
             const checked = document.getElementById('name_change').checked;
             const wrapper = document.getElementById('imageHintWrapper');
@@ -537,7 +369,58 @@
             counter.style.color = over ? '#dc3545' : '';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function loadVideos(page) {
+            const $card = $('.main-card');
+            $card.find('.loading-overlay').remove();
+            $card.append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"></div></div>');
+
+            const ajaxUrl = "{{ route('ngendev-videos.index') }}";
+            const ajaxData = {
+                page: page || 1,
+                per_page: $('#per_page').val(),
+                search: $('#searchInput').val(),
+                category_id: $('#category_filter').val(),
+            };
+            console.log('[loadVideos] GET', ajaxUrl, ajaxData);
+
+            // Safety: force overlay removal after 35s no matter what
+            const safetyTimer = setTimeout(function () {
+                $card.find('.loading-overlay').remove();
+                console.warn('[loadVideos] safety timer fired; overlay forcibly removed');
+            }, 35000);
+
+            $.ajax({
+                url: ajaxUrl,
+                type: 'GET',
+                dataType: 'json',
+                timeout: 30000,
+                cache: false,
+                data: ajaxData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                success: function (res) {
+                    console.log('[loadVideos] success', res);
+                    if (res && typeof res.html === 'string' && res.html.length > 0) {
+                        $('#ajax-container').html(res.html);
+                        $('#totalCount').text(res.total ?? 0);
+                    } else {
+                        console.error('[loadVideos] unexpected/empty response:', res);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Empty or unexpected server response. See console.' });
+                    }
+                },
+                error: function (xhr, status) {
+                    console.error('[loadVideos] AJAX error status=', status, 'http=', xhr.status, 'body=', xhr.responseText);
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load videos (' + (xhr.status || status) + '). See console.' });
+                },
+                complete: function () {
+                    clearTimeout(safetyTimer);
+                    $card.find('.loading-overlay').remove();
+                }
+            });
+        }
+        // Expose for other handlers (form submit / bulk modal callbacks)
+        window.loadVideos = loadVideos;
+
+        $(document).ready(function () {
             document.getElementById('name_change').addEventListener('change', toggleImageHint);
             toggleImageHint();
 
@@ -578,7 +461,7 @@
                     reader.readAsDataURL(file);
                 }
             };
-            
+
             window.previewVideo = function(input) {
                 if (input.files && input.files[0]) {
                     const file = input.files[0];
@@ -588,55 +471,32 @@
                 }
             };
 
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function() {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        loadImages(1, this.value);
-                    }, 500);
-                });
-            }
+            // Filter handlers
+            $('#per_page').on('change', function () { loadVideos(1); });
+            $('#category_filter').on('change', function () { loadVideos(1); });
 
-            document.getElementById('clearSearch').addEventListener('click', function() {
-                searchInput.value = '';
-                loadImages(1, '');
+            // Search with debounce
+            let searchTimer = null;
+            $('#searchInput').on('keyup', function (e) {
+                clearTimeout(searchTimer);
+                if (e.key === 'Enter') {
+                    loadVideos(1);
+                    return;
+                }
+                searchTimer = setTimeout(() => loadVideos(1), 500);
+            });
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('');
+                loadVideos(1);
             });
 
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    clearTimeout(searchTimeout);
-                    loadImages(1, this.value);
-                }
+            // Pagination click (delegated)
+            $(document).on('click', '#ajax-container .pagination a.page-link', function (e) {
+                e.preventDefault();
+                const page = $(this).attr('data-page');
+                if (page) loadVideos(page);
             });
         });
-
-        function loadImages(page, search = '') {
-            $.ajax({
-                url: "{{ route('ngendev-videos.index') }}",
-                type: 'GET',
-                data: {
-                    page: page,
-                    search: search
-                },
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function(res) {
-                    $('#imagesTableContainer').html(res.table + res.pagination);
-                    $('#totalCount').text(res.total);
-                    $('.ajax-pagination').off('click').on('click', function(e) {
-                        e.preventDefault();
-                        const url = new URL($(this).attr('href'));
-                        const searchParam = url.searchParams.get('search') || '';
-                        loadImages(url.searchParams.get('page') || 1, searchParam);
-                    });
-                },
-                error: function(xhr) {
-                    console.error('AJAX Error:', xhr.responseText);
-                }
-            });
-        }
 
         function editImage(button) {
             const id = button.getAttribute('data-id');
@@ -675,7 +535,7 @@
             } else {
                 document.getElementById('thumbnailPreview').classList.add('d-none');
             }
-            
+
             if (videoPath) {
                 const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
                 const vidUrl = "{{ asset('upload/ngendev/videos') }}/" + categoryName + '/category_video/' + videoPath;
@@ -762,7 +622,6 @@
             const formData = new FormData(this);
             const url = this.action;
             const method = document.getElementById('formMethod').value;
-            const searchTerm = document.getElementById('searchInput').value;
 
             Swal.fire({
                 title: method === 'POST' ? 'Adding Video...' : 'Updating Video...',
@@ -783,7 +642,7 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 success: function(response) {
-                    loadImages(1, searchTerm);
+                    loadVideos(1);
                     resetForm();
 
                     Swal.fire({
@@ -849,7 +708,11 @@
                     category_id: categoryId
                 },
                 success: function(response) {
-                    if (response.images && response.images.length > 0) {
+                    if (response.videos && response.videos.length > 0) {
+                        displayImages(response.videos);
+                        initializeSortable();
+                        document.getElementById('saveOrderBtn').style.display = 'inline-block';
+                    } else if (response.images && response.images.length > 0) {
                         displayImages(response.images);
                         initializeSortable();
                         document.getElementById('saveOrderBtn').style.display = 'inline-block';
@@ -879,6 +742,7 @@
             container.innerHTML = '';
 
             images.forEach((image, index) => {
+                const thumbUrl = image.thumbnail_url || image.video_thumbnail_url || null;
                 const imageHtml = `
                     <div class="col-md-3 mb-3" data-image-id="${image.id}">
                         <div class="card sortable-item" style="cursor: move;">
@@ -887,8 +751,8 @@
                                     <span class="badge bg-primary me-2">${index + 1}</span>
                                     <small class="text-muted">ID: ${image.id}</small>
                                 </div>
-                                ${image.video_thumbnail_url ?
-                                    `<img src="${image.video_thumbnail_url}"
+                                ${thumbUrl ?
+                                    `<img src="${thumbUrl}"
                                                  class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;"
                                                  alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="bg-light rounded d-flex align-items-center justify-content-center"
@@ -979,7 +843,7 @@
                         timer: 2000,
                         showConfirmButton: false
                     });
-                    loadImages(1, document.getElementById('searchInput').value);
+                    loadVideos(1);
                 },
                 error: function(xhr) {
                     console.error('Error saving order:', xhr.responseText);
@@ -1132,9 +996,8 @@
                                 timerProgressBar: true,
                             });
                             loadStats();
-                            if (typeof loadImages === 'function') {
-                                const searchEl = document.getElementById('searchInput');
-                                loadImages(1, searchEl ? searchEl.value : '');
+                            if (typeof loadVideos === 'function') {
+                                loadVideos(1);
                             }
                         },
                         error: function (xhr) {

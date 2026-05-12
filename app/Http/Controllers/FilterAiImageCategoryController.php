@@ -23,7 +23,10 @@ class FilterAiImageCategoryController extends Controller
         $categories = $query->orderBy('sort_order', 'asc')->latest()->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
-            return view('filter_ai_image.categories.table', compact('categories', 'perPage', 'search'));
+            return response()->json([
+                'html'  => view('filter_ai_image.categories.table', compact('categories'))->render(),
+                'total' => $categories->total(),
+            ]);
         }
 
         return view('filter_ai_image.categories.index', compact('categories', 'perPage', 'search'));
