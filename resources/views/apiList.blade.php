@@ -357,6 +357,33 @@
                     </div>
                 </div>
 
+                <!-- Sticker Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #7048e8;">Sticker Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Sticker Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Stickers</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/get_sticker') }}</span>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all sticker categories and their stickers. Returns flattened URLs prefixed with <code>sticker/</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Dynamic Photo Frame Module Divider -->
                 <div class="version-divider mt-5">
                     <hr class="divider-line">

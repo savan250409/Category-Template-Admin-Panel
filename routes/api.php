@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\TopSliderApiController;
 use App\Http\Controllers\Api\LipsSyncApiController;
 use App\Http\Controllers\Api\DynamicPhotoFrameApiController;
 use App\Http\Controllers\Api\BabyAiHomeSliderApiController;
+use App\Http\Controllers\Api\StickerApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,9 @@ Route::middleware('jwt.auth')->group(function () {
     // Dynamic Photo Frame Module API
     Route::get('/get_dynamic_photo_frame_category', [DynamicPhotoFrameApiController::class, 'getDynamicPhotoFrameCategories']);
     Route::post('/get_dynamic_photo_frame_by_category_id', [DynamicPhotoFrameApiController::class, 'getDynamicPhotoFrameByCategoryId']);
+
+    // Sticker Module API
+    Route::get('/get_sticker', [StickerApiController::class, 'getStickers']);
 });
 
 

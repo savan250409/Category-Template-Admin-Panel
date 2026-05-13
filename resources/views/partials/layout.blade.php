@@ -587,6 +587,44 @@
                 </ul>
             </li>
 
+            {{-- Sticker Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Sticker Module
+            </li>
+            @php
+                $isStickerActive = request()->routeIs('sticker.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isStickerActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#stickerCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-stickies-fill me-2 text-warning"></i>
+                        <span class="fw-semibold">Sticker Module</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                <ul id="stickerCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isStickerActive ? 'block' : 'none' }};">
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('sticker.categories.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('sticker.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>Sticker Category</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('sticker.stickers.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('sticker.stickers.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-emoji-smile me-2"></i>
+                            <span>Sticker</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             {{-- Baby AI Home Screen Slider Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Baby AI Home Screen Slider

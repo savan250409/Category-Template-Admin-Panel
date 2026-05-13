@@ -333,6 +333,7 @@
                                 <span class="module-pill">AI Baby Video</span>
                                 <span class="module-pill">Dynamic Photo Frame</span>
                                 <span class="module-pill">Home Screen Slider</span>
+                                <span class="module-pill">Sticker</span>
                             </div>
                             <span class="group-cta">Open AI Baby <i class="bi bi-arrow-right"></i></span>
                         </div>
@@ -455,6 +456,33 @@
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <div class="section-row">
+                <div class="section-block">
+                    <div class="section-title"><span class="section-dot"></span><i class="bi bi-stickies-fill"></i> Sticker Module</div>
+                    <div class="card-grid">
+                        <a href="{{ route('sticker.categories.index') }}" class="count-card bg-grad-10" style="--i:0">
+                            <span class="shine"></span>
+                            <div class="cc-inner">
+                                <span class="cc-icon"><i class="bi bi-tags"></i></span>
+                                <div class="cc-number" data-count="{{ $counts['sticker_categories'] }}">0</div>
+                                <div class="cc-title">Sticker Categories</div>
+                                <span class="cc-cta">View <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </a>
+                        <a href="{{ route('sticker.stickers.index') }}" class="count-card bg-grad-6" style="--i:1">
+                            <span class="shine"></span>
+                            <div class="cc-inner">
+                                <span class="cc-icon"><i class="bi bi-emoji-smile-fill"></i></span>
+                                <div class="cc-number" data-count="{{ $counts['stickers'] }}">0</div>
+                                <div class="cc-title">Stickers</div>
+                                <span class="cc-cta">View <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div></div>
             </div>
 
         @elseif ($group === 'ngd')

@@ -322,6 +322,39 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::post('/update-order', [\App\Http\Controllers\BabyAiHomeSliderController::class, 'updateOrder'])->name('updateOrder');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sticker Module Routes
+    |--------------------------------------------------------------------------
+    */
+    // Sticker Categories — URL: /sticker/categories
+    Route::prefix('sticker/categories')->name('sticker.categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StickerCategoryController::class, 'index'])->name('index');
+        Route::get('/indexing', [\App\Http\Controllers\StickerCategoryController::class, 'indexing'])->name('indexing');
+        Route::post('/update-order', [\App\Http\Controllers\StickerCategoryController::class, 'updateOrder'])->name('updateOrder');
+        Route::post('/toggle-status', [\App\Http\Controllers\StickerCategoryController::class, 'toggleStatus'])->name('toggleStatus');
+        Route::post('/toggle-premium', [\App\Http\Controllers\StickerCategoryController::class, 'togglePremium'])->name('togglePremium');
+        Route::get('/create', [\App\Http\Controllers\StickerCategoryController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\StickerCategoryController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\StickerCategoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\StickerCategoryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\StickerCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Stickers — URL: /sticker/stickers
+    Route::prefix('sticker/stickers')->name('sticker.stickers.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StickerController::class, 'index'])->name('index');
+        Route::post('/update-order', [\App\Http\Controllers\StickerController::class, 'updateOrder'])->name('updateOrder');
+        Route::get('/create', [\App\Http\Controllers\StickerController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\StickerController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\StickerController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\StickerController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\StickerController::class, 'destroy'])->name('destroy');
+    });
+
+    // Single sticker image deletion (used by edit form). Body: { category_id, image }
+    Route::post('/sticker/sticker-images/delete', [\App\Http\Controllers\StickerController::class, 'destroyOne'])->name('sticker.stickers.destroyOne');
+
     // Top Slider Module
     Route::prefix('top-slider')->name('top-slider.')->group(function () {
         // Categories

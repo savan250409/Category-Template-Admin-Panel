@@ -19,6 +19,8 @@ use App\Models\FilterAiImage;
 use App\Models\TopSliderCategory;
 use App\Models\LipsSyncCategory;
 use App\Models\LipsSyncItem;
+use App\Models\StickerCategory;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -36,6 +38,8 @@ class DashboardController extends Controller
                 'frame_categories'    => DynamicPhotoFrameCategory::count(),
                 'frames'              => DynamicPhotoFrame::count(),
                 'sliders'             => BabyAiHomeSlider::count(),
+                'sticker_categories'  => StickerCategory::count(),
+                'stickers'            => (int) StickerCategory::sum(DB::raw('COALESCE(JSON_LENGTH(stickers), 0)')),
             ];
         } elseif ($group === 'ngd') {
             $counts = [
