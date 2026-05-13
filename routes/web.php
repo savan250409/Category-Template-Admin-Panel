@@ -355,6 +355,21 @@ Route::middleware(['admin_auth'])->group(function () {
     // Single sticker image deletion (used by edit form). Body: { category_id, image }
     Route::post('/sticker/sticker-images/delete', [\App\Http\Controllers\StickerController::class, 'destroyOne'])->name('sticker.stickers.destroyOne');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Font Module Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('fonts')->name('fonts.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\FontController::class, 'index'])->name('index');
+        Route::post('/toggle-premium', [\App\Http\Controllers\FontController::class, 'togglePremium'])->name('togglePremium');
+        Route::get('/create', [\App\Http\Controllers\FontController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\FontController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\FontController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\FontController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\FontController::class, 'destroy'])->name('destroy');
+    });
+
     // Top Slider Module
     Route::prefix('top-slider')->name('top-slider.')->group(function () {
         // Categories

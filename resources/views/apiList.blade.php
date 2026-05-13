@@ -357,6 +357,33 @@
                     </div>
                 </div>
 
+                <!-- Font Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #16a085;">Font Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Font Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Fonts</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/get_fonts') }}</span>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all available fonts. File URLs are prefixed with <code>font/</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Sticker Module Divider -->
                 <div class="version-divider mt-5">
                     <hr class="divider-line">

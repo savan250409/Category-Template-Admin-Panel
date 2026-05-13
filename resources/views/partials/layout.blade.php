@@ -625,6 +625,22 @@
                 </ul>
             </li>
 
+            {{-- Font Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Font Module
+            </li>
+            @php
+                $isFontActive = request()->routeIs('fonts.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ $isFontActive ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('fonts.index') }}" style="transition: all 0.2s;">
+                    <i class="bi bi-fonts me-2 text-info"></i>
+                    <span class="fw-semibold">Font Module</span>
+                </a>
+            </li>
+
             {{-- Baby AI Home Screen Slider Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Baby AI Home Screen Slider

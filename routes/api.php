@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\LipsSyncApiController;
 use App\Http\Controllers\Api\DynamicPhotoFrameApiController;
 use App\Http\Controllers\Api\BabyAiHomeSliderApiController;
 use App\Http\Controllers\Api\StickerApiController;
+use App\Http\Controllers\Api\FontApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,9 @@ Route::middleware('jwt.auth')->group(function () {
 
     // Sticker Module API
     Route::get('/get_sticker', [StickerApiController::class, 'getStickers']);
+
+    // Font Module API
+    Route::get('/get_fonts', [FontApiController::class, 'getFonts']);
 });
 
 

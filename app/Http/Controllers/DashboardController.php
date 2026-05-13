@@ -20,6 +20,7 @@ use App\Models\TopSliderCategory;
 use App\Models\LipsSyncCategory;
 use App\Models\LipsSyncItem;
 use App\Models\StickerCategory;
+use App\Models\Font;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -40,6 +41,7 @@ class DashboardController extends Controller
                 'sliders'             => BabyAiHomeSlider::count(),
                 'sticker_categories'  => StickerCategory::count(),
                 'stickers'            => (int) StickerCategory::sum(DB::raw('COALESCE(JSON_LENGTH(stickers), 0)')),
+                'fonts'               => Font::count(),
             ];
         } elseif ($group === 'ngd') {
             $counts = [

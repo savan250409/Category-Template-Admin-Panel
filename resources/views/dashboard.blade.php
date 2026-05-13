@@ -334,6 +334,7 @@
                                 <span class="module-pill">Dynamic Photo Frame</span>
                                 <span class="module-pill">Home Screen Slider</span>
                                 <span class="module-pill">Sticker</span>
+                                <span class="module-pill">Font</span>
                             </div>
                             <span class="group-cta">Open AI Baby <i class="bi bi-arrow-right"></i></span>
                         </div>
@@ -482,7 +483,21 @@
                         </a>
                     </div>
                 </div>
-                <div></div>
+
+                <div class="section-block">
+                    <div class="section-title"><span class="section-dot"></span><i class="bi bi-fonts"></i> Font Module</div>
+                    <div class="card-grid one">
+                        <a href="{{ route('fonts.index') }}" class="count-card bg-grad-5" style="--i:0">
+                            <span class="shine"></span>
+                            <div class="cc-inner">
+                                <span class="cc-icon"><i class="bi bi-fonts"></i></span>
+                                <div class="cc-number" data-count="{{ $counts['fonts'] }}">0</div>
+                                <div class="cc-title">Fonts</div>
+                                <span class="cc-cta">View <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
 
         @elseif ($group === 'ngd')
