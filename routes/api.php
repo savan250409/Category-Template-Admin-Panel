@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\BabyAiHomeSliderApiController;
 use App\Http\Controllers\Api\StickerApiController;
 use App\Http\Controllers\Api\FontApiController;
 use App\Http\Controllers\Api\DoodleApiController;
+use App\Http\Controllers\Api\FilterApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +75,9 @@ Route::middleware('jwt.auth')->group(function () {
 
     // Doodle Module API
     Route::get('/get_doodle', [DoodleApiController::class, 'getDoodles']);
+
+    // Filter Module API
+    Route::get('/getallfilter', [FilterApiController::class, 'getAllFilters']);
 });
 
 

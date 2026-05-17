@@ -22,6 +22,8 @@ use App\Models\LipsSyncItem;
 use App\Models\StickerCategory;
 use App\Models\Font;
 use App\Models\Doodle;
+use App\Models\FilterCategory;
+use App\Models\Filter;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -91,6 +93,7 @@ class DashboardController extends Controller
                 ['key' => 'sticker',        'title' => 'Sticker Module',            'icon' => 'bi-stickies-fill',      'gradient' => 'bg-grad-10','description' => 'Manage sticker categories and stickers.'],
                 ['key' => 'font',           'title' => 'Font Module',               'icon' => 'bi-fonts',              'gradient' => 'bg-grad-5', 'description' => 'Manage fonts available in the app.'],
                 ['key' => 'doodle',         'title' => 'Doodle Module',             'icon' => 'bi-stars',              'gradient' => 'bg-grad-2', 'description' => 'Manage doodles available in the app.'],
+                ['key' => 'filter',         'title' => 'Filter Module',             'icon' => 'bi-funnel-fill',        'gradient' => 'bg-grad-6', 'description' => 'Manage filter categories and filters with adjustment values.'],
             ];
         }
 
@@ -169,6 +172,15 @@ class DashboardController extends Controller
                     'subtitle' => 'Doodles available in the app',
                     'cards'    => [
                         ['title' => 'Doodles', 'icon' => 'bi-stars', 'count' => Doodle::count(), 'route' => route('doodles.index'), 'gradient' => 'bg-grad-2'],
+                    ],
+                ],
+                'filter' => [
+                    'title'    => 'Filter Module',
+                    'icon'     => 'bi-funnel-fill',
+                    'subtitle' => 'Filter categories and filters with adjustment values',
+                    'cards'    => [
+                        ['title' => 'Filter Categories', 'icon' => 'bi-tags',     'count' => FilterCategory::count(), 'route' => route('filter.categories.index'), 'gradient' => 'bg-grad-6'],
+                        ['title' => 'Filters',           'icon' => 'bi-sliders',  'count' => Filter::count(),         'route' => route('filter.filters.index'),    'gradient' => 'bg-grad-9'],
                     ],
                 ],
             ],

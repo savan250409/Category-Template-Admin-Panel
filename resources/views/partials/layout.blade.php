@@ -641,6 +641,44 @@
                 </a>
             </li>
 
+            {{-- Filter Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Filter Module
+            </li>
+            @php
+                $isFilterModuleActive = request()->routeIs('filter.categories.*') || request()->routeIs('filter.filters.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link collapse-toggle d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-light
+                {{ $isFilterModuleActive ? 'bg-secondary' : '' }}" href="javascript:void(0);" data-target="#filterModuleCollapse"
+                    style="transition: all 0.2s;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-funnel-fill me-2 text-info"></i>
+                        <span class="fw-semibold">Filter Module</span>
+                    </div>
+                    <i class="bi bi-chevron-down small chevron-icon"></i>
+                </a>
+
+                <ul id="filterModuleCollapse" class="submenu-list nav flex-column ps-4 mt-2"
+                    style="display: {{ $isFilterModuleActive ? 'block' : 'none' }};">
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('filter.categories.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('filter.categories.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-tags me-2"></i>
+                            <span>Category</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link d-flex align-items-center px-2 py-1 rounded-2 {{ request()->routeIs('filter.filters.*') ? 'active bg-primary text-white' : 'text-light' }}"
+                            href="{{ route('filter.filters.index') }}" style="transition: all 0.2s;">
+                            <i class="bi bi-sliders me-2"></i>
+                            <span>Filters</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             {{-- Doodle Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Doodle Module

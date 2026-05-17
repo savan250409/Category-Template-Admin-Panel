@@ -373,6 +373,37 @@ Route::middleware(['admin_auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Filter Module Routes
+    |--------------------------------------------------------------------------
+    */
+    // Filter Categories — URL: /filter/categories
+    Route::prefix('filter/categories')->name('filter.categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\FilterCategoryController::class, 'index'])->name('index');
+        Route::get('/indexing', [\App\Http\Controllers\FilterCategoryController::class, 'indexing'])->name('indexing');
+        Route::post('/update-order', [\App\Http\Controllers\FilterCategoryController::class, 'updateOrder'])->name('updateOrder');
+        Route::post('/toggle-status', [\App\Http\Controllers\FilterCategoryController::class, 'toggleStatus'])->name('toggleStatus');
+        Route::get('/create', [\App\Http\Controllers\FilterCategoryController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\FilterCategoryController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\FilterCategoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\FilterCategoryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\FilterCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Filters — URL: /filter/filters
+    Route::prefix('filter/filters')->name('filter.filters.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\FilterController::class, 'index'])->name('index');
+        Route::get('/import', [\App\Http\Controllers\FilterController::class, 'importForm'])->name('importForm');
+        Route::post('/import', [\App\Http\Controllers\FilterController::class, 'importCsv'])->name('importCsv');
+        Route::post('/toggle-premium', [\App\Http\Controllers\FilterController::class, 'togglePremium'])->name('togglePremium');
+        Route::get('/create', [\App\Http\Controllers\FilterController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\FilterController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\FilterController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\FilterController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\FilterController::class, 'destroy'])->name('destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Doodle Module Routes
     |--------------------------------------------------------------------------
     */

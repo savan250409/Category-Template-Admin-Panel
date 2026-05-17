@@ -357,6 +357,33 @@
                     </div>
                 </div>
 
+                <!-- Filter Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #1976d2;">Filter Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Filter Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get All Filters</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/getallfilter') }}</span>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all filter categories and their associated filters with adjustment values (saturation, brightness, contrast, R, G, B).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Doodle Module Divider -->
                 <div class="version-divider mt-5">
                     <hr class="divider-line">
