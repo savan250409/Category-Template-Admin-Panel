@@ -357,6 +357,33 @@
                     </div>
                 </div>
 
+                <!-- Doodle Module Divider -->
+                <div class="version-divider mt-5">
+                    <hr class="divider-line">
+                    <div class="version-badge ai-badge" style="background: #d35400;">Doodle Module</div>
+                    <hr class="divider-line">
+                </div>
+
+                <!-- Doodle Module -->
+                <div class="row g-4 mt-2 mb-4">
+                    <div class="col-md-6 d-flex">
+                        <div class="api-box w-100">
+                            <h5>Get Doodles</h5>
+                            <p><span class="param-label">Method:</span> GET</p>
+                            <p><span class="param-label">URL:</span><br>
+                                <span class="url-text">{{ url('/api/get_doodle') }}</span>
+                            </p>
+                            <p><span class="param-label">Headers:</span><br>
+                                <code>Authorization: Bearer YOUR_API_TOKEN</code>
+                            </p>
+                            <div class="api-details">
+                                <h6>Description:</h6>
+                                <p>Fetches all doodles. Image URLs are prefixed with <code>doodle/</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Font Module Divider -->
                 <div class="version-divider mt-5">
                     <hr class="divider-line">

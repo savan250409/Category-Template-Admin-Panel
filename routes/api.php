@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\DynamicPhotoFrameApiController;
 use App\Http\Controllers\Api\BabyAiHomeSliderApiController;
 use App\Http\Controllers\Api\StickerApiController;
 use App\Http\Controllers\Api\FontApiController;
+use App\Http\Controllers\Api\DoodleApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +71,9 @@ Route::middleware('jwt.auth')->group(function () {
 
     // Font Module API
     Route::get('/get_fonts', [FontApiController::class, 'getFonts']);
+
+    // Doodle Module API
+    Route::get('/get_doodle', [DoodleApiController::class, 'getDoodles']);
 });
 
 

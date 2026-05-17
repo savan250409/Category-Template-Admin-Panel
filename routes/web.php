@@ -41,6 +41,7 @@ Route::middleware(['admin_auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/select/{group}', [DashboardController::class, 'selectGroup'])->name('dashboard.selectGroup');
     Route::get('/dashboard/clear-group', [DashboardController::class, 'clearGroup'])->name('dashboard.clearGroup');
+    Route::get('/dashboard/module/{module}', [DashboardController::class, 'module'])->name('dashboard.module');
 
     Route::get('/apiList', function () {
         return view('apiList');
@@ -368,6 +369,23 @@ Route::middleware(['admin_auth'])->group(function () {
         Route::get('/{id}/edit', [\App\Http\Controllers\FontController::class, 'edit'])->name('edit');
         Route::put('/{id}', [\App\Http\Controllers\FontController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\FontController::class, 'destroy'])->name('destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Doodle Module Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('doodles')->name('doodles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DoodleController::class, 'index'])->name('index');
+        Route::get('/indexing', [\App\Http\Controllers\DoodleController::class, 'indexing'])->name('indexing');
+        Route::post('/update-order', [\App\Http\Controllers\DoodleController::class, 'updateOrder'])->name('updateOrder');
+        Route::post('/toggle-premium', [\App\Http\Controllers\DoodleController::class, 'togglePremium'])->name('togglePremium');
+        Route::get('/create', [\App\Http\Controllers\DoodleController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\DoodleController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\DoodleController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\DoodleController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\DoodleController::class, 'destroy'])->name('destroy');
     });
 
     // Top Slider Module

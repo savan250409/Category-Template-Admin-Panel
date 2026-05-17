@@ -641,6 +641,22 @@
                 </a>
             </li>
 
+            {{-- Doodle Module --}}
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
+                Doodle Module
+            </li>
+            @php
+                $isDoodleActive = request()->routeIs('doodles.*');
+            @endphp
+
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ $isDoodleActive ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('doodles.index') }}" style="transition: all 0.2s;">
+                    <i class="bi bi-stars me-2 text-warning"></i>
+                    <span class="fw-semibold">Doodle Module</span>
+                </a>
+            </li>
+
             {{-- Baby AI Home Screen Slider Module --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
                 Baby AI Home Screen Slider
