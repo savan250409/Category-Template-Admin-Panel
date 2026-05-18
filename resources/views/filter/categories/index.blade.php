@@ -25,9 +25,9 @@
         .search-container .input-group { width: 350px; }
         .search-container .form-control { border: 1px solid #d1d3e2; border-radius: .35rem 0 0 .35rem; padding: .5rem 1rem; }
 
-        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: wrap; gap: .75rem; }
-        .pagination-info { color: #6e707e; font-size: .9rem; }
-        .pagination { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; margin: 0; list-style: none; }
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e3e6f0; flex-wrap: nowrap; gap: .75rem; }
+        .pagination-info { color: #6e707e; font-size: .9rem; white-space: nowrap; flex-shrink: 0; }
+        .pagination { display: flex; flex-wrap: nowrap; gap: 4px; padding: 0; margin: 0; list-style: none; overflow-x: auto; max-width: 100%; }
         .pagination .page-item .page-link { color: #4e73df; padding: .375rem .75rem; border: 1px solid #dddfeb; font-size: .9rem; cursor: pointer; background-color: #fff; border-radius: .25rem; text-decoration: none; display: inline-block; line-height: 1.5; min-width: 36px; text-align: center; }
         .pagination .page-item.active .page-link { background-color: #4e73df; border-color: #4e73df; color: #fff; }
         .pagination .page-item.disabled .page-link { color: #b7b9cc; pointer-events: none; background-color: #f8f9fc; }

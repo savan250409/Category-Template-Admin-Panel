@@ -247,7 +247,11 @@ class FilterController extends Controller
             'blue'       => ['blue'],
         ];
 
-        $normalized = array_map(fn($h) => strtolower(trim((string) $h)), $header);
+        $normalized = array_map(function ($h) {
+            $h = strtolower(trim((string) $h));
+            $h = preg_replace('/[\s\-]+/', '_', $h);
+            return trim($h, '_');
+        }, $header);
         $map = [];
 
         foreach ($aliases as $key => $names) {
