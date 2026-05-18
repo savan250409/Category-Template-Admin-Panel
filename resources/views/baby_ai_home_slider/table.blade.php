@@ -27,7 +27,7 @@
                         @php $base = 'upload/baby_ai_home_slider/' . $slider->source_type . '/'; @endphp
                         @if ($slider->source_type === 'video')
                             @if ($slider->video_thumbnail)
-                                <img src="{{ asset($base . $slider->video_thumbnail) }}" class="preview-thumb" alt="">
+                                <img loading="lazy" decoding="async" src="{{ asset($base . $slider->video_thumbnail) }}" class="preview-thumb" alt="">
                             @elseif ($slider->video)
                                 <video src="{{ asset($base . $slider->video) }}" class="preview-thumb" muted></video>
                             @else
@@ -35,7 +35,7 @@
                             @endif
                         @else
                             @if ($slider->image)
-                                <img src="{{ asset($base . $slider->image) }}" class="preview-thumb" alt="">
+                                <img loading="lazy" decoding="async" src="{{ asset($base . $slider->image) }}" class="preview-thumb" alt="">
                             @else
                                 <div class="preview-thumb bg-light d-flex align-items-center justify-content-center"><i class="bi bi-image text-muted"></i></div>
                             @endif

@@ -17,7 +17,7 @@
                     <td>
                         @if ($img->image_path && $img->category)
                             <div class="img-container">
-                                <img src="{{ asset('upload/filter_ai_image/images/' . $img->category?->category_name . '/category_image/' . $img->image_path) }}" alt="{{ $img->name }}">
+                                <img loading="lazy" decoding="async" src="{{ asset('upload/filter_ai_image/images/' . $img->category?->category_name . '/category_image/' . $img->image_path) }}" alt="{{ $img->name }}">
                             </div>
                         @else
                             <div class="img-container d-flex align-items-center justify-content-center bg-light">

@@ -15,11 +15,11 @@
                     <td>
                         @if ($category->category_image)
                             @if (\Illuminate\Support\Str::startsWith($category->category_image, 'upload/'))
-                                <img src="{{ asset($category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
+                                <img loading="lazy" decoding="async" src="{{ asset($category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
                             @elseif (file_exists(public_path('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image)))
-                                <img src="{{ asset('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
+                                <img loading="lazy" decoding="async" src="{{ asset('upload/AI Baby Video/' . $category->category_name . '/category thumbanail/' . $category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
                             @else
-                                <img src="{{ asset('upload/AI Baby Video/Category/' . $category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
+                                <img loading="lazy" decoding="async" src="{{ asset('upload/AI Baby Video/Category/' . $category->category_image) }}" class="cat-thumb" alt="{{ $category->category_name }}">
                             @endif
                         @else
                             <div class="cat-thumb bg-light d-flex align-items-center justify-content-center">

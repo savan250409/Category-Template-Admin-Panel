@@ -24,7 +24,7 @@
                         <div class="sticker-images-cell">
                             @if ($totalCount > 0)
                                 @foreach ($preview as $filename)
-                                    <img src="{{ asset('upload/sticker/' . rawurlencode($category->category_name) . '/stickers/' . rawurlencode($filename)) }}" class="sticker-thumb" alt="">
+                                    <img loading="lazy" decoding="async" src="{{ asset('upload/sticker/' . rawurlencode($category->category_name) . '/stickers/' . rawurlencode($filename)) }}" class="sticker-thumb" alt="">
                                 @endforeach
                                 @if ($extraCount > 0)
                                     <button type="button" class="more-badge open-gallery-btn"

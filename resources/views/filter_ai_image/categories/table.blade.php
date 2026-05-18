@@ -14,7 +14,7 @@
                     <td>
                         @php $images = json_decode($category->category_image, true); @endphp
                         @if (!empty($images) && isset($images[0]))
-                            <img src="{{ asset('upload/filter_ai_image/images/' . rawurlencode($category->category_name) . '/category_thumbnail_image/' . rawurlencode($images[0])) }}" class="category-image">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/filter_ai_image/images/' . rawurlencode($category->category_name) . '/category_thumbnail_image/' . rawurlencode($images[0])) }}" class="category-image">
                         @else
                             <div class="bg-light rounded d-flex align-items-center justify-content-center category-image">
                                 <i class="bi bi-image text-muted fs-4"></i>

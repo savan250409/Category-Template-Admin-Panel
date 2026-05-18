@@ -19,7 +19,7 @@
                     <td>{{ $img->ai_model ?? 'Ngendev Image' }}</td>
                     <td>
                         @if ($img->image_path && $img->category)
-                            <img src="{{ asset('upload/ngendev/images/' . $img->category?->category_name . '/category_image/' . $img->image_path) }}" class="img-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/ngendev/images/' . $img->category?->category_name . '/category_image/' . $img->image_path) }}" class="img-thumb" alt="">
                         @else
                             <div class="img-thumb bg-light d-flex align-items-center justify-content-center"><i class="bi bi-image text-muted"></i></div>
                         @endif

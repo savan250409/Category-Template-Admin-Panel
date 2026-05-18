@@ -24,7 +24,7 @@
                     </td>
                     <td>
                         @if ($font->preview_image)
-                            <img src="{{ asset('upload/font/' . rawurlencode($font->font_name) . '/' . rawurlencode($font->preview_image)) }}" class="font-preview-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/font/' . rawurlencode($font->font_name) . '/' . rawurlencode($font->preview_image)) }}" class="font-preview-thumb" alt="">
                         @else
                             <div class="font-preview-thumb d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>

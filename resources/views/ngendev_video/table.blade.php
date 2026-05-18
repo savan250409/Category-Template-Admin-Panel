@@ -20,7 +20,7 @@
                     <td>{{ $video->ai_model ?? 'Ngendev Video' }}</td>
                     <td>
                         @if ($video->video_thumbnail)
-                            <img src="{{ asset('upload/ngendev/videos/' . ($video->category?->category_name ?? 'unknown') . '/video_thumbnail/' . $video->video_thumbnail) }}"
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/ngendev/videos/' . ($video->category?->category_name ?? 'unknown') . '/video_thumbnail/' . $video->video_thumbnail) }}"
                                 width="80">
                         @else
                             <div class="text-muted">No thumbnail</div>

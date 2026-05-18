@@ -17,9 +17,9 @@
                     <td>
                         @if ($video->video_thumbnail)
                             @if (\Illuminate\Support\Str::startsWith($video->video_thumbnail, 'upload/'))
-                                <img src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
+                                <img loading="lazy" decoding="async" src="{{ asset($video->video_thumbnail) }}" class="video-thumb" alt="">
                             @else
-                                <img src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
+                                <img loading="lazy" decoding="async" src="{{ asset('upload/AI Baby Video/' . ($video->category?->category_name ?? 'Unknown') . '/video thumbanail/' . $video->video_thumbnail) }}" class="video-thumb" alt="">
                             @endif
                         @else
                             <div class="video-thumb bg-light d-flex align-items-center justify-content-center">

@@ -52,29 +52,18 @@ Route::middleware(['admin_auth'])->group(function () {
     // Maintenance Routes
     Route::post('/clear-cache', [SystemController::class, 'clearCache'])->name('system.clearCache');
 
-    Route::prefix('subcategories')->group(function () {
-        Route::get('/', [SubcategoryController::class, 'index'])->name('subcategories.index');
-        Route::get('/form/{id?}', [SubcategoryController::class, 'form'])->name('subcategories.form');
-        Route::post('/save/{id?}', [SubcategoryController::class, 'save'])->name('subcategories.save');
-        Route::get('/{id}', [SubcategoryController::class, 'show'])->name('subcategories.show');
-        Route::delete('/{id}', [SubcategoryController::class, 'destroy'])->name('subcategories.destroy');
-
-        Route::get('/subcategory/{id}', [SubcategoryController::class, 'show'])->name('subcategories.show');
-
-        Route::get('subcategories/{id}/add-details', [SubcategoryController::class, 'addDetailsForm'])->name('subcategories.addDetailsForm');
-        Route::post('subcategories/{id}/save-details', [SubcategoryController::class, 'saveDetails'])->name('subcategories.saveDetails');
-    });
-
     Route::prefix('subcategories')
         ->name('subcategories.')
         ->group(function () {
             Route::get('/', [SubcategoryController::class, 'index'])->name('index');
             Route::get('form/{id?}', [SubcategoryController::class, 'form'])->name('form');
             Route::post('save/{id?}', [SubcategoryController::class, 'save'])->name('save');
-            Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
-            Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
+            Route::get('subcategories/{id}/add-details', [SubcategoryController::class, 'addDetailsForm'])->name('addDetailsForm');
+            Route::post('subcategories/{id}/save-details', [SubcategoryController::class, 'saveDetails'])->name('saveDetails');
             Route::get('image/delete/{subcategoryId}/{file}', [SubcategoryController::class, 'deleteImage'])->name('deleteImage');
             Route::post('update-status', [SubcategoryController::class, 'updateStatus'])->name('updateStatus');
+            Route::get('{id}', [SubcategoryController::class, 'show'])->name('show');
+            Route::delete('{id}', [SubcategoryController::class, 'destroy'])->name('destroy');
         });
 
     // Ngendev Images Routes

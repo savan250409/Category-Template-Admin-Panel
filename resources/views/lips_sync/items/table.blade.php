@@ -15,7 +15,7 @@
                 <tr>
                     <td>
                         @if ($item->video_thumbnail && $item->category)
-                            <img src="{{ asset('upload/lips_sync/' . $item->category?->category_name . '/thumbnail/' . $item->video_thumbnail) }}" class="item-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/lips_sync/' . $item->category?->category_name . '/thumbnail/' . $item->video_thumbnail) }}" class="item-thumb" alt="">
                         @else
                             <div class="item-thumb bg-light d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>

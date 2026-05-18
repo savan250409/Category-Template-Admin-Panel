@@ -15,7 +15,7 @@
                     <td><strong>{{ $doodle->name }}</strong></td>
                     <td>
                         @if ($doodle->image)
-                            <img src="{{ asset('upload/doodle/' . rawurlencode($doodle->name) . '/' . rawurlencode($doodle->image)) }}" class="doodle-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/doodle/' . rawurlencode($doodle->name) . '/' . rawurlencode($doodle->image)) }}" class="doodle-thumb" alt="">
                         @else
                             <div class="doodle-thumb d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>

@@ -6,30 +6,27 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title')</title>
-    <!-- Favicons -->
+
+    <!-- Favicon -->
     <link href="{{ asset('NiceAdmin/images/icon/logo-2023 copy.png') }}" rel="icon" />
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.gstatic.com" rel="preconnect" />
-    <link
-        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
-        rel="stylesheet" />
-    <!-- Vendor CSS Files -->
-    <link href="{{ asset('NiceAdmin/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Preconnect to speed up font/CDN handshake -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
-    <link rel="stylesheet" href="{{ asset('NiceAdmin/assets/css/style.css') }}">
-
-    <link href="{{ asset('NiceAdmin/images/icon/logo-2023 copy.png') }}" rel="icon" />
+    <!-- Google Fonts (single Poppins request with display=swap, no layout shift) -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- jQuery loaded early so inline view scripts can use $ before @yield('container') is rendered --}}
+    <!-- CSS (each library loaded ONCE) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{{ asset('NiceAdmin/assets/css/style.css') }}">
+
+    {{-- jQuery loaded once in head so inline view scripts can use $ before body --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
@@ -107,8 +104,16 @@
                     str_contains($currentPath, 'subcategories/subcategory') ||
                     str_contains($currentPath, 'subcategories/subcategories');
 
-                $categories = \App\Models\AiImageCategory::orderBy('id')->get();
-                $allSubs = $allSubs ?? \App\Models\Subcategory::select('id', 'title', 'category_name')->get()->groupBy('category_name');
+                $categories = \Illuminate\Support\Facades\Cache::remember(
+                    'sidebar.ai_image_categories',
+                    60,
+                    fn() => \App\Models\AiImageCategory::orderBy('id')->get()
+                );
+                $allSubs = $allSubs ?? \Illuminate\Support\Facades\Cache::remember(
+                    'sidebar.subcategories_grouped',
+                    60,
+                    fn() => \App\Models\Subcategory::select('id', 'title', 'category_name')->get()->groupBy('category_name')
+                );
 
                 $isBabyPhotoActive = false;
 
@@ -237,7 +242,6 @@
                 </ul>
             </li>
 
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script>
                 $(document).on('change', '.toggle-status', function () {
                     let categoryName = $(this).data('name');
@@ -823,25 +827,13 @@
         @show
     </main>
 
-    <!-- Vendor JS Files -->
-    <script src="{{ asset('NiceAdmin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('NiceAdmin/assets/js/main.js') }}"></script>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Vendor JS (each library loaded ONCE) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script src="NiceAdmin/assets/vendor/apexcharts/apexcharts.min.js"></script>
-    <script src="NiceAdmin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="NiceAdmin/assets/vendor/chart.js/chart.umd.js"></script>
-    <script src="NiceAdmin/assets/vendor/echarts/echarts.min.js"></script>
-    <script src="NiceAdmin/assets/vendor/quill/quill.js"></script>
-    <script src="NiceAdmin/assets/vendor/simple-datatables/simple-datatables.js"></script>
-    <script src="NiceAdmin/assets/vendor/tinymce/tinymce.min.js"></script>
-    <script src="NiceAdmin/assets/vendor/php-email-form/validate.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="{{ asset('NiceAdmin/assets/js/main.js') }}"></script>
 
     <!-- existing sidebar toggle state -->
     <script>

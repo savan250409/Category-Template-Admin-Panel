@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use App\Models\AiImageCategory;
 
 class AiImageCategoryController extends Controller
@@ -12,6 +13,8 @@ class AiImageCategoryController extends Controller
         $category = AiImageCategory::where('name', $request->name)->firstOrFail();
         $category->status = $request->status ? 1 : 0;
         $category->save();
+
+        Cache::forget('sidebar.ai_image_categories');
 
         return response()->json([
             'success' => true,

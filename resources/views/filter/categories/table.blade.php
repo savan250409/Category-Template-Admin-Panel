@@ -14,7 +14,7 @@
                     <td><strong>{{ $category->name }}</strong></td>
                     <td>
                         @if ($category->image)
-                            <img src="{{ asset('upload/filter/' . rawurlencode($category->name) . '/category image/' . rawurlencode($category->image)) }}"
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/filter/' . rawurlencode($category->name) . '/category image/' . rawurlencode($category->image)) }}"
                                  class="filter-thumb" alt="">
                         @else
                             <div class="filter-thumb d-flex align-items-center justify-content-center">

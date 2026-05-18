@@ -15,7 +15,7 @@
                     <td><strong>{{ $category->category_name }}</strong></td>
                     <td>
                         @if ($category->image)
-                            <img src="{{ asset('upload/sticker/' . rawurlencode($category->category_name) . '/category image/' . rawurlencode($category->image)) }}" class="cat-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/sticker/' . rawurlencode($category->category_name) . '/category image/' . rawurlencode($category->image)) }}" class="cat-thumb" alt="">
                         @else
                             <span class="text-muted">No image</span>
                         @endif

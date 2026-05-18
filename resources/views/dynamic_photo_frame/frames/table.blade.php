@@ -25,7 +25,7 @@
                     <td>{{ $frame->input_count }}</td>
                     <td>
                         @if ($frame->thumbnail && $frame->category)
-                            <img src="{{ asset('upload/dynamic_photo_frame/' . $frame->category?->category_name . '/thumbnail/' . $frame->thumbnail) }}" class="frame-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/dynamic_photo_frame/' . $frame->category?->category_name . '/thumbnail/' . $frame->thumbnail) }}" class="frame-thumb" alt="">
                         @else
                             <div class="frame-thumb bg-light d-flex align-items-center justify-content-center">
                                 <i class="bi bi-image text-muted"></i>

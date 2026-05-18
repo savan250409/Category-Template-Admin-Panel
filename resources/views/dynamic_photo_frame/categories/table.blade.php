@@ -13,7 +13,7 @@
                     <td><strong>{{ $category->category_name }}</strong></td>
                     <td>
                         @if ($category->image)
-                            <img src="{{ asset('upload/dynamic_photo_frame/' . $category->category_name . '/category image/' . $category->image) }}" class="cat-thumb" alt="">
+                            <img loading="lazy" decoding="async" src="{{ asset('upload/dynamic_photo_frame/' . $category->category_name . '/category image/' . $category->image) }}" class="cat-thumb" alt="">
                         @else
                             <span class="text-muted">No image</span>
                         @endif
