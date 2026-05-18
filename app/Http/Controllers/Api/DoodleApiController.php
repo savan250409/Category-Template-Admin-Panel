@@ -19,7 +19,7 @@ class DoodleApiController extends Controller
                 'status'  => false,
                 'message' => 'No doodles found',
                 'data'    => [],
-            ], 404);
+            ], 404, [], JSON_UNESCAPED_SLASHES);
         }
 
         $data = $doodles->map(function ($doodle) {
@@ -38,7 +38,7 @@ class DoodleApiController extends Controller
             'status'  => true,
             'message' => 'Doodles fetched successfully',
             'data'    => $data,
-        ]);
+        ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 
     private function buildAssetUrl(array $segments): string
