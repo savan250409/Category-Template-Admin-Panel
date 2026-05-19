@@ -20,7 +20,8 @@
       "Bash(taskkill /F /IM php.exe)",
       "PowerShell(Get-Process php -ErrorAction SilentlyContinue)",
       "PowerShell(Stop-Process -Force)",
-      "PowerShell(\"stopped\")"
+      "PowerShell(\"stopped\")",
+      "Bash(php -r ' *)"
     ]
   }
 }

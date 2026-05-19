@@ -49,14 +49,12 @@ class AiVideoCategoryController extends Controller
         $imagePath = null;
         if ($request->hasFile('category_image')) {
             $file = $request->file('category_image');
-            $filename = $file->getClientOriginalName();
-            $relativePath = 'upload/AI Baby Video/' . $request->category_name . '/category thumbanail';
-            $path = public_path($relativePath);
+            $path = public_path('upload/AI Baby Video/' . $request->category_name . '/category thumbanail');
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0777, true);
             }
-            $file->move($path, $filename);
-            $imagePath = $filename;
+            $imagePath = $this->uniqueFilename($path, $file->getClientOriginalName());
+            $file->move($path, $imagePath);
         }
 
         AiVideoCategory::create([
@@ -103,14 +101,12 @@ class AiVideoCategoryController extends Controller
             }
 
             $file = $request->file('category_image');
-            $filename = $file->getClientOriginalName();
-            $relativePath = 'upload/AI Baby Video/' . $request->category_name . '/category thumbanail';
-            $path = public_path($relativePath);
+            $path = public_path('upload/AI Baby Video/' . $request->category_name . '/category thumbanail');
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0777, true);
             }
-            $file->move($path, $filename);
-            $imagePath = $filename;
+            $imagePath = $this->uniqueFilename($path, $file->getClientOriginalName());
+            $file->move($path, $imagePath);
         }
 
         $category->update([

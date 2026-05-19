@@ -69,38 +69,26 @@ class NgendevVideoController extends Controller
 
             if ($request->hasFile('video')) {
                 $category     = NgendevVideoCategory::findOrFail($request->category_id);
-                $categoryName = $category->category_name;
-
-                $originalName = $request->file('video')->getClientOriginalName();
-                if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $originalName))) {
-                    $originalName = time() . '_' . $originalName;
-                }
-                $destinationPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video');
+                $destinationPath = public_path('upload/ngendev/videos/' . $category->category_name . '/category_video');
 
                 if (!File::exists($destinationPath)) {
                     File::makeDirectory($destinationPath, 0777, true, true);
                 }
 
-                $request->file('video')->move($destinationPath, $originalName);
-                $videoName = $originalName;
+                $videoName = $this->uniqueFilename($destinationPath, $request->file('video')->getClientOriginalName());
+                $request->file('video')->move($destinationPath, $videoName);
             }
 
             if ($request->hasFile('video_thumbnail')) {
                 $category     = NgendevVideoCategory::findOrFail($request->category_id);
-                $categoryName = $category->category_name;
-
-                $originalThumbName = $request->file('video_thumbnail')->getClientOriginalName();
-                if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $originalThumbName))) {
-                    $originalThumbName = time() . '_' . $originalThumbName;
-                }
-                $destinationThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail');
+                $destinationThumbPath = public_path('upload/ngendev/videos/' . $category->category_name . '/video_thumbnail');
 
                 if (!File::exists($destinationThumbPath)) {
                     File::makeDirectory($destinationThumbPath, 0777, true, true);
                 }
 
-                $request->file('video_thumbnail')->move($destinationThumbPath, $originalThumbName);
-                $thumbnailName = $originalThumbName;
+                $thumbnailName = $this->uniqueFilename($destinationThumbPath, $request->file('video_thumbnail')->getClientOriginalName());
+                $request->file('video_thumbnail')->move($destinationThumbPath, $thumbnailName);
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;
@@ -165,18 +153,14 @@ class NgendevVideoController extends Controller
                     unlink($oldPath);
                 }
 
-                $originalName = $request->file('video')->getClientOriginalName();
-                if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $originalName))) {
-                    $originalName = time() . '_' . $originalName;
-                }
                 $destinationPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video');
 
                 if (!file_exists($destinationPath)) {
                     mkdir($destinationPath, 0777, true);
                 }
 
-                $request->file('video')->move($destinationPath, $originalName);
-                $videoPath = $originalName;
+                $videoPath = $this->uniqueFilename($destinationPath, $request->file('video')->getClientOriginalName());
+                $request->file('video')->move($destinationPath, $videoPath);
             }
 
             if ($request->hasFile('video_thumbnail')) {
@@ -185,18 +169,14 @@ class NgendevVideoController extends Controller
                     unlink($oldThumbPath);
                 }
 
-                $originalThumbName = $request->file('video_thumbnail')->getClientOriginalName();
-                if (File::exists(public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $originalThumbName))) {
-                    $originalThumbName = time() . '_' . $originalThumbName;
-                }
                 $destinationThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail');
 
                 if (!file_exists($destinationThumbPath)) {
                     mkdir($destinationThumbPath, 0777, true);
                 }
 
-                $request->file('video_thumbnail')->move($destinationThumbPath, $originalThumbName);
-                $thumbnailPath = $originalThumbName;
+                $thumbnailPath = $this->uniqueFilename($destinationThumbPath, $request->file('video_thumbnail')->getClientOriginalName());
+                $request->file('video_thumbnail')->move($destinationThumbPath, $thumbnailPath);
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;

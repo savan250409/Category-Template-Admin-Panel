@@ -68,18 +68,18 @@ class TopSliderItemController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $filename = time() . '_item_' . $file->getClientOriginalName();
             $path = public_path($basePath);
             if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+            $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
             $file->move($path, $filename);
             $item->file = $filename;
         }
 
         if ($category->file_type == 'video' && $request->hasFile('video_thumbnail')) {
             $file = $request->file('video_thumbnail');
-            $filename = time() . '_itemthumb_' . $file->getClientOriginalName();
             $path = public_path($basePath);
             if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+            $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
             $file->move($path, $filename);
             $item->video_thumbnail = $filename;
         }
@@ -128,9 +128,9 @@ class TopSliderItemController extends Controller
                 unlink(public_path('upload/top_slider/items/' . $category->category_name . '/' . $item->file));
             }
             $file = $request->file('file');
-            $filename = time() . '_item_' . $file->getClientOriginalName();
             $path = public_path($basePath);
             if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+            $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
             $file->move($path, $filename);
             $item->file = $filename;
         }
@@ -140,9 +140,9 @@ class TopSliderItemController extends Controller
                 unlink(public_path('upload/top_slider/items/' . $category->id . '/' . $item->video_thumbnail));
             }
             $file = $request->file('video_thumbnail');
-            $filename = time() . '_itemthumb_' . $file->getClientOriginalName();
             $path = public_path($basePath);
             if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+            $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
             $file->move($path, $filename);
             $item->video_thumbnail = $filename;
         } elseif ($category->file_type == 'image') {

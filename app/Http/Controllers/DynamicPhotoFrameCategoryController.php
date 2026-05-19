@@ -161,14 +161,4 @@ class DynamicPhotoFrameCategoryController extends Controller
         }
     }
 
-    private function uniqueFilename(string $folder, string $originalName): string
-    {
-        if (!file_exists($folder . DIRECTORY_SEPARATOR . $originalName)) {
-            return $originalName;
-        }
-        $info = pathinfo($originalName);
-        $base = $info['filename'] ?? $originalName;
-        $ext  = isset($info['extension']) ? '.' . $info['extension'] : '';
-        return $base . '_' . time() . $ext;
-    }
 }

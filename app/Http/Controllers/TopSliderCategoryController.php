@@ -70,26 +70,26 @@ class TopSliderCategoryController extends Controller
         if ($request->file_type == 'image') {
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = time() . '_img_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->image = $filename;
             }
         } elseif ($request->file_type == 'video') {
             if ($request->hasFile('video')) {
                 $file = $request->file('video');
-                $filename = time() . '_vid_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->video = $filename;
             }
             if ($request->hasFile('video_thumbnail')) {
                 $file = $request->file('video_thumbnail');
-                $filename = time() . '_vidthumb_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->video_thumbnail = $filename;
             }
@@ -138,9 +138,9 @@ class TopSliderCategoryController extends Controller
                     unlink(public_path('upload/top_slider/categories/' . $category->category_name . '/' . $category->image));
                 }
                 $file = $request->file('image');
-                $filename = time() . '_img_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->image = $filename;
             }
@@ -150,9 +150,9 @@ class TopSliderCategoryController extends Controller
                     unlink(public_path('upload/top_slider/categories/' . $category->category_name . '/' . $category->video));
                 }
                 $file = $request->file('video');
-                $filename = time() . '_vid_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->video = $filename;
             }
@@ -161,9 +161,9 @@ class TopSliderCategoryController extends Controller
                     unlink(public_path('upload/top_slider/categories/' . $category->category_name . '/' . $category->video_thumbnail));
                 }
                 $file = $request->file('video_thumbnail');
-                $filename = time() . '_vidthumb_' . $file->getClientOriginalName();
                 $path = public_path($basePath);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $category->video_thumbnail = $filename;
             }

@@ -62,12 +62,7 @@ class NgendevVideoCategoryController extends Controller
 
         if ($request->hasFile('category_image')) {
             foreach ($request->file('category_image') as $file) {
-                $fileName = $file->getClientOriginalName();
-
-                if (file_exists($destinationPath . '/' . $fileName)) {
-                    $fileName = time() . '_' . $fileName;
-                }
-
+                $fileName = $this->uniqueFilename($destinationPath, $file->getClientOriginalName());
                 $file->move($destinationPath, $fileName);
                 $images[] = $fileName;
             }
@@ -141,7 +136,7 @@ class NgendevVideoCategoryController extends Controller
 
             $images = [];
             foreach ($request->file('category_image') as $file) {
-                $fileName = $file->getClientOriginalName();
+                $fileName = $this->uniqueFilename($destinationPath, $file->getClientOriginalName());
                 $file->move($destinationPath, $fileName);
                 $images[] = $fileName;
             }

@@ -67,10 +67,7 @@ class DoodleController extends Controller
                 $file = $request->file('image');
                 $path = public_path('upload/doodle/' . $doodle->name);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $doodle->image = $filename;
                 $doodle->save();
@@ -130,10 +127,7 @@ class DoodleController extends Controller
                 $file = $request->file('image');
                 $path = public_path($base);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $doodle->image = $filename;
             }

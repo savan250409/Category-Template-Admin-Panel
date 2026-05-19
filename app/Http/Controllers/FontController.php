@@ -72,10 +72,7 @@ class FontController extends Controller
                 $file = $request->file('font_file');
                 $path = public_path($base);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $font->font_file = $filename;
             }
@@ -84,10 +81,7 @@ class FontController extends Controller
                 $file = $request->file('preview_image');
                 $path = public_path($base);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $font->preview_image = $filename;
             }
@@ -151,10 +145,7 @@ class FontController extends Controller
                 $file = $request->file('font_file');
                 $path = public_path($base);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $font->font_file = $filename;
             }
@@ -166,10 +157,7 @@ class FontController extends Controller
                 $file = $request->file('preview_image');
                 $path = public_path($base);
                 if (!File::exists($path)) File::makeDirectory($path, 0777, true);
-                $filename = $file->getClientOriginalName();
-                if (file_exists($path . DIRECTORY_SEPARATOR . $filename)) {
-                    @unlink($path . DIRECTORY_SEPARATOR . $filename);
-                }
+                $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $font->preview_image = $filename;
             }
@@ -212,14 +200,4 @@ class FontController extends Controller
         return in_array($ext, ['ttf', 'otf'], true);
     }
 
-    private function uniqueFilename(string $folder, string $originalName): string
-    {
-        if (!file_exists($folder . DIRECTORY_SEPARATOR . $originalName)) {
-            return $originalName;
-        }
-        $info = pathinfo($originalName);
-        $base = $info['filename'] ?? $originalName;
-        $ext  = isset($info['extension']) ? '.' . $info['extension'] : '';
-        return $base . '_' . time() . $ext;
-    }
 }

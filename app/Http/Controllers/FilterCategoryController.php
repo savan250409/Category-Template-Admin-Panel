@@ -196,14 +196,4 @@ class FilterCategoryController extends Controller
         return response()->json(['success' => true, 'message' => 'Order updated successfully!']);
     }
 
-    private function uniqueFilename(string $folder, string $originalName): string
-    {
-        if (!file_exists($folder . DIRECTORY_SEPARATOR . $originalName)) {
-            return $originalName;
-        }
-        $info = pathinfo($originalName);
-        $base = $info['filename'] ?? $originalName;
-        $ext  = isset($info['extension']) ? '.' . $info['extension'] : '';
-        return $base . '_' . time() . $ext;
-    }
 }

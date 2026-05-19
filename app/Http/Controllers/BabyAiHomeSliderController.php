@@ -101,20 +101,20 @@ class BabyAiHomeSliderController extends Controller
             if ($request->source_type === 'video') {
                 if ($request->hasFile('video')) {
                     $file = $request->file('video');
-                    $filename = time() . '_vid_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->video = $filename;
                 }
                 if ($request->hasFile('video_thumbnail')) {
                     $file = $request->file('video_thumbnail');
-                    $filename = time() . '_vidthumb_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->video_thumbnail = $filename;
                 }
             } else {
                 if ($request->hasFile('image')) {
                     $file = $request->file('image');
-                    $filename = time() . '_img_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->image = $filename;
                 }
@@ -174,7 +174,7 @@ class BabyAiHomeSliderController extends Controller
                         @unlink($path . '/' . $slider->video);
                     }
                     $file = $request->file('video');
-                    $filename = time() . '_vid_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->video = $filename;
                 }
@@ -183,7 +183,7 @@ class BabyAiHomeSliderController extends Controller
                         @unlink($path . '/' . $slider->video_thumbnail);
                     }
                     $file = $request->file('video_thumbnail');
-                    $filename = time() . '_vidthumb_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->video_thumbnail = $filename;
                 }
@@ -193,7 +193,7 @@ class BabyAiHomeSliderController extends Controller
                         @unlink($path . '/' . $slider->image);
                     }
                     $file = $request->file('image');
-                    $filename = time() . '_img_' . $file->getClientOriginalName();
+                    $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                     $file->move($path, $filename);
                     $slider->image = $filename;
                 }

@@ -70,19 +70,14 @@ class NgendevImageController extends Controller
 
             if ($request->hasFile('image')) {
                 $category        = NgendevCategory::findOrFail($request->category_id);
-                $categoryName    = $category->category_name;
-                $originalName    = $request->file('image')->getClientOriginalName();
-                $filename        = pathinfo($originalName, PATHINFO_FILENAME);
-                $extension       = pathinfo($originalName, PATHINFO_EXTENSION);
-                $newImageName    = $filename . '_' . time() . '.' . $extension;
-                $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
+                $destinationPath = public_path('upload/ngendev/images/' . $category->category_name . '/category_image');
 
                 if (!File::exists($destinationPath)) {
                     File::makeDirectory($destinationPath, 0777, true, true);
                 }
 
-                $request->file('image')->move($destinationPath, $newImageName);
-                $imageName = $newImageName;
+                $imageName = $this->uniqueFilename($destinationPath, $request->file('image')->getClientOriginalName());
+                $request->file('image')->move($destinationPath, $imageName);
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;
@@ -143,18 +138,14 @@ class NgendevImageController extends Controller
                     unlink($oldPath);
                 }
 
-                $originalName    = $request->file('image')->getClientOriginalName();
-                $filename        = pathinfo($originalName, PATHINFO_FILENAME);
-                $extension       = pathinfo($originalName, PATHINFO_EXTENSION);
-                $newImageName    = $filename . '_' . time() . '.' . $extension;
                 $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
 
                 if (!file_exists($destinationPath)) {
                     mkdir($destinationPath, 0777, true);
                 }
 
-                $request->file('image')->move($destinationPath, $newImageName);
-                $imagePath = $newImageName;
+                $imagePath = $this->uniqueFilename($destinationPath, $request->file('image')->getClientOriginalName());
+                $request->file('image')->move($destinationPath, $imagePath);
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;

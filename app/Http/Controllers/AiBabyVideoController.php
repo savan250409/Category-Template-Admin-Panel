@@ -70,32 +70,26 @@ class AiBabyVideoController extends Controller
 
             if ($request->hasFile('video_path')) {
                 $file     = $request->file('video_path');
-                $filename = $file->getClientOriginalName();
-
-                $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
-                $videoDestPath     = public_path($videoRelativePath);
+                $videoDestPath = public_path('upload/AI Baby Video/' . $category->category_name . '/video');
 
                 if (!File::exists($videoDestPath)) {
                     File::makeDirectory($videoDestPath, 0777, true);
                 }
 
-                $file->move($videoDestPath, $filename);
-                $videoPath = $filename;
+                $videoPath = $this->uniqueFilename($videoDestPath, $file->getClientOriginalName());
+                $file->move($videoDestPath, $videoPath);
             }
 
             if ($request->hasFile('video_thumbnail')) {
                 $thumbFile     = $request->file('video_thumbnail');
-                $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
-
-                $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
-                $thumbDestPath     = public_path($thumbRelativePath);
+                $thumbDestPath = public_path('upload/AI Baby Video/' . $category->category_name . '/video thumbanail');
 
                 if (!File::exists($thumbDestPath)) {
                     File::makeDirectory($thumbDestPath, 0777, true);
                 }
 
-                $thumbFile->move($thumbDestPath, $thumbFilename);
-                $thumbnailPath = $thumbFilename;
+                $thumbnailPath = $this->uniqueFilename($thumbDestPath, $thumbFile->getClientOriginalName());
+                $thumbFile->move($thumbDestPath, $thumbnailPath);
             }
 
             AiBabyVideo::create([
@@ -161,17 +155,14 @@ class AiBabyVideoController extends Controller
             }
 
             $file = $request->file('video_path');
-            $filename = $file->getClientOriginalName();
-
-            $videoRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video';
-            $videoDestPath = public_path($videoRelativePath);
+            $videoDestPath = public_path('upload/AI Baby Video/' . $category->category_name . '/video');
 
             if (!File::exists($videoDestPath)) {
                 File::makeDirectory($videoDestPath, 0777, true);
             }
 
-            $file->move($videoDestPath, $filename);
-            $videoPath = $filename;
+            $videoPath = $this->uniqueFilename($videoDestPath, $file->getClientOriginalName());
+            $file->move($videoDestPath, $videoPath);
         } elseif ($request->has('remove_video') && $request->remove_video == '1') {
             if ($video->video_path) {
                 if (file_exists(public_path($video->video_path))) {
@@ -198,17 +189,14 @@ class AiBabyVideoController extends Controller
             }
 
             $thumbFile = $request->file('video_thumbnail');
-            $thumbFilename = time() . '_' . $thumbFile->getClientOriginalName();
-
-            $thumbRelativePath = 'upload/AI Baby Video/' . $category->category_name . '/video thumbanail';
-            $thumbDestPath = public_path($thumbRelativePath);
+            $thumbDestPath = public_path('upload/AI Baby Video/' . $category->category_name . '/video thumbanail');
 
             if (!File::exists($thumbDestPath)) {
                 File::makeDirectory($thumbDestPath, 0777, true);
             }
 
-            $thumbFile->move($thumbDestPath, $thumbFilename);
-            $thumbnailPath = $thumbFilename;
+            $thumbnailPath = $this->uniqueFilename($thumbDestPath, $thumbFile->getClientOriginalName());
+            $thumbFile->move($thumbDestPath, $thumbnailPath);
         } elseif ($request->has('remove_thumbnail') && $request->remove_thumbnail == '1') {
             if ($video->video_thumbnail) {
                 if (file_exists(public_path($video->video_thumbnail))) {

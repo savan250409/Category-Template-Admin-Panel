@@ -63,15 +63,14 @@ class FilterAiImageController extends Controller
 
             if ($request->hasFile('image')) {
                 $category        = FilterAiImageCategory::findOrFail($request->category_id);
-                $originalName    = $request->file('image')->getClientOriginalName();
                 $destinationPath = public_path('upload/filter_ai_image/images/' . $category->category_name . '/category_image');
 
                 if (!File::exists($destinationPath)) {
                     File::makeDirectory($destinationPath, 0777, true, true);
                 }
 
-                $request->file('image')->move($destinationPath, $originalName);
-                $imageName = $originalName;
+                $imageName = $this->uniqueFilename($destinationPath, $request->file('image')->getClientOriginalName());
+                $request->file('image')->move($destinationPath, $imageName);
             }
 
             FilterAiImage::create([
@@ -122,7 +121,6 @@ class FilterAiImageController extends Controller
                     unlink($oldPath);
                 }
 
-                $originalName    = $request->file('image')->getClientOriginalName();
                 $newCategory = FilterAiImageCategory::findOrFail($categoryId);
                 $destinationPath = public_path('upload/filter_ai_image/images/' . $newCategory->category_name . '/category_image');
 
@@ -130,8 +128,8 @@ class FilterAiImageController extends Controller
                     mkdir($destinationPath, 0777, true);
                 }
 
-                $request->file('image')->move($destinationPath, $originalName);
-                $imagePath = $originalName;
+                $imagePath = $this->uniqueFilename($destinationPath, $request->file('image')->getClientOriginalName());
+                $request->file('image')->move($destinationPath, $imagePath);
             }
 
             $image->update([
