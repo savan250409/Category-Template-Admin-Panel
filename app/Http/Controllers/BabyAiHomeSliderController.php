@@ -122,7 +122,7 @@ class BabyAiHomeSliderController extends Controller
 
             $slider->save();
 
-            return redirect()->route('baby-ai-home-slider.index')->with('success', 'Home Screen Slider created successfully!');
+            return view('partials.history_redirect', ['fallback' => route('baby-ai-home-slider.index'), 'message' => 'Home Screen Slider created successfully!']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
             return redirect()->back()->withInput()->with('error', $errors)->withErrors($e->errors());
@@ -201,7 +201,7 @@ class BabyAiHomeSliderController extends Controller
 
             $slider->save();
 
-            return redirect()->route('baby-ai-home-slider.index')->with('success', 'Home Screen Slider updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('baby-ai-home-slider.index'), 'message' => 'Home Screen Slider updated successfully!']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
             return redirect()->back()->withInput()->with('error', $errors)->withErrors($e->errors());

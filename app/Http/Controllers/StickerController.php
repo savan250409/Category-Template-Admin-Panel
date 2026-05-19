@@ -78,7 +78,7 @@ class StickerController extends Controller
             $category->stickers = array_values(array_merge($newNames, $existing));
             $category->save();
 
-            return redirect()->route('sticker.stickers.index')->with('success', 'Stickers added successfully!');
+            return view('partials.history_redirect', ['fallback' => route('sticker.stickers.index'), 'message' => 'Stickers added successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -125,7 +125,7 @@ class StickerController extends Controller
                 $targetCategory->save();
             }
 
-            return redirect()->route('sticker.stickers.index')->with('success', 'Stickers updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('sticker.stickers.index'), 'message' => 'Stickers updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

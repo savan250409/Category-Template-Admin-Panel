@@ -17,7 +17,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($category) ? 'Update Sticker Category' : 'Create a new Sticker Category' }}</p>
             </div>
-            <a href="{{ route('sticker.categories.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('sticker.categories.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Categories
             </a>
         </div>
@@ -67,7 +67,7 @@
                         <i class="bi bi-{{ isset($category) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($category) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('sticker.categories.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('sticker.categories.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

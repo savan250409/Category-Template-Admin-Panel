@@ -83,7 +83,7 @@ class FilterAiImageController extends Controller
 
             return $request->ajax()
                 ? response()->json(['success' => true, 'message' => 'Filter AI image added successfully!'])
-                : redirect()->route('filter-ai-image.images.index')->with('success', 'Filter AI image added successfully!');
+                : view('partials.history_redirect', ['fallback' => route('filter-ai-image.images.index'), 'message' => 'Filter AI image added successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -145,7 +145,7 @@ class FilterAiImageController extends Controller
                 return response()->json(['success' => true, 'message' => 'Filter AI image updated successfully!']);
             }
 
-            return redirect()->route('filter-ai-image.images.index')->with('success', 'Filter AI image updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('filter-ai-image.images.index'), 'message' => 'Filter AI image updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

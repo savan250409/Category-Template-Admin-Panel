@@ -1006,6 +1006,112 @@
             }, 5000);
         });
     </script>
+    {{-- Global: smart back-to-list (uses history.back() if previous page was same origin) + sessionStorage flash --}}
+    <script>
+        (function () {
+            function smartBack(fallbackHref) {
+                try {
+                    if (document.referrer && new URL(document.referrer).origin === window.location.origin
+                        && document.referrer !== window.location.href) {
+                        window.history.back();
+                        return;
+                    }
+                } catch (e) {}
+                if (fallbackHref) window.location.href = fallbackHref;
+            }
+            window.smartBack = smartBack;
+
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest('a[data-back-to-list]');
+                if (!a) return;
+                e.preventDefault();
+                smartBack(a.getAttribute('href'));
+            });
+
+            // Intercept hidden delete-form submissions → AJAX + refresh current pagination page in place.
+            // form.submit() does NOT fire submit events, so we monkey-patch the prototype.
+            function isDeleteForm(form) {
+                if (!form || !form.id || form.id.indexOf('deleteForm-') !== 0) return false;
+                var m = form.querySelector('input[name="_method"]');
+                return m && m.value.toUpperCase() === 'DELETE';
+            }
+
+            function refreshCurrentList() {
+                var activeLink = document.querySelector('.pagination .page-item.active a.page-link[data-page]');
+                if (activeLink) { activeLink.click(); return true; }
+                var firstLink = document.querySelector('.pagination a.page-link[data-page="1"]');
+                if (firstLink) { firstLink.click(); return true; }
+                return false;
+            }
+
+            function handleAjaxDelete(form) {
+                var fd = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html,application/json' },
+                    redirect: 'manual',
+                    credentials: 'same-origin'
+                }).then(function (response) {
+                    var ok = response.type === 'opaqueredirect' || response.ok || response.status === 0;
+                    if (!ok) throw new Error('HTTP ' + response.status);
+
+                    if (!refreshCurrentList()) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true, position: 'top-end',
+                            icon: 'success', title: 'Deleted successfully',
+                            showConfirmButton: false, timer: 2000
+                        });
+                    }
+                }).catch(function (err) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Delete failed', text: (err && err.message) || 'Please try again.' });
+                    } else {
+                        alert('Delete failed. Please try again.');
+                    }
+                });
+            }
+
+            // Monkey-patch HTMLFormElement.prototype.submit so the existing
+            // "deleteForm-{id}.submit()" calls across all modules route through AJAX.
+            var nativeSubmit = HTMLFormElement.prototype.submit;
+            HTMLFormElement.prototype.submit = function () {
+                if (isDeleteForm(this)) {
+                    handleAjaxDelete(this);
+                    return;
+                }
+                return nativeSubmit.apply(this, arguments);
+            };
+
+            // Also intercept user-triggered submits (button clicks) as a safety net.
+            document.addEventListener('submit', function (e) {
+                if (!isDeleteForm(e.target)) return;
+                e.preventDefault();
+                handleAjaxDelete(e.target);
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                try {
+                    var raw = sessionStorage.getItem('admin_flash');
+                    if (!raw) return;
+                    sessionStorage.removeItem('admin_flash');
+                    var data = JSON.parse(raw);
+                    if (data && data.message && typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true, position: 'top-end',
+                            icon: data.icon || 'success', title: data.message,
+                            showConfirmButton: false, timer: 2500
+                        });
+                    }
+                } catch (e) {}
+            });
+        })();
+    </script>
     @yield('scripts')
 </body>
 

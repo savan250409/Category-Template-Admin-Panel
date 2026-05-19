@@ -65,7 +65,7 @@ class LipsSyncCategoryController extends Controller
                 $category->save();
             }
 
-            return redirect()->route('lips-sync.categories.index')->with('success', 'Lips Sync Category created successfully!');
+            return view('partials.history_redirect', ['fallback' => route('lips-sync.categories.index'), 'message' => 'Lips Sync Category created successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -126,7 +126,7 @@ class LipsSyncCategoryController extends Controller
             $this->rmIfEmpty(public_path('upload/lips_sync/' . $category->category_name . '/category image'));
             $this->rmIfEmpty(public_path('upload/lips_sync/' . $category->category_name));
 
-            return redirect()->route('lips-sync.categories.index')->with('success', 'Lips Sync Category updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('lips-sync.categories.index'), 'message' => 'Lips Sync Category updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

@@ -91,7 +91,7 @@ class NgendevVideoCategoryController extends Controller
             'sort_order' => 0,
         ]);
 
-        return redirect()->route('ngendev-video-categories.index')->with('success', 'Category added successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ngendev-video-categories.index'), 'message' => 'Category added successfully!']);
     }
 
     public function edit($id)
@@ -166,7 +166,7 @@ class NgendevVideoCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return redirect()->route('ngendev-video-categories.index')->with('success', 'Category updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ngendev-video-categories.index'), 'message' => 'Category updated successfully!']);
     }
 
     public function destroy($id)

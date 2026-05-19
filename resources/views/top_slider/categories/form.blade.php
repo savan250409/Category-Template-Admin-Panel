@@ -18,7 +18,7 @@
                                 <i class="bi {{ isset($category) ? 'bi-pencil-square' : 'bi-plus-circle' }} me-2"></i>
                                 {{ isset($category) ? 'Edit Category' : 'Add New Category' }}
                             </h4>
-                            <a href="{{ route('top-slider.categories.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('top-slider.categories.index') }}" data-back-to-list class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-arrow-left me-1"></i> Back
                             </a>
                         </div>

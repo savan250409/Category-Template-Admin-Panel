@@ -97,7 +97,7 @@ class TopSliderCategoryController extends Controller
 
         $category->save();
 
-        return redirect()->route('top-slider.categories.index')->with('success', 'Category created successfully!');
+        return view('partials.history_redirect', ['fallback' => route('top-slider.categories.index'), 'message' => 'Category created successfully!']);
     }
 
     public function edit($id)
@@ -171,7 +171,7 @@ class TopSliderCategoryController extends Controller
 
         $category->save();
 
-        return redirect()->route('top-slider.categories.index')->with('success', 'Category updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('top-slider.categories.index'), 'message' => 'Category updated successfully!']);
     }
 
     public function destroy($id)

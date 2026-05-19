@@ -66,7 +66,7 @@
                 </p>
             </div>
             <div>
-                <a href="{{ route('ai-baby-video.videos.index') }}" class="btn-custom-back">
+                <a href="{{ route('ai-baby-video.videos.index') }}" data-back-to-list class="btn-custom-back">
                     <i class="bi bi-arrow-left me-2"></i>Back to Videos
                 </a>
             </div>

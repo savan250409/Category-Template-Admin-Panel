@@ -42,7 +42,7 @@
                 </p>
             </div>
             <div>
-                <a href="{{ route('ngendev.categories.index') }}" class="btn-custom-back">
+                <a href="{{ route('ngendev.categories.index') }}" data-back-to-list class="btn-custom-back">
                     <i class="bi bi-arrow-left me-2"></i>Back to Categories
                 </a>
             </div>

@@ -86,7 +86,7 @@ class TopSliderItemController extends Controller
 
         $item->save();
 
-        return redirect()->route('top-slider.items.index')->with('success', 'Item created successfully!');
+        return view('partials.history_redirect', ['fallback' => route('top-slider.items.index'), 'message' => 'Item created successfully!']);
     }
 
     public function edit($id)
@@ -154,7 +154,7 @@ class TopSliderItemController extends Controller
 
         $item->save();
 
-        return redirect()->route('top-slider.items.index')->with('success', 'Item updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('top-slider.items.index'), 'message' => 'Item updated successfully!']);
     }
 
     public function destroy($id)

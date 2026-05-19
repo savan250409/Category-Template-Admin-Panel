@@ -15,7 +15,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($category) ? 'Update dynamic photo frame category' : 'Create a new dynamic photo frame category' }}</p>
             </div>
-            <a href="{{ route('dynamic-photo-frame.categories.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('dynamic-photo-frame.categories.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Categories
             </a>
         </div>
@@ -53,7 +53,7 @@
                         <i class="bi bi-{{ isset($category) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($category) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('dynamic-photo-frame.categories.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('dynamic-photo-frame.categories.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

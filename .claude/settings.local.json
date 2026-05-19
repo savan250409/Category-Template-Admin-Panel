@@ -6,7 +6,21 @@
       "Bash(del _tmp_grep.ps1)",
       "Bash(powershell -NoProfile -Command \"Remove-Item _tmp_grep.ps1 -ErrorAction SilentlyContinue\")",
       "Bash(findstr /n \".\")",
-      "Bash(findstr \"subcategories\")"
+      "Bash(findstr \"subcategories\")",
+      "Bash(curl -sk -c /tmp/cookies.txt \"http://127.0.0.1:8000/filter/filters\" -o /tmp/page1.html)",
+      "Read(//tmp/**)",
+      "Bash(rm -f /tmp/c.txt)",
+      "Bash(curl -sk -c /tmp/c.txt -b /tmp/c.txt \"http://127.0.0.1:8000/\" -o /tmp/login.html)",
+      "Bash(curl -sk -b /tmp/c.txt -c /tmp/c.txt \"http://127.0.0.1:8000/filter/filters\" -o /tmp/ff.html -w \"Status: %{http_code}\\\\nSize: %{size_download}\\\\n\")",
+      "Bash(curl -sk -b /tmp/c.txt -c /tmp/c.txt -X GET \"http://127.0.0.1:8000/filter/filters?page=6\" -H \"X-Requested-With: XMLHttpRequest\" -H \"Accept: application/json\" -o /tmp/page6.json -w \"Status: %{http_code}\\\\nSize: %{size_download}\\\\n\")",
+      "Bash(curl -sk -b /tmp/c.txt -c /tmp/c.txt -X POST \"http://127.0.0.1:8000/filter/filters/400\" -H \"X-Requested-With: XMLHttpRequest\" -H \"Accept: text/html,application/json\" --data-urlencode \"_token=ACDr9RURGz8KhUtaHO1yAkl0QnhXj9AmZykD3Eak\" --data-urlencode \"_method=DELETE\" -D /tmp/headers.txt -o /tmp/delresp.html -w \"Status: %{http_code}\\\\n--Following: 0--\\\\n\")",
+      "Bash(python -c \"import json, sys; d = json.load\\(sys.stdin\\); print\\(d['html'][:200]\\); print\\('---'\\); print\\('active' in d['html'], 'data-page' in d['html']\\)\")",
+      "Bash(php -r 'echo substr\\(json_decode\\(file_get_contents\\(\"C:/Users/Admin/AppData/Local/Temp/page6.json\"\\) ?: file_get_contents\\(\"/tmp/page6.json\"\\)\\)->html, 0, 0\\);')",
+      "Bash(php -r '$j = json_decode\\(file_get_contents\\(\"C:/Users/Admin/AppData/Local/Temp/page6.json\"\\)\\)->html ?? \"\"; if \\(!$j\\) $j = json_decode\\(file_get_contents\\(\"/tmp/page6.json\"\\)\\)->html; preg_match_all\\(\"/page-item[^\\\\\"]*active[^<]*<a[^>]*data-page=\\\\\"[^\\\\\"]+\\\\\"/\", $j, $m\\); print_r\\($m[0]\\);')",
+      "Bash(taskkill /F /IM php.exe)",
+      "PowerShell(Get-Process php -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "PowerShell(\"stopped\")"
     ]
   }
 }

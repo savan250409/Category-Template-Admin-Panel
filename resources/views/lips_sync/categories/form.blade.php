@@ -15,7 +15,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($category) ? 'Update category details' : 'Create a new category' }}</p>
             </div>
-            <a href="{{ route('lips-sync.categories.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('lips-sync.categories.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Categories
             </a>
         </div>

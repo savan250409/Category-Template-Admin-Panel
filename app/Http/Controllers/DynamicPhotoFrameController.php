@@ -91,7 +91,7 @@ class DynamicPhotoFrameController extends Controller
                 'thumbnail'                       => $thumbFilename,
             ]);
 
-            return redirect()->route('dynamic-photo-frame.frames.index')->with('success', 'Dynamic Photo Frame added successfully!');
+            return view('partials.history_redirect', ['fallback' => route('dynamic-photo-frame.frames.index'), 'message' => 'Dynamic Photo Frame added successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -165,7 +165,7 @@ class DynamicPhotoFrameController extends Controller
 
             $frame->save();
 
-            return redirect()->route('dynamic-photo-frame.frames.index')->with('success', 'Dynamic Photo Frame updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('dynamic-photo-frame.frames.index'), 'message' => 'Dynamic Photo Frame updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

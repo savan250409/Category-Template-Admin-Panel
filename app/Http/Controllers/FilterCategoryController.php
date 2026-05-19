@@ -69,7 +69,7 @@ class FilterCategoryController extends Controller
                 $category->save();
             }
 
-            return redirect()->route('filter.categories.index')->with('success', 'Filter Category created successfully!');
+            return view('partials.history_redirect', ['fallback' => route('filter.categories.index'), 'message' => 'Filter Category created successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -127,7 +127,7 @@ class FilterCategoryController extends Controller
 
             $category->save();
 
-            return redirect()->route('filter.categories.index')->with('success', 'Filter Category updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('filter.categories.index'), 'message' => 'Filter Category updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

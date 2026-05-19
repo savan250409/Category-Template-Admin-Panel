@@ -54,7 +54,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($doodle) ? 'Update doodle details' : 'Create a new Doodle' }}</p>
             </div>
-            <a href="{{ route('doodles.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('doodles.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Doodles
             </a>
         </div>
@@ -129,7 +129,7 @@
                         <i class="bi bi-{{ isset($doodle) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($doodle) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('doodles.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('doodles.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

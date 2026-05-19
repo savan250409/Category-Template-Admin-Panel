@@ -19,7 +19,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($filter) ? 'Update filter values' : 'Create a new Filter' }}</p>
             </div>
-            <a href="{{ route('filter.filters.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('filter.filters.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Filters
             </a>
         </div>
@@ -101,7 +101,7 @@
                         <i class="bi bi-{{ isset($filter) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($filter) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('filter.filters.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('filter.filters.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

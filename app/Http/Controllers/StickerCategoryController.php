@@ -71,7 +71,7 @@ class StickerCategoryController extends Controller
                 $category->save();
             }
 
-            return redirect()->route('sticker.categories.index')->with('success', 'Sticker Category created successfully!');
+            return view('partials.history_redirect', ['fallback' => route('sticker.categories.index'), 'message' => 'Sticker Category created successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -134,7 +134,7 @@ class StickerCategoryController extends Controller
             $this->rmIfEmpty(public_path('upload/sticker/' . $category->category_name . '/category image'));
             $this->rmIfEmpty(public_path('upload/sticker/' . $category->category_name));
 
-            return redirect()->route('sticker.categories.index')->with('success', 'Sticker Category updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('sticker.categories.index'), 'message' => 'Sticker Category updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

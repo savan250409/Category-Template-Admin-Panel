@@ -16,7 +16,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($slider) ? 'Update slider details' : 'Create a new home screen slider entry' }}</p>
             </div>
-            <a href="{{ route('baby-ai-home-slider.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('baby-ai-home-slider.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Sliders
             </a>
         </div>
@@ -109,7 +109,7 @@
                         <i class="bi bi-{{ isset($slider) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($slider) ? 'Update Slider' : 'Save Slider' }}
                     </button>
-                    <a href="{{ route('baby-ai-home-slider.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('baby-ai-home-slider.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

@@ -89,7 +89,7 @@ class NgendevCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return redirect()->route('ngendev.categories.index')->with('success', 'Category added successfully with multiple original images!');
+        return view('partials.history_redirect', ['fallback' => route('ngendev.categories.index'), 'message' => 'Category added successfully with multiple original images!']);
     }
 
     public function edit($id)
@@ -167,7 +167,7 @@ class NgendevCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return redirect()->route('ngendev.categories.index')->with('success', 'Category updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ngendev.categories.index'), 'message' => 'Category updated successfully!']);
     }
 
     public function destroy($id)

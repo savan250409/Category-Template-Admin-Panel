@@ -99,7 +99,7 @@ class NgendevImageController extends Controller
 
             return $request->ajax()
                 ? response()->json(['success' => true, 'message' => 'Ngendev image added successfully!'])
-                : redirect()->route('ngendev.images.index')->with('success', 'Ngendev image added successfully!');
+                : view('partials.history_redirect', ['fallback' => route('ngendev.images.index'), 'message' => 'Ngendev image added successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -173,7 +173,7 @@ class NgendevImageController extends Controller
                 return response()->json(['success' => true, 'message' => 'Ngendev image updated successfully!']);
             }
 
-            return redirect()->route('ngendev.images.index')->with('success', 'Ngendev image updated successfully!');
+            return view('partials.history_redirect', ['fallback' => route('ngendev.images.index'), 'message' => 'Ngendev image updated successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

@@ -36,7 +36,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($font) ? 'Update font details' : 'Create a new font' }}</p>
             </div>
-            <a href="{{ route('fonts.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('fonts.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Fonts
             </a>
         </div>
@@ -104,7 +104,7 @@
                         <i class="bi bi-{{ isset($font) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($font) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('fonts.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('fonts.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

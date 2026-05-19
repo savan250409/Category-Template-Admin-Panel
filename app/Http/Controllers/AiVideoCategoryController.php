@@ -68,7 +68,7 @@ class AiVideoCategoryController extends Controller
             'sort_order' => 0,
         ]);
 
-        return redirect()->route('ai-baby-video.categories.index')->with('success', 'Category added successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ai-baby-video.categories.index'), 'message' => 'Category added successfully!']);
     }
 
     public function edit($id)
@@ -121,7 +121,7 @@ class AiVideoCategoryController extends Controller
             'status' => $request->has('status') ? 1 : 0,
         ]);
 
-        return redirect()->route('ai-baby-video.categories.index')->with('success', 'Category updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ai-baby-video.categories.index'), 'message' => 'Category updated successfully!']);
     }
 
     public function destroy($id)

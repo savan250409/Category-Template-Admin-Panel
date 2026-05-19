@@ -15,7 +15,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($frame) ? 'Update dynamic photo frame' : 'Create a new dynamic photo frame' }}</p>
             </div>
-            <a href="{{ route('dynamic-photo-frame.frames.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('dynamic-photo-frame.frames.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Frames
             </a>
         </div>
@@ -80,7 +80,7 @@
                         <i class="bi bi-{{ isset($frame) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>
                         {{ isset($frame) ? 'Update' : 'Submit' }}
                     </button>
-                    <a href="{{ route('dynamic-photo-frame.frames.index') }}" class="btn btn-light py-2 px-4">Cancel</a>
+                    <a href="{{ route('dynamic-photo-frame.frames.index') }}" data-back-to-list class="btn btn-light py-2 px-4">Cancel</a>
                 </div>
             </form>
         </div>

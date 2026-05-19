@@ -77,7 +77,7 @@ class FilterAiImageCategoryController extends Controller
 
         $category->update(['category_image' => json_encode($images)]);
 
-        return redirect()->route('filter-ai-image.categories.index')->with('success', 'Category added successfully!');
+        return view('partials.history_redirect', ['fallback' => route('filter-ai-image.categories.index'), 'message' => 'Category added successfully!']);
     }
 
     public function edit($id)
@@ -126,7 +126,7 @@ class FilterAiImageCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return redirect()->route('filter-ai-image.categories.index')->with('success', 'Category updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('filter-ai-image.categories.index'), 'message' => 'Category updated successfully!']);
     }
 
     public function destroy($id)

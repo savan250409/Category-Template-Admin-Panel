@@ -16,7 +16,7 @@
                 </h1>
                 <p class="text-muted">{{ isset($item) ? 'Update Lips Sync item' : 'Create a new Lips Sync item' }}</p>
             </div>
-            <a href="{{ route('lips-sync.items.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('lips-sync.items.index') }}" data-back-to-list class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left me-2"></i>Back to List
             </a>
         </div>

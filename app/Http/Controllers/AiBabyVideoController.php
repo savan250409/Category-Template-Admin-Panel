@@ -110,7 +110,7 @@ class AiBabyVideoController extends Controller
             $category->sort_order = 0;
             $category->save();
 
-            return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video added successfully!');
+            return view('partials.history_redirect', ['fallback' => route('ai-baby-video.videos.index'), 'message' => 'Video added successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -235,7 +235,7 @@ class AiBabyVideoController extends Controller
         $category->sort_order = 0;
         $category->save();
 
-        return redirect()->route('ai-baby-video.videos.index')->with('success', 'Video updated successfully!');
+        return view('partials.history_redirect', ['fallback' => route('ai-baby-video.videos.index'), 'message' => 'Video updated successfully!']);
 
       } catch (\Illuminate\Validation\ValidationException $e) {
           $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
