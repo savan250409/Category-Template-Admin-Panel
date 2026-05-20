@@ -65,6 +65,10 @@ class DynamicPhotoFrameCategoryController extends Controller
                 $category->save();
             }
 
+            if ($request->boolean('notify_after_save')) {
+                return redirect()->route('notifications.form', ['module' => 'dynamic_photo_frame', 'id' => $category->id]);
+            }
+
             return view('partials.history_redirect', ['fallback' => route('dynamic-photo-frame.categories.index'), 'message' => 'Dynamic Photo Frame Category created successfully!']);
 
         } catch (\Illuminate\Validation\ValidationException $e) {

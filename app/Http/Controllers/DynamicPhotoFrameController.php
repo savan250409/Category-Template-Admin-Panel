@@ -54,11 +54,10 @@ class DynamicPhotoFrameController extends Controller
         try {
             $request->validate([
                 'dynamic_photo_frame_category_id' => 'required|exists:dynamic_photo_frame_categories,id',
-                'zip_file'                        => 'required|file|mimes:zip|max:102400',
+                'zip_file'                        => ['required', 'file', 'max:102400', $this->zipExtensionRule()],
                 'input_count'                     => 'required|integer|min:1',
                 'thumbnail'                       => 'required|image|mimes:webp|max:10000',
             ], [
-                'zip_file.mimes'  => 'File must be a .zip file.',
                 'thumbnail.mimes' => 'Thumbnail must be a .webp image.',
             ]);
 
@@ -116,11 +115,10 @@ class DynamicPhotoFrameController extends Controller
 
             $request->validate([
                 'dynamic_photo_frame_category_id' => 'required|exists:dynamic_photo_frame_categories,id',
-                'zip_file'                        => 'nullable|file|mimes:zip|max:102400',
+                'zip_file'                        => ['nullable', 'file', 'max:102400', $this->zipExtensionRule()],
                 'input_count'                     => 'required|integer|min:1',
                 'thumbnail'                       => 'nullable|image|mimes:webp|max:10000',
             ], [
-                'zip_file.mimes'  => 'File must be a .zip file.',
                 'thumbnail.mimes' => 'Thumbnail must be a .webp image.',
             ]);
 
@@ -198,6 +196,32 @@ class DynamicPhotoFrameController extends Controller
         $frame->delete();
 
         return redirect()->route('dynamic-photo-frame.frames.index')->with('success', 'Dynamic Photo Frame deleted successfully!');
+    }
+
+    /**
+     * Validate an uploaded file is a .zip by its file extension.
+     *
+     * We deliberately do NOT use Laravel's `mimes:zip` rule: it relies on
+     * PHP's fileinfo content sniffing, which misdetects many perfectly
+     * valid zips (self-extracting zips, tool-exported bundles, zips with a
+     * prepended header, etc.) as application/octet-stream or
+     * application/x-dosexec — causing "File must be a .zip file." and
+     * blocking the save. Extension-based validation is environment-proof.
+     */
+    private function zipExtensionRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            if (!$value instanceof \Illuminate\Http\UploadedFile) {
+                return; // absent / handled by required|nullable
+            }
+            $ext = strtolower(
+                $value->getClientOriginalExtension()
+                    ?: pathinfo($value->getClientOriginalName(), PATHINFO_EXTENSION)
+            );
+            if ($ext !== 'zip') {
+                $fail('File must be a .zip file.');
+            }
+        };
     }
 
     private function rmIfEmpty(string $folder): void
