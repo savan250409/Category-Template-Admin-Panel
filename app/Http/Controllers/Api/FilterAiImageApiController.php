@@ -29,7 +29,7 @@ class FilterAiImageApiController extends Controller
 
         $categoriesData = $categories->map(function ($category) {
             $images = FilterAiImage::where('category_id', $category->id)
-                ->select('id', 'name', 'ai_prompt', 'image_path')
+                ->select('id', 'name', 'ai_prompt', 'image_path', 'created_at', 'updated_at')
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('id', 'asc')
                 ->get();
@@ -41,6 +41,8 @@ class FilterAiImageApiController extends Controller
                     'name' => $image->name,
                     'ai_prompt' => $image->ai_prompt,
                     'category_image_full_url' => asset('upload/filter_ai_image/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path)),
+                    'created_at' => optional($image->created_at)->toDateTimeString(),
+                    'updated_at' => optional($image->updated_at)->toDateTimeString(),
                 ];
             });
 
@@ -59,24 +61,10 @@ class FilterAiImageApiController extends Controller
             return $cat['items']->isNotEmpty();
         })->values();
 
-        // Add Latest category (ID: 0) matching Ngendev logic
-        $latestImages = $categoriesData
-            ->filter(function($cat) { return $cat['items']->isNotEmpty(); })
-            ->map(function($cat) { return $cat['items']->last(); })
-            ->values();
-
-        $latestCategory = [
-            'category_id' => 0,
-            'category_name' => 'Latest',
-            'items' => $latestImages,
-        ];
-
-        $finalData = collect([$latestCategory])->merge($categoriesData);
-
         return response()->json([
             'status' => true,
             'message' => 'Categories fetched successfully',
-            'data' => $finalData,
+            'data' => $categoriesData,
         ]);
     }
 
@@ -96,39 +84,6 @@ class FilterAiImageApiController extends Controller
             ], 422);
         }
 
-        if ($data['category_id'] == 0) {
-            $categories = FilterAiImageCategory::where('status', 1)
-                ->orderBy('sort_order', 'asc')
-                ->orderBy('id', 'desc')
-                ->get();
-
-            $latestImages = collect();
-
-            foreach ($categories as $cat) {
-                $latestImage = FilterAiImage::where('category_id', $cat->id)
-                    ->select('id', 'name', 'image_path', 'ai_prompt')
-                    ->orderBy('sort_order', 'desc')
-                    ->orderBy('id', 'desc')
-                    ->first();
-
-                if ($latestImage) {
-                    $latestImages->push([
-                        'id' => $latestImage->id,
-                        'category_id' => $cat->id,
-                        'name' => $latestImage->name,
-                        'ai_prompt' => $latestImage->ai_prompt,
-                        'category_image_full_url' => asset('upload/filter_ai_image/images/' . rawurlencode($cat->category_name) . '/category_image/' . rawurlencode($latestImage->image_path)),
-                    ]);
-                }
-            }
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Latest images fetched successfully',
-                'data' => $latestImages->values(),
-            ]);
-        }
-
         $category = FilterAiImageCategory::where('id', $data['category_id'])
             ->where('status', 1)
             ->first();
@@ -142,7 +97,7 @@ class FilterAiImageApiController extends Controller
         }
 
         $images = FilterAiImage::where('category_id', $data['category_id'])
-            ->select('id', 'name', 'image_path', 'ai_prompt')
+            ->select('id', 'name', 'image_path', 'ai_prompt', 'created_at', 'updated_at')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
             ->get();
@@ -162,6 +117,8 @@ class FilterAiImageApiController extends Controller
                 'name' => $image->name,
                 'ai_prompt' => $image->ai_prompt,
                 'category_image_full_url' => asset('upload/filter_ai_image/images/' . rawurlencode($category->category_name) . '/category_image/' . rawurlencode($image->image_path)),
+                'created_at' => optional($image->created_at)->toDateTimeString(),
+                'updated_at' => optional($image->updated_at)->toDateTimeString(),
             ];
         });
 
