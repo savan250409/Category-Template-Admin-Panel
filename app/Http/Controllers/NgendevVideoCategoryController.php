@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\NgendevVideoCategory;
 use App\Models\NgendevVideo;
 use App\Models\AiVideoNgdSetting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class NgendevVideoCategoryController extends Controller
@@ -129,6 +130,7 @@ class NgendevVideoCategoryController extends Controller
 
                 $delay = max(1, (int) \Illuminate\Support\Carbon::now()->diffInSeconds($scheduledAt, false));
                 \App\Support\BackgroundProcess::spawnArtisan('notifications:dispatch-due --delay=' . $delay);
+                Cache::put('notifications_dispatcher_last_run', time(), 600);
 
                 return redirect()->route('ngendev-video-categories.index')->with('success', 'Category added! Notification scheduled for ' . $scheduledAt->format('d M Y, h:i A') . '.');
             }

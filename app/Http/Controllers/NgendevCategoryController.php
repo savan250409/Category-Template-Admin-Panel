@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\NgendevCategory;
 use App\Models\NgendevImage;
 use App\Models\AiImageNgdSetting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class NgendevCategoryController extends Controller
@@ -127,6 +128,7 @@ class NgendevCategoryController extends Controller
 
                 $delay = max(1, (int) \Illuminate\Support\Carbon::now()->diffInSeconds($scheduledAt, false));
                 \App\Support\BackgroundProcess::spawnArtisan('notifications:dispatch-due --delay=' . $delay);
+                Cache::put('notifications_dispatcher_last_run', time(), 600);
 
                 return redirect()->route('ngendev.categories.index')->with('success', 'Category added! Notification scheduled for ' . $scheduledAt->format('d M Y, h:i A') . '.');
             }
