@@ -73,7 +73,7 @@ class DoodleController extends Controller
                 $doodle->save();
             }
 
-            return view('partials.history_redirect', ['fallback' => route('doodles.index'), 'message' => 'Doodle created successfully!']);
+            return redirect()->route('doodles.index')->with('success', 'Doodle created successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -134,7 +134,7 @@ class DoodleController extends Controller
 
             $doodle->save();
 
-            return view('partials.history_redirect', ['fallback' => route('doodles.index'), 'message' => 'Doodle updated successfully!']);
+            return redirect()->route('doodles.index')->with('success', 'Doodle updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

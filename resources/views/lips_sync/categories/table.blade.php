@@ -20,6 +20,9 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('notifications.form', ['module' => 'lips_sync', 'id' => $category->id]) }}" class="action-btn notify-btn" title="Send notification" style="background-color:#f6c23e;color:#fff;">
+                                <i class="bi bi-bell-fill"></i>
+                            </a>
                             <a href="{{ route('lips-sync.categories.edit', $category->id) }}" class="action-btn edit-btn" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </a>

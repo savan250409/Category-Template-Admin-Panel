@@ -57,7 +57,7 @@ class AiVideoCategoryController extends Controller
             $file->move($path, $imagePath);
         }
 
-        AiVideoCategory::create([
+        $category = AiVideoCategory::create([
             'category_name' => $request->category_name,
             'category_image' => $imagePath,
             'description' => $request->description,
@@ -66,7 +66,12 @@ class AiVideoCategoryController extends Controller
             'sort_order' => 0,
         ]);
 
-        return view('partials.history_redirect', ['fallback' => route('ai-baby-video.categories.index'), 'message' => 'Category added successfully!']);
+        if ($request->boolean('notify_after_save')) {
+            session()->flash('notify_project_ids', $request->input('firebase_project_ids', []));
+            return redirect()->route('notifications.form', ['module' => 'ai_baby_video', 'id' => $category->id]);
+        }
+
+        return redirect()->route('ai-baby-video.categories.index')->with('success', 'Category added successfully!');
     }
 
     public function edit($id)
@@ -117,7 +122,7 @@ class AiVideoCategoryController extends Controller
             'status' => $request->has('status') ? 1 : 0,
         ]);
 
-        return view('partials.history_redirect', ['fallback' => route('ai-baby-video.categories.index'), 'message' => 'Category updated successfully!']);
+        return redirect()->route('ai-baby-video.categories.index')->with('success', 'Category updated successfully!');
     }
 
     public function destroy($id)

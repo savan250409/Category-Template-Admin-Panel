@@ -63,7 +63,7 @@ class FilterController extends Controller
             $filter->sort_order = $minOrder - 1;
             $filter->save();
 
-            return view('partials.history_redirect', ['fallback' => route('filter.filters.index'), 'message' => 'Filter created successfully!']);
+            return redirect()->route('filter.filters.index')->with('success', 'Filter created successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -91,7 +91,7 @@ class FilterController extends Controller
             $filter->is_premium = $request->has('is_premium') ? 1 : 0;
             $filter->save();
 
-            return view('partials.history_redirect', ['fallback' => route('filter.filters.index'), 'message' => 'Filter updated successfully!']);
+            return redirect()->route('filter.filters.index')->with('success', 'Filter updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -205,7 +205,7 @@ class FilterController extends Controller
             $msg = "Import complete: {$created} created, {$updated} updated";
             if ($skipped > 0) $msg .= ", {$skipped} skipped";
 
-            return view('partials.history_redirect', ['fallback' => route('filter.filters.index'), 'message' => $msg]);
+            return redirect()->route('filter.filters.index')->with('success', $msg);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

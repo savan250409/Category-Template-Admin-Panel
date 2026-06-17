@@ -15,6 +15,7 @@ class AiImageCategoryController extends Controller
         $category->save();
 
         Cache::forget('sidebar.ai_image_categories');
+        Cache::forget('sidebar.subcategories_grouped');
 
         return response()->json([
             'success' => true,

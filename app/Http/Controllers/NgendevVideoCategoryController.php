@@ -78,7 +78,7 @@ class NgendevVideoCategoryController extends Controller
             }
         }
 
-        NgendevVideoCategory::create([
+        $category = NgendevVideoCategory::create([
             'category_name' => $request->category_name,
             'status' => $status,
             'type' => $request->type,
@@ -86,7 +86,58 @@ class NgendevVideoCategoryController extends Controller
             'sort_order' => 0,
         ]);
 
-        return view('partials.history_redirect', ['fallback' => route('ngendev-video-categories.index'), 'message' => 'Category added successfully!']);
+        if ($request->boolean('notify_after_save')) {
+            if ($request->boolean('notify_inline')) {
+                $request->validate([
+                    'notif_title'        => 'required|string|max:191',
+                    'notif_description'  => 'nullable|string|max:2990',
+                    'notif_image_url'    => 'nullable|url|max:500',
+                    'notif_scheduled_at' => 'nullable|date',
+                ]);
+
+                $scheduledAt = $request->filled('notif_scheduled_at')
+                    ? \Illuminate\Support\Carbon::parse($request->notif_scheduled_at)
+                    : \Illuminate\Support\Carbon::now()->addMinutes(
+                        (int) \App\Models\NotificationSetting::current()->default_delay_minutes
+                      );
+
+                if ($scheduledAt->isPast()) {
+                    $scheduledAt = \Illuminate\Support\Carbon::now()->addSeconds(30);
+                }
+
+                $targetIds = $request->filled('firebase_project_ids')
+                    ? array_values(array_map('intval', (array) $request->firebase_project_ids))
+                    : null;
+
+                \App\Models\ScheduledNotification::create([
+                    'module'             => 'ngendev_video',
+                    'type'               => 'vid',
+                    'category_id'        => $category->id,
+                    'title'              => $request->notif_title,
+                    'description'        => $request->notif_description,
+                    'image_url'          => $request->filled('notif_image_url') ? trim($request->notif_image_url) : null,
+                    'click_action'       => 'OPEN_NGENDEV_VIDEO_CATEGORY',
+                    'screen'             => 'ngendev_video_category_detail',
+                    'extra_data'         => [
+                        'category_name' => $category->category_name,
+                        'deep_link'     => 'app://ngendev_video/category/' . $category->id,
+                    ],
+                    'target_project_ids' => $targetIds,
+                    'scheduled_at'       => $scheduledAt,
+                    'status'             => 'pending',
+                ]);
+
+                $delay = max(1, (int) \Illuminate\Support\Carbon::now()->diffInSeconds($scheduledAt, false));
+                \App\Support\BackgroundProcess::spawnArtisan('notifications:dispatch-due --delay=' . $delay);
+
+                return redirect()->route('ngendev-video-categories.index')->with('success', 'Category added! Notification scheduled for ' . $scheduledAt->format('d M Y, h:i A') . '.');
+            }
+
+            session()->flash('notify_project_ids', $request->input('firebase_project_ids', []));
+            return redirect()->route('notifications.form', ['module' => 'ngendev_video', 'id' => $category->id]);
+        }
+
+        return redirect()->route('ngendev-video-categories.index')->with('success', 'Category added successfully!');
     }
 
     public function edit($id)
@@ -161,7 +212,7 @@ class NgendevVideoCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return view('partials.history_redirect', ['fallback' => route('ngendev-video-categories.index'), 'message' => 'Category updated successfully!']);
+        return redirect()->route('ngendev-video-categories.index')->with('success', 'Category updated successfully!');
     }
 
     public function destroy($id)

@@ -6,6 +6,7 @@ use App\Models\Subcategory;
 use App\Models\AiVideoSubcategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use File;
 
 class SubcategoryController extends Controller
@@ -129,6 +130,9 @@ class SubcategoryController extends Controller
         }
         $subcategory->save();
 
+        Cache::forget('sidebar.subcategories_grouped');
+        Cache::forget('sidebar.ai_image_categories');
+
         $redirectParams = ['id' => $subcategory->id];
         if ($request->has('origin')) {
             $redirectParams['origin'] = $request->origin;
@@ -174,6 +178,9 @@ class SubcategoryController extends Controller
             File::deleteDirectory($folderPath);
         }
         $subcategory->delete();
+
+        Cache::forget('sidebar.subcategories_grouped');
+        Cache::forget('sidebar.ai_image_categories');
 
         $redirectParams = [];
         if ($request->has('origin')) {

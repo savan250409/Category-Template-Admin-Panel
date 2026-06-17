@@ -88,6 +88,34 @@
                 </li>
             @endif
 
+            @if ($sidebarGroup === 'ngd')
+            {{-- Notify Module --}}
+            @php
+                $isNotifyActive = request()->is('notifications*') || request()->is('firebase-projects*');
+            @endphp
+            <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #f6c23e;">
+                <i class="bi bi-megaphone-fill me-1"></i> NOTIFY MODULE
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ request()->is('notifications') || (request()->is('notifications/*') && !request()->is('notifications/settings')) ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('notifications.index') }}">
+                    <i class="bi bi-bell me-2"></i><span>Notifications</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ request()->is('notifications/settings') ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('notifications.settings') }}">
+                    <i class="bi bi-gear me-2"></i><span>Notification Settings</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center px-3 py-2 rounded-3 {{ request()->is('firebase-projects*') ? 'active bg-primary text-white' : 'text-light' }}"
+                    href="{{ route('firebase-projects.index') }}">
+                    <i class="bi bi-fire me-2"></i><span>Firebase Projects</span>
+                </a>
+            </li>
+            @endif
+
             @if ($sidebarGroup === 'baby')
             {{-- AI Image Module Header --}}
             <li class="sidebar-header" style="padding: 1.5rem 0.5rem 0.375rem; font-size: .90rem; color: #ced4da;">
@@ -1096,6 +1124,24 @@
             });
 
             document.addEventListener('DOMContentLoaded', function () {
+                @if(session('success'))
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true, position: 'top-end',
+                        icon: 'success', title: @json(session('success')),
+                        showConfirmButton: false, timer: 2500
+                    });
+                }
+                @endif
+                @if(session('error'))
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true, position: 'top-end',
+                        icon: 'error', title: @json(session('error')),
+                        showConfirmButton: false, timer: 3500
+                    });
+                }
+                @endif
                 try {
                     var raw = sessionStorage.getItem('admin_flash');
                     if (!raw) return;

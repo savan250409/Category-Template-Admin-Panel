@@ -34,6 +34,9 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('notifications.form', ['module' => 'filter_ai_image', 'id' => $category->id]) }}" class="action-btn notify-btn" title="Send notification" style="background-color:#f6c23e;color:#fff;">
+                                <i class="bi bi-bell-fill"></i>
+                            </a>
                             <a href="{{ route('filter-ai-image.categories.edit', $category->id) }}" class="action-btn edit-btn" title="Edit Category">
                                 <i class="bi bi-pencil"></i>
                             </a>

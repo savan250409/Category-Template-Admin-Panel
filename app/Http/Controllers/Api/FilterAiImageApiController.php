@@ -128,5 +128,4 @@ class FilterAiImageApiController extends Controller
             'data' => $images,
         ]);
     }
-
 }

@@ -106,7 +106,7 @@ class NgendevVideoController extends Controller
 
             return $request->ajax()
                 ? response()->json(['success' => true, 'message' => 'Ngendev video added successfully!'])
-                : view('partials.history_redirect', ['fallback' => route('ngendev-videos.index'), 'message' => 'Ngendev video added successfully!']);
+                : redirect()->route('ngendev-videos.index')->with('success', 'Ngendev video added successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -194,7 +194,7 @@ class NgendevVideoController extends Controller
 
             return $request->ajax()
                 ? response()->json(['success' => true, 'message' => 'Ngendev video updated successfully!'])
-                : view('partials.history_redirect', ['fallback' => route('ngendev-videos.index'), 'message' => 'Ngendev video updated successfully!']);
+                : redirect()->route('ngendev-videos.index')->with('success', 'Ngendev video updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

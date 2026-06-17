@@ -125,6 +125,7 @@
                     </small>
                 </div>
 
+                @include('notifications._after_save_toggle')
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary py-2">
                         <i class="bi bi-{{ isset($category) ? 'check-circle-fill' : 'plus-lg' }} me-2"></i>

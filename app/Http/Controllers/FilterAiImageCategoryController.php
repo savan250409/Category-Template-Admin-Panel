@@ -72,7 +72,12 @@ class FilterAiImageCategoryController extends Controller
 
         $category->update(['category_image' => json_encode($images)]);
 
-        return view('partials.history_redirect', ['fallback' => route('filter-ai-image.categories.index'), 'message' => 'Category added successfully!']);
+        if ($request->boolean('notify_after_save')) {
+            session()->flash('notify_project_ids', $request->input('firebase_project_ids', []));
+            return redirect()->route('notifications.form', ['module' => 'filter_ai_image', 'id' => $category->id]);
+        }
+
+        return redirect()->route('filter-ai-image.categories.index')->with('success', 'Category added successfully!');
     }
 
     public function edit($id)
@@ -116,7 +121,7 @@ class FilterAiImageCategoryController extends Controller
             'category_image' => json_encode($images),
         ]);
 
-        return view('partials.history_redirect', ['fallback' => route('filter-ai-image.categories.index'), 'message' => 'Category updated successfully!']);
+        return redirect()->route('filter-ai-image.categories.index')->with('success', 'Category updated successfully!');
     }
 
     public function destroy($id)

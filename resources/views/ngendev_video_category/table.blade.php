@@ -48,6 +48,9 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('notifications.form', ['module' => 'ngendev_video', 'id' => $category->id]) }}" class="action-btn notify-btn" title="Send notification" style="background-color:#f6c23e;color:#fff;">
+                                <i class="bi bi-bell-fill"></i>
+                            </a>
                             <a href="{{ route('ngendev-video-categories.edit', $category->id) }}" class="action-btn edit-btn"
                                 data-bs-toggle="tooltip" title="Edit Category">
                                 <i class="bi bi-pencil"></i>

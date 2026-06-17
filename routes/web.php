@@ -14,6 +14,8 @@ use App\Http\Controllers\SystemController;
 use App\Http\Controllers\FilterAiImageController;
 use App\Http\Controllers\FilterAiImageCategoryController;
 use App\Http\Controllers\FilterAiImageSettingController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FirebaseProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -422,5 +424,38 @@ Route::middleware(['admin_auth'])->group(function () {
             Route::get('/indexing', [\App\Http\Controllers\TopSliderCategoryController::class, 'indexing'])->name('indexing');
             Route::post('/update-order', [\App\Http\Controllers\TopSliderCategoryController::class, 'updateOrder'])->name('updateOrder');
         });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notify Module Routes
+    |--------------------------------------------------------------------------
+    | Shared notification system. One controller drives the list, the global
+    | broadcast, per-category sends (registered in NotificationController::$modules)
+    | and default-delay settings. Every push fans out to all Firebase projects.
+    */
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/settings', [NotificationController::class, 'settings'])->name('settings');
+        Route::post('/settings', [NotificationController::class, 'saveSettings'])->name('settings.save');
+        Route::get('/global', [NotificationController::class, 'globalForm'])->name('global');
+        Route::post('/global', [NotificationController::class, 'globalStore'])->name('global.store');
+        Route::get('/test', [NotificationController::class, 'testForm'])->name('test');
+        Route::post('/test', [NotificationController::class, 'testSend'])->name('test.send');
+        Route::post('/test/lookup', [NotificationController::class, 'testLookup'])->name('test.lookup');
+        Route::post('/upload-image', [NotificationController::class, 'uploadImage'])->name('uploadImage');
+        Route::get('/{id}/show', [NotificationController::class, 'show'])->whereNumber('id')->name('show');
+        Route::get('/{module}/{id}/form', [NotificationController::class, 'form'])->name('form');
+        Route::post('/{module}/{id}', [NotificationController::class, 'store'])->name('store');
+    });
+
+    // Firebase Projects (manage FCM credentials for every app this panel serves)
+    Route::prefix('firebase-projects')->name('firebase-projects.')->group(function () {
+        Route::get('/', [FirebaseProjectController::class, 'index'])->name('index');
+        Route::get('/create', [FirebaseProjectController::class, 'create'])->name('create');
+        Route::post('/', [FirebaseProjectController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [FirebaseProjectController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [FirebaseProjectController::class, 'update'])->name('update');
+        Route::delete('/{id}', [FirebaseProjectController::class, 'destroy'])->name('destroy');
     });
 });

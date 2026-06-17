@@ -88,7 +88,7 @@ class FontController extends Controller
 
             $font->save();
 
-            return view('partials.history_redirect', ['fallback' => route('fonts.index'), 'message' => 'Font created successfully!']);
+            return redirect()->route('fonts.index')->with('success', 'Font created successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -164,7 +164,7 @@ class FontController extends Controller
 
             $font->save();
 
-            return view('partials.history_redirect', ['fallback' => route('fonts.index'), 'message' => 'Font updated successfully!']);
+            return redirect()->route('fonts.index')->with('success', 'Font updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

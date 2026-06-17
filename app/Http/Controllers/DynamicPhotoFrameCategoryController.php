@@ -65,11 +65,7 @@ class DynamicPhotoFrameCategoryController extends Controller
                 $category->save();
             }
 
-            if ($request->boolean('notify_after_save')) {
-                return redirect()->route('notifications.form', ['module' => 'dynamic_photo_frame', 'id' => $category->id]);
-            }
-
-            return view('partials.history_redirect', ['fallback' => route('dynamic-photo-frame.categories.index'), 'message' => 'Dynamic Photo Frame Category created successfully!']);
+            return redirect()->route('dynamic-photo-frame.categories.index')->with('success', 'Dynamic Photo Frame Category created successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -128,7 +124,7 @@ class DynamicPhotoFrameCategoryController extends Controller
             $this->rmIfEmpty(public_path('upload/dynamic_photo_frame/' . $category->category_name . '/category image'));
             $this->rmIfEmpty(public_path('upload/dynamic_photo_frame/' . $category->category_name));
 
-            return view('partials.history_redirect', ['fallback' => route('dynamic-photo-frame.categories.index'), 'message' => 'Dynamic Photo Frame Category updated successfully!']);
+            return redirect()->route('dynamic-photo-frame.categories.index')->with('success', 'Dynamic Photo Frame Category updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');

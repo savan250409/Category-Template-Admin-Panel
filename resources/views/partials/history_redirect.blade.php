@@ -13,20 +13,12 @@
             var fallback = @json($fallback);
             var msg      = @json($message ?? null);
             var icon     = @json($icon ?? 'success');
-            var steps    = parseInt(@json($steps ?? 2), 10);
 
             if (msg) {
                 try {
                     sessionStorage.setItem('admin_flash', JSON.stringify({ message: msg, icon: icon }));
                 } catch (e) {}
             }
-
-            try {
-                if (window.history && window.history.length > steps) {
-                    window.history.go(-steps);
-                    return;
-                }
-            } catch (e) {}
 
             window.location.replace(fallback);
         })();

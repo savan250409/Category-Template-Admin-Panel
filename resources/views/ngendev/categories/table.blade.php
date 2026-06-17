@@ -2,6 +2,7 @@
     <table class="data-table">
         <thead>
             <tr>
+                <th class="col-index text-center">No.</th>
                 <th class="col-thumb">Image</th>
                 <th class="col-name">Category Name</th>
                 <th class="col-type">Type</th>
@@ -12,6 +13,13 @@
         <tbody>
             @forelse($categories as $category)
                 <tr id="row-{{ $category->id }}">
+                    <td class="text-center">
+                        @if($category->sort_order > 0)
+                            <span class="badge bg-primary rounded-pill">{{ $category->sort_order }}</span>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
                     <td>
                         @php $images = json_decode($category->category_image, true); @endphp
                         @if (!empty($images) && isset($images[0]))
@@ -41,6 +49,9 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('notifications.form', ['module' => 'ngendev_image', 'id' => $category->id]) }}" class="action-btn notify-btn" title="Send notification" style="background-color:#f6c23e;color:#fff;">
+                                <i class="bi bi-bell-fill"></i>
+                            </a>
                             <a href="{{ route('ngendev.categories.edit', $category->id) }}" class="action-btn edit-btn" title="Edit Category">
                                 <i class="bi bi-pencil"></i>
                             </a>
@@ -56,7 +67,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-tags"></i></div>
                             <h4 class="empty-state-title">No Categories Found</h4>

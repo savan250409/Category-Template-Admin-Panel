@@ -99,7 +99,7 @@ class LipsSyncController extends Controller
                 'video_thumbnail'       => $thumbFilename,
             ]);
 
-            return view('partials.history_redirect', ['fallback' => route('lips-sync.items.index'), 'message' => 'Lips Sync item added successfully!']);
+            return redirect()->route('lips-sync.items.index')->with('success', 'Lips Sync item added successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
@@ -189,7 +189,7 @@ class LipsSyncController extends Controller
 
             $item->save();
 
-            return view('partials.history_redirect', ['fallback' => route('lips-sync.items.index'), 'message' => 'Lips Sync item updated successfully!']);
+            return redirect()->route('lips-sync.items.index')->with('success', 'Lips Sync item updated successfully!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $errors = collect($e->errors())->map(fn($msgs) => $msgs[0])->values()->implode(' | ');
