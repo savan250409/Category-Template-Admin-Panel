@@ -2,7 +2,6 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th class="col-index text-center">No.</th>
                 <th class="col-thumb">Image</th>
                 <th class="col-name">Category Name</th>
                 <th class="col-type">Type</th>
@@ -13,13 +12,6 @@
         <tbody>
             @forelse($categories as $category)
                 <tr id="row-{{ $category->id }}">
-                    <td class="text-center">
-                        @if($category->sort_order > 0)
-                            <span class="badge bg-primary rounded-pill">{{ $category->sort_order }}</span>
-                        @else
-                            <span class="text-muted">—</span>
-                        @endif
-                    </td>
                     <td>
                         @php $images = json_decode($category->category_image, true); @endphp
                         @if (!empty($images) && isset($images[0]))
@@ -67,7 +59,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-tags"></i></div>
                             <h4 class="empty-state-title">No Categories Found</h4>

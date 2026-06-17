@@ -8,11 +8,10 @@
         .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .data-table th { background-color: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
         .data-table td { padding: .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; word-wrap: break-word; }
-        .data-table .col-index { width: 6%; }
-        .data-table .col-thumb { width: 10%; }
-        .data-table .col-name { width: 26%; }
-        .data-table .col-type { width: 13%; }
-        .data-table .col-status { width: 19%; }
+        .data-table .col-thumb { width: 12%; }
+        .data-table .col-name { width: 28%; }
+        .data-table .col-type { width: 14%; }
+        .data-table .col-status { width: 20%; }
         .data-table .col-action { width: 16%; }
         .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: .35rem; color: #fff !important; text-decoration: none; transition: all 0.2s; border: none; }
         .action-btn i { font-size: 0.9rem; color: #fff !important; }

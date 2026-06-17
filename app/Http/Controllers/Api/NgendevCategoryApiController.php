@@ -78,13 +78,13 @@ class NgendevCategoryApiController extends Controller
         // Separate Exclusive category
         $exclusive = $categories->firstWhere('category_name', 'Exclusive');
         if ($exclusive) {
-            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Exclusive'; });
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Exclusive'; })->values();
         }
 
         // Separate Trending category
         $trending = $categories->firstWhere('category_name', 'Trending');
         if ($trending) {
-            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Trending'; });
+            $categories = $categories->reject(function($cat) { return $cat['category_name'] === 'Trending'; })->values();
         }
 
         // Latest category: last record from all other categories
@@ -125,8 +125,8 @@ class NgendevCategoryApiController extends Controller
 
         $sortedCategories->push($latestCategory);
 
-        // Merge remaining categories
-        $sortedCategories = $sortedCategories->merge($categories);
+        // Append remaining categories (concat preserves existing keys, merge would overwrite them)
+        $sortedCategories = $sortedCategories->concat($categories);
 
         return response()->json([
             'status' => true,
