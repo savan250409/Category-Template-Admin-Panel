@@ -42,7 +42,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/v3/getAllCategories', [CategoryController::class, 'getAllCategoriesv3']);
     Route::post('/getSubcategoriesByCategory', [CategoryController::class, 'getSubcategoriesByCategory']);
     Route::post('/getSubcategoriesByCategoryid', [CategoryController::class, 'getSubcategoriesByCategoryid']);
-    Route::get('/trending', [CategoryController::class, 'trending']);
+    Route::get('/v2/trending', [CategoryController::class, 'trendingv2']);
 
     // Video Module API
     Route::get('/video/getAllCategories', [VideoCategoryController::class, 'getAllCategories']);
