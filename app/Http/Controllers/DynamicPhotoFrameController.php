@@ -141,6 +141,13 @@ class DynamicPhotoFrameController extends Controller
                 $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $frame->zip_file = $filename;
+            } elseif ($oldBase !== $base && $frame->zip_file) {
+                $oldFile = public_path($oldBase . '/zip/' . $frame->zip_file);
+                if (file_exists($oldFile)) {
+                    $newPath = public_path($base . '/zip');
+                    if (!File::exists($newPath)) File::makeDirectory($newPath, 0777, true);
+                    File::move($oldFile, $newPath . '/' . $frame->zip_file);
+                }
             }
 
             if ($request->hasFile('thumbnail')) {
@@ -153,6 +160,13 @@ class DynamicPhotoFrameController extends Controller
                 $filename = $this->uniqueFilename($path, $file->getClientOriginalName());
                 $file->move($path, $filename);
                 $frame->thumbnail = $filename;
+            } elseif ($oldBase !== $base && $frame->thumbnail) {
+                $oldFile = public_path($oldBase . '/thumbnail/' . $frame->thumbnail);
+                if (file_exists($oldFile)) {
+                    $newPath = public_path($base . '/thumbnail');
+                    if (!File::exists($newPath)) File::makeDirectory($newPath, 0777, true);
+                    File::move($oldFile, $newPath . '/' . $frame->thumbnail);
+                }
             }
 
             if ($oldBase !== $base) {
