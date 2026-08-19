@@ -31,15 +31,15 @@
                                         @endphp
                                         @foreach ($existingItems as $img)
                                             <div class="col-md-4 image-block">
-                                                <div class="card">
+                                                <div class="card h-100">
                                                     @if(request('origin') === 'video')
-                                                        <video class="card-img-top" style="height:200px; object-fit:cover;" controls>
+                                                        <video class="card-img-top" style="height:180px; object-fit:cover;" controls>
                                                             <source src="{{ asset('upload/AI Baby Video/' . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $img['file']) }}" type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
                                                             Your browser does not support the video tag.
                                                         </video>
                                                     @else
                                                         <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                            class="card-img-top" alt="Image">
+                                                            class="card-img-top" style="height:180px; object-fit:cover;" alt="Image">
                                                     @endif
                                                     <div class="card-body p-2">
                                                         <div class="mb-1">
@@ -57,17 +57,25 @@
                                                                 value="{{ $img['video_title'] ?? ($img['image_title'] ?? '') }}"
                                                                 class="form-control form-control-sm">
                                                         </div>
+                                                        <div class="mb-2">
+                                                            <label class="small text-muted">Replace {{ request('origin') === 'video' ? 'Video' : 'Image' }}</label>
+                                                            <input type="file"
+                                                                name="replace_images[{{ $img['file'] }}]"
+                                                                accept="{{ request('origin') === 'video' ? 'video/*' : 'image/*' }}"
+                                                                class="form-control form-control-sm">
+                                                        </div>
                                                         <div class="form-check form-switch mb-1">
                                                             <input class="form-check-input" type="checkbox"
                                                                 name="existing_name_change[{{ $img['file'] }}]"
                                                                 value="1"
                                                                 {{ !empty($img['name_change']) ? 'checked' : '' }}>
-                                                            <label class="form-check-label">Name Change</label>
+                                                            <label class="form-check-label small">Name Change</label>
                                                         </div>
                                                         <div class="form-check form-switch">
-                                                            <input type="checkbox" name="remove_images[]"
+                                                            <input class="form-check-input" type="checkbox"
+                                                                name="remove_images[]"
                                                                 value="{{ $img['file'] }}">
-                                                            <label class="form-check-label">Remove</label>
+                                                            <label class="form-check-label small text-danger">Remove</label>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -380,7 +380,7 @@ class SubcategoryController extends Controller
 
         // Update simple fields
         $subcategory->description = $request->description;
-        // $subcategory->trending = $request->has('trending') ? 1 : 0; // Removed as field is not in form
+        $subcategory->trending = $request->has('trending') ? 1 : 0;
 
         // Update Title
         if ($request->has('title')) {
@@ -457,6 +457,14 @@ class SubcategoryController extends Controller
                 $file->move($catThumbFolder, $newFileName);
                 $subcategory->category_thumbnail_image = $newFileName;
             }
+        } elseif ($request->filled('remove_thumbnail')) {
+            if (!empty($oldThumbnail)) {
+                $oldThumbInNewPath = public_path("{$pathPrefix}{$categoryFolder}/{$subcategoryFolder}/category_thumbnail/{$oldThumbnail}");
+                if (file_exists($oldThumbInNewPath)) {
+                    @unlink($oldThumbInNewPath);
+                }
+            }
+            $subcategory->category_thumbnail_image = null;
         }
 
         // === GALLERY IMAGES ===
@@ -513,6 +521,25 @@ class SubcategoryController extends Controller
             unset($img);
         }
 
+        // Replace existing gallery images (file swap)
+        if ($request->hasFile('replace_images')) {
+            foreach ($request->file('replace_images') as $oldFileName => $newFile) {
+                if (!$newFile || !$newFile->isValid()) continue;
+                foreach ($imagesData as &$img) {
+                    if ($img['file'] !== $oldFileName) continue;
+                    $oldPath = $is_video ? ($videoFolder . '/' . $oldFileName) : ($baseFolder . '/' . $oldFileName);
+                    if (file_exists($oldPath)) @unlink($oldPath);
+                    $baseName  = pathinfo($newFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $ext       = $newFile->getClientOriginalExtension();
+                    $newFName  = \Illuminate\Support\Str::slug($baseName) . '-' . time() . '-' . \Illuminate\Support\Str::random(6) . '.' . $ext;
+                    $is_video ? $newFile->move($videoFolder, $newFName) : $newFile->move($baseFolder, $newFName);
+                    $img['file'] = $newFName;
+                    break;
+                }
+                unset($img);
+            }
+        }
+
         // Add new gallery images
         if ($request->hasFile('images')) {
             $thumbnails = $request->input('video_thumbnails', []);
@@ -521,7 +548,9 @@ class SubcategoryController extends Controller
                 if (!$imgFile || !$imgFile->isValid())
                     continue;
 
-                $originalName = $imgFile->getClientOriginalName();
+                $baseName  = pathinfo($imgFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $imgFile->getClientOriginalExtension();
+                $originalName = \Illuminate\Support\Str::slug($baseName) . '-' . time() . '-' . \Illuminate\Support\Str::random(6) . '.' . $extension;
                 $prompt = $request->prompts[$index] ?? '';
                 // Get title from the dynamic field
                 $titles = $request->$titleField;
@@ -559,6 +588,31 @@ class SubcategoryController extends Controller
                     $titleField => $imageTitle,
                     'name_change' => $nameChange ? true : false,
                 ];
+            }
+        }
+
+        // Add images from URLs (Generate option)
+        if ($request->filled('image_urls')) {
+            foreach ($request->image_urls as $index => $url) {
+                if (empty(trim($url))) continue;
+                try {
+                    $response  = \Illuminate\Support\Facades\Http::timeout(15)->get($url);
+                    if (!$response->successful()) continue;
+                    $urlPath   = parse_url($url, PHP_URL_PATH);
+                    $urlExt    = strtolower(pathinfo($urlPath, PATHINFO_EXTENSION));
+                    $extension = in_array($urlExt, ['jpg', 'jpeg', 'png', 'webp']) ? $urlExt : 'jpg';
+                    $fileName  = 'gen-' . time() . '-' . \Illuminate\Support\Str::random(6) . '.' . $extension;
+                    file_put_contents($baseFolder . '/' . $fileName, $response->body());
+                    $imagesData[] = [
+                        'file'       => $fileName,
+                        'thumbnail'  => null,
+                        'prompt'     => $request->url_prompts[$index] ?? '',
+                        $titleField  => $request->url_image_titles[$index] ?? '',
+                        'name_change' => false,
+                    ];
+                } catch (\Exception $e) {
+                    // skip invalid URL
+                }
             }
         }
 
