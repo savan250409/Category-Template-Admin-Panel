@@ -127,25 +127,41 @@ class NgendevImageController extends Controller
                 'image_hint.required_if' => 'Image Hint is required when Name Change is enabled.',
             ]);
 
-            $image        = NgendevImage::findOrFail($id);
-            $category     = NgendevCategory::findOrFail($request->category_id);
-            $categoryName = $category->category_name;
-            $imagePath    = $image->image_path;
+            $image = NgendevImage::with('category')->findOrFail($id);
+            $oldCategory = $image->category ?? NgendevCategory::find($image->category_id);
+            $oldCategoryName = $oldCategory ? $oldCategory->category_name : null;
+
+            $newCategory = NgendevCategory::findOrFail($request->category_id);
+            $newCategoryName = $newCategory->category_name;
+
+            $isCategoryChanged = ($oldCategoryName !== null && $oldCategoryName !== $newCategoryName);
+            $imagePath = $image->image_path;
+            $newImageFolder = public_path('upload/ngendev/images/' . $newCategoryName . '/category_image');
 
             if ($request->hasFile('image')) {
-                $oldPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image/' . $imagePath);
-                if ($imagePath && file_exists($oldPath)) {
-                    unlink($oldPath);
+                if ($imagePath && $oldCategoryName) {
+                    $oldPath = public_path('upload/ngendev/images/' . $oldCategoryName . '/category_image/' . $imagePath);
+                    if (File::exists($oldPath)) {
+                        File::delete($oldPath);
+                    }
                 }
 
-                $destinationPath = public_path('upload/ngendev/images/' . $categoryName . '/category_image');
-
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0777, true);
+                if (!File::exists($newImageFolder)) {
+                    File::makeDirectory($newImageFolder, 0777, true, true);
                 }
 
-                $imagePath = $this->uniqueFilename($destinationPath, $request->file('image')->getClientOriginalName());
-                $request->file('image')->move($destinationPath, $imagePath);
+                $imagePath = $this->uniqueFilename($newImageFolder, $request->file('image')->getClientOriginalName());
+                $request->file('image')->move($newImageFolder, $imagePath);
+            } elseif ($isCategoryChanged && $imagePath && $oldCategoryName) {
+                $oldPath = public_path('upload/ngendev/images/' . $oldCategoryName . '/category_image/' . $imagePath);
+                if (File::exists($oldPath)) {
+                    if (!File::exists($newImageFolder)) {
+                        File::makeDirectory($newImageFolder, 0777, true, true);
+                    }
+                    $newImageFilename = $this->uniqueFilename($newImageFolder, $imagePath);
+                    File::move($oldPath, $newImageFolder . '/' . $newImageFilename);
+                    $imagePath = $newImageFilename;
+                }
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;
@@ -184,13 +200,14 @@ class NgendevImageController extends Controller
 
     public function destroy($id)
     {
-        $image = NgendevImage::findOrFail($id);
-        $category = $image->category;
+        $image = NgendevImage::with('category')->findOrFail($id);
+        $category = $image->category ?? NgendevCategory::find($image->category_id);
 
-        $filePath = public_path('upload/ngendev/images/' . $category->category_name . '/category_image/' . $image->image_path);
-
-        if (File::exists($filePath)) {
-            File::delete($filePath);
+        if ($category && $image->image_path) {
+            $filePath = public_path('upload/ngendev/images/' . $category->category_name . '/category_image/' . $image->image_path);
+            if (File::exists($filePath)) {
+                File::delete($filePath);
+            }
         }
 
         $image->delete();

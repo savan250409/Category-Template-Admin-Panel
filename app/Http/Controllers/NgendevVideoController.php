@@ -140,43 +140,73 @@ class NgendevVideoController extends Controller
                 'image_hint.required_if' => 'Image Hint is required when Name Change is enabled.',
             ]);
 
-            $video        = NgendevVideo::findOrFail($id);
-            $category     = NgendevVideoCategory::findOrFail($request->category_id);
-            $categoryName = $category->category_name;
+            $video = NgendevVideo::with('category')->findOrFail($id);
+            $oldCategory = $video->category ?? NgendevVideoCategory::find($video->category_id);
+            $oldCategoryName = $oldCategory ? $oldCategory->category_name : null;
+
+            $newCategory = NgendevVideoCategory::findOrFail($request->category_id);
+            $newCategoryName = $newCategory->category_name;
+
+            $isCategoryChanged = ($oldCategoryName !== null && $oldCategoryName !== $newCategoryName);
 
             $videoPath     = $video->video_path;
             $thumbnailPath = $video->video_thumbnail;
 
+            $newVideoFolder = public_path('upload/ngendev/videos/' . $newCategoryName . '/category_video');
+            $newThumbFolder = public_path('upload/ngendev/videos/' . $newCategoryName . '/video_thumbnail');
+
+            // 1. Handle Video
             if ($request->hasFile('video')) {
-                $oldPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video/' . $videoPath);
-                if ($videoPath && file_exists($oldPath)) {
-                    unlink($oldPath);
+                if ($videoPath && $oldCategoryName) {
+                    $oldFilePath = public_path('upload/ngendev/videos/' . $oldCategoryName . '/category_video/' . $videoPath);
+                    if (File::exists($oldFilePath)) {
+                        File::delete($oldFilePath);
+                    }
                 }
 
-                $destinationPath = public_path('upload/ngendev/videos/' . $categoryName . '/category_video');
-
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0777, true);
+                if (!File::exists($newVideoFolder)) {
+                    File::makeDirectory($newVideoFolder, 0777, true, true);
                 }
 
-                $videoPath = $this->uniqueFilename($destinationPath, $request->file('video')->getClientOriginalName());
-                $request->file('video')->move($destinationPath, $videoPath);
+                $videoPath = $this->uniqueFilename($newVideoFolder, $request->file('video')->getClientOriginalName());
+                $request->file('video')->move($newVideoFolder, $videoPath);
+            } elseif ($isCategoryChanged && $videoPath && $oldCategoryName) {
+                $oldFilePath = public_path('upload/ngendev/videos/' . $oldCategoryName . '/category_video/' . $videoPath);
+                if (File::exists($oldFilePath)) {
+                    if (!File::exists($newVideoFolder)) {
+                        File::makeDirectory($newVideoFolder, 0777, true, true);
+                    }
+                    $newVideoFilename = $this->uniqueFilename($newVideoFolder, $videoPath);
+                    File::move($oldFilePath, $newVideoFolder . '/' . $newVideoFilename);
+                    $videoPath = $newVideoFilename;
+                }
             }
 
+            // 2. Handle Thumbnail
             if ($request->hasFile('video_thumbnail')) {
-                $oldThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail/' . $thumbnailPath);
-                if ($thumbnailPath && file_exists($oldThumbPath)) {
-                    unlink($oldThumbPath);
+                if ($thumbnailPath && $oldCategoryName) {
+                    $oldThumbFilePath = public_path('upload/ngendev/videos/' . $oldCategoryName . '/video_thumbnail/' . $thumbnailPath);
+                    if (File::exists($oldThumbFilePath)) {
+                        File::delete($oldThumbFilePath);
+                    }
                 }
 
-                $destinationThumbPath = public_path('upload/ngendev/videos/' . $categoryName . '/video_thumbnail');
-
-                if (!file_exists($destinationThumbPath)) {
-                    mkdir($destinationThumbPath, 0777, true);
+                if (!File::exists($newThumbFolder)) {
+                    File::makeDirectory($newThumbFolder, 0777, true, true);
                 }
 
-                $thumbnailPath = $this->uniqueFilename($destinationThumbPath, $request->file('video_thumbnail')->getClientOriginalName());
-                $request->file('video_thumbnail')->move($destinationThumbPath, $thumbnailPath);
+                $thumbnailPath = $this->uniqueFilename($newThumbFolder, $request->file('video_thumbnail')->getClientOriginalName());
+                $request->file('video_thumbnail')->move($newThumbFolder, $thumbnailPath);
+            } elseif ($isCategoryChanged && $thumbnailPath && $oldCategoryName) {
+                $oldThumbFilePath = public_path('upload/ngendev/videos/' . $oldCategoryName . '/video_thumbnail/' . $thumbnailPath);
+                if (File::exists($oldThumbFilePath)) {
+                    if (!File::exists($newThumbFolder)) {
+                        File::makeDirectory($newThumbFolder, 0777, true, true);
+                    }
+                    $newThumbFilename = $this->uniqueFilename($newThumbFolder, $thumbnailPath);
+                    File::move($oldThumbFilePath, $newThumbFolder . '/' . $newThumbFilename);
+                    $thumbnailPath = $newThumbFilename;
+                }
             }
 
             $isNameChange = $request->has('name_change') ? 1 : 0;
@@ -214,15 +244,17 @@ class NgendevVideoController extends Controller
 
     public function destroy($id)
     {
-        $video = NgendevVideo::findOrFail($id);
-        $category = $video->category;
+        $video = NgendevVideo::with('category')->findOrFail($id);
+        $category = $video->category ?? NgendevVideoCategory::find($video->category_id);
 
-        $videoFilePath = public_path('upload/ngendev/videos/' . $category->category_name . '/category_video/' . $video->video_path);
-        if (File::exists($videoFilePath)) {
-            File::delete($videoFilePath);
+        if ($category && $video->video_path) {
+            $videoFilePath = public_path('upload/ngendev/videos/' . $category->category_name . '/category_video/' . $video->video_path);
+            if (File::exists($videoFilePath)) {
+                File::delete($videoFilePath);
+            }
         }
 
-        if ($video->video_thumbnail) {
+        if ($category && $video->video_thumbnail) {
             $thumbnailFilePath = public_path('upload/ngendev/videos/' . $category->category_name . '/video_thumbnail/' . $video->video_thumbnail);
             if (File::exists($thumbnailFilePath)) {
                 File::delete($thumbnailFilePath);
