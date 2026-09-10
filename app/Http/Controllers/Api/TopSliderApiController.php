@@ -12,7 +12,7 @@ class TopSliderApiController extends Controller
     {
         $categories = TopSliderCategory::where('status', 1)
             ->where('top_slider_is_on', 1)
-            ->orderBy('sort_order', 'asc')
+           ->orderBy('id', 'desc')
             ->get();
 
         if ($categories->isEmpty()) {
