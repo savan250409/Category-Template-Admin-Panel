@@ -8,14 +8,15 @@
         .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .data-table th { background: #f8f9fc; color: #5a5c69; font-weight: 700; padding: .75rem; border-bottom: 1px solid #e3e6f0; }
         .data-table td { padding: .75rem; vertical-align: middle; border-bottom: 1px solid #e3e6f0; word-wrap: break-word; }
-        .data-table .col-category { width: 11%; }
-        .data-table .col-model { width: 10%; }
+        .data-table .col-id { width: 5%; text-align: center; }
+        .data-table .col-category { width: 13%; }
+        .data-table .col-model { width: 11%; }
         .data-table .col-thumb { width: 9%; }
-        .data-table .col-prompt { width: 24%; }
-        .data-table .col-no { width: 7%; }
-        .data-table .col-name-change { width: 9%; }
-        .data-table .col-hint { width: 16%; }
+        .data-table .col-prompt { width: 52%; }
         .data-table .col-action { width: 10%; }
+        .prompt-user { font-size: .85rem; }
+        .prompt-default { font-size: .78rem; color: #858796; margin-top: .25rem; }
+        .prompt-default-label { font-weight: 600; color: #5a5c69; }
         .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: .35rem; color: #fff !important; text-decoration: none; transition: all 0.2s; border: none; }
         .action-btn i { font-size: 0.9rem; color: #fff !important; }
         .edit-btn { background-color: #0dcaf0; }
@@ -110,12 +111,27 @@
                             <option value="Ngendev Figure">Ngendev Figure</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="ai_prompt" class="form-label d-flex justify-content-between align-items-center">
-                            <span>Prompt</span>
-                            <small class="text-muted"><span id="aiPromptCounter">0</span>/2990</small>
-                        </label>
-                        <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="6" placeholder="Enter prompt" required></textarea>
+                    <div class="col-md-6 mb-3">
+                        <div class="mb-3">
+                            <label for="ai_prompt" class="form-label d-flex justify-content-between align-items-center">
+                                <span>Prompt</span>
+                                <small class="text-muted"><span id="aiPromptCounter">0</span>/<span id="aiPromptMax">2990</span></small>
+                            </label>
+                            <textarea class="form-control" id="ai_prompt" name="ai_prompt" rows="4" placeholder="Enter your prompt..." required></textarea>
+                            <div id="aiPromptWarning" style="display:none;" class="mt-1">
+                                <div class="alert alert-danger py-1 px-2 mb-0" style="font-size:.8rem;">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    Prompt exceeds <strong id="aiPromptWarnLimit"></strong> characters. Default prompt will not be appended. Shorten to enable saving.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-0" id="defaultPromptWrapper">
+                            <label for="default_prompt" class="form-label d-flex justify-content-between align-items-center">
+                                <span>Default Prompt</span>
+                                <small class="text-muted"><span id="defaultPromptCounter">0</span>/2990</small>
+                            </label>
+                            <textarea class="form-control" id="default_prompt" rows="4" maxlength="2990" placeholder="Default prompt..." readonly style="background-color:#f8f9fa;cursor:not-allowed;resize:none;">Ultra-photorealistic portrait of the exact same person as the reference image. Preserve identical facial identity, bone structure, proportions, and all features (eyes, nose, mouth, jawline, skin detail) with zero modification. Maintain the original expression, emotion, and mood. No beautification or facial alteration. Natural lighting, lifelike skin texture, high dynamic range, and maximum identity fidelity.</textarea>
+                        </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="mb-3">
@@ -291,6 +307,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         const PROMPT_LIMIT = 2990;
+        const DEFAULT_PROMPT_TEXT = 'Ultra-photorealistic portrait of the exact same person as the reference image. Preserve identical facial identity, bone structure, proportions, and all features (eyes, nose, mouth, jawline, skin detail) with zero modification. Maintain the original expression, emotion, and mood. No beautification or facial alteration. Natural lighting, lifelike skin texture, high dynamic range, and maximum identity fidelity.';
+        const USER_PROMPT_LIMIT = PROMPT_LIMIT - DEFAULT_PROMPT_TEXT.length;
 
         function toggleImageHint() {
             const checked = document.getElementById('name_change').checked;
@@ -302,17 +320,35 @@
             }
         }
 
-        function updatePromptCounter() {
-            const ta = document.getElementById('ai_prompt');
-            const counter = document.getElementById('aiPromptCounter');
+        function updateCounter(textareaId, counterId, limit) {
+            const ta = document.getElementById(textareaId);
+            const counter = document.getElementById(counterId);
             if (!ta || !counter) return;
             const len = ta.value.length;
             counter.textContent = len;
-            const over = len > PROMPT_LIMIT;
-            ta.classList.toggle('is-invalid', over);
-            ta.style.borderColor = over ? '#dc3545' : '';
+            const over = len >= limit;
             counter.style.color = over ? '#dc3545' : '';
         }
+
+        function updateUserPromptCounter() {
+            const ta = document.getElementById('ai_prompt');
+            const counter = document.getElementById('aiPromptCounter');
+            const warning = document.getElementById('aiPromptWarning');
+            const warnLimit = document.getElementById('aiPromptWarnLimit');
+            const defWrapper = document.getElementById('defaultPromptWrapper');
+            if (!ta || !counter) return;
+            const len = ta.value.length;
+            counter.textContent = len;
+            const over = len > USER_PROMPT_LIMIT;
+            counter.style.color = over ? '#dc3545' : '';
+            ta.style.borderColor = over ? '#dc3545' : '';
+            ta.style.backgroundColor = over ? '#fff0f0' : '';
+            if (warnLimit) warnLimit.textContent = USER_PROMPT_LIMIT;
+            if (warning) warning.style.display = over ? '' : 'none';
+            if (defWrapper) defWrapper.style.display = over ? 'none' : '';
+        }
+
+        function updatePromptCounter() { updateUserPromptCounter(); }
 
         window.previewImage = function (input) {
             if (input.files && input.files[0]) {
@@ -357,15 +393,17 @@
             document.getElementById('editId').value = id;
             document.getElementById('category_id').value = category;
             document.getElementById('ai_model').value = model;
-            document.getElementById('ai_prompt').value = prompt;
+            document.getElementById('ai_prompt').value = prompt || '';
+            updateUserPromptCounter();
+            document.getElementById('default_prompt').value = DEFAULT_PROMPT_TEXT;
+            updateCounter('default_prompt', 'defaultPromptCounter', PROMPT_LIMIT);
             document.getElementById('no_of_image').value = noOfImage;
             document.getElementById('name_change').checked = (nameChange == 1);
             document.getElementById('image_hint').value = imageHint;
             toggleImageHint();
-            updatePromptCounter();
 
             if (imagePath) {
-                const categoryName = button.closest('tr').querySelector('td:first-child strong').textContent.trim();
+                const categoryName = button.closest('tr').querySelector('td:nth-child(2) strong').textContent.trim();
                 const imgUrl = "{{ asset('upload/ngendev/images') }}/" + categoryName + '/category_image/' + imagePath;
                 document.getElementById('previewImg').src = imgUrl;
                 document.getElementById('imagePreview').classList.remove('d-none');
@@ -406,8 +444,11 @@
             document.getElementById('no_of_image').value = 1;
             document.getElementById('name_change').checked = false;
             document.getElementById('image_hint').value = '';
+            document.getElementById('ai_prompt').value = '';
+            document.getElementById('default_prompt').value = DEFAULT_PROMPT_TEXT;
+            updateUserPromptCounter();
+            updateCounter('default_prompt', 'defaultPromptCounter', PROMPT_LIMIT);
             toggleImageHint();
-            updatePromptCounter();
             document.getElementById('imagePreview').classList.add('d-none');
         }
 
@@ -417,8 +458,16 @@
 
             const promptEl = document.getElementById('ai_prompt');
             if (promptEl) {
-                promptEl.addEventListener('input', updatePromptCounter);
-                updatePromptCounter();
+                promptEl.removeAttribute('maxlength');
+                const maxDisplay = document.getElementById('aiPromptMax');
+                if (maxDisplay) maxDisplay.textContent = USER_PROMPT_LIMIT;
+                promptEl.addEventListener('input', updateUserPromptCounter);
+                updateUserPromptCounter();
+            }
+
+            const defaultPromptEl = document.getElementById('default_prompt');
+            if (defaultPromptEl) {
+                updateCounter('default_prompt', 'defaultPromptCounter', PROMPT_LIMIT);
             }
 
             const hintEl = document.getElementById('image_hint');
@@ -525,8 +574,9 @@
             $('#ngendevImageForm').on('submit', function (e) {
                 e.preventDefault();
                 const promptVal = document.getElementById('ai_prompt').value;
-                if (promptVal.length > PROMPT_LIMIT) {
-                    Swal.fire({ icon: 'error', title: 'Prompt too long', text: 'Prompt must not exceed ' + PROMPT_LIMIT + ' characters. Current: ' + promptVal.length + '.' });
+                if (promptVal.length > USER_PROMPT_LIMIT) {
+                    Swal.fire({ icon: 'warning', title: 'Prompt Too Long', text: 'Your prompt is ' + promptVal.length + ' characters. Maximum allowed is ' + USER_PROMPT_LIMIT + '. Please shorten your prompt to save.' });
+                    document.getElementById('ai_prompt').focus();
                     return;
                 }
                 const nameChangeChecked = document.getElementById('name_change').checked;
