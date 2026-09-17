@@ -691,13 +691,13 @@
                                         <small class="text-muted">ID: ${image.id}</small>
                                     </div>
                                     ${image.image_url ?
-                                        `<img src="${image.image_url}" class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;" alt="Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px; display: none;">
+                                        `<img src="${image.image_url}" class="img-fluid rounded" style="height:120px;object-fit:cover;width:100%;" alt="Image" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                        <div class="bg-light rounded" style="height:120px;display:none;align-items:center;justify-content:center;">
                                             <i class="bi bi-image text-muted fs-4"></i>
                                         </div>` :
-                                        `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                                        `<div class="bg-light rounded" style="height:120px;display:flex;align-items:center;justify-content:center;">
                                             <i class="bi bi-image text-muted fs-4"></i>
-                                         </div>`
+                                        </div>`
                                     }
                                     <div class="mt-2">
                                         <small class="text-muted d-block" style="font-size: 0.75rem;">

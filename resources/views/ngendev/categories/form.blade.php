@@ -127,9 +127,7 @@
                             {{ old('status', $category->status ?? 1) ? 'checked' : '' }}>
                         <label class="form-check-label" for="status">Active Status</label>
                     </div>
-                    <small class="text-muted" id="status-help">
-                        Solo categories are always active.
-                    </small>
+                    <small class="text-muted" id="status-help" style="display:none;"></small>
                 </div>
 
                 @include('notifications._after_save_toggle', ['inlineNotification' => true])
@@ -185,25 +183,31 @@
             }
         }
 
+        const COUPLE_ACTIVE = {{ isset($coupleActive) && $coupleActive ? 'true' : 'false' }};
+
         document.addEventListener('DOMContentLoaded', function() {
             const typeSelect = document.getElementById('type');
             const statusCheck = document.getElementById('status');
             const statusHelp = document.getElementById('status-help');
 
-            function updateStatusVisibility() {
-                if (typeSelect.value === 'Solo') {
-                    statusCheck.checked = true;
-                    statusCheck.disabled = true;
+            function updateStatusVisibility(isTypeChange) {
+                statusCheck.disabled = false;
+                if (typeSelect.value === 'Couple' && isTypeChange) {
+                    statusCheck.checked = COUPLE_ACTIVE;
+                    statusHelp.textContent = COUPLE_ACTIVE
+                        ? 'Couple categories are active (global Couple Status is ON).'
+                        : 'Couple categories are inactive (global Couple Status is OFF).';
                     statusHelp.style.display = 'block';
+                } else if (typeSelect.value === 'Solo') {
+                    statusHelp.style.display = 'none';
                 } else {
-                    statusCheck.disabled = false;
                     statusHelp.style.display = 'none';
                 }
             }
 
-            typeSelect.addEventListener('change', updateStatusVisibility);
-            
-            updateStatusVisibility();
+            typeSelect.addEventListener('change', function() { updateStatusVisibility(true); });
+
+            updateStatusVisibility(false);
         });
     </script>
 @endsection

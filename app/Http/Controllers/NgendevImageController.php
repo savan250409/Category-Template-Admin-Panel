@@ -242,7 +242,9 @@ class NgendevImageController extends Controller
 
             // Build the correct image URL
             if ($image->image_path && $image->category) {
-                $imageData['image_url'] = asset('upload/ngendev/images/' . $image->category->category_name . '/category_image/' . $image->image_path);
+                $catName  = rawurlencode($image->category->category_name);
+                $imgPath  = rawurlencode($image->image_path);
+                $imageData['image_url'] = asset("upload/ngendev/images/{$catName}/category_image/{$imgPath}");
             } else {
                 $imageData['image_url'] = null;
             }

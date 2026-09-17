@@ -272,11 +272,13 @@
 
             <script>
                 $(document).on('change', '.toggle-status', function () {
-                    let categoryName = $(this).data('name');
-                    let status = $(this).is(':checked') ? 1 : 0;
+                    let $toggled = $(this);
+                    let categoryName = $toggled.data('name');
+                    let status = $toggled.is(':checked') ? 1 : 0;
+                    let imageToggleUrl = "{{ route('ai-image-categories.toggle-status') }}";
 
-                    let url = "{{ route('ai-image-categories.toggle-status') }}";
-                    if ($(this).hasClass('video-category')) {
+                    let url = imageToggleUrl;
+                    if ($toggled.hasClass('video-category')) {
                         url = "{{ route('ai-video-categories.toggle-status') }}";
                     }
 
@@ -290,9 +292,30 @@
                         },
                         success: function (res) {
                             if (res.success) {
-                                let label = $('input[data-name="' + categoryName + '"]').closest('li').find(
-                                    'span').first();
-                                label.text(res.status ? 'Published' : 'Draft');
+                                $toggled.closest('li').find('span').first().text(res.status ? 'Published' : 'Draft');
+
+                                // Opposition: when turning one Published ON, turn all other image category toggles OFF
+                                if (status === 1 && !$toggled.hasClass('video-category')) {
+                                    $('.toggle-status').not($toggled).not('.video-category').filter(':checked').each(function () {
+                                        let $other = $(this);
+                                        let otherName = $other.data('name');
+                                        $.ajax({
+                                            url: imageToggleUrl,
+                                            type: 'POST',
+                                            data: {
+                                                _token: "{{ csrf_token() }}",
+                                                name: otherName,
+                                                status: 0
+                                            },
+                                            success: function (r) {
+                                                if (r.success) {
+                                                    $other.prop('checked', false);
+                                                    $other.closest('li').find('span').first().text('Draft');
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
                             }
                         },
                         error: function (err) {

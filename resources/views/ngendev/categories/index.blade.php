@@ -344,8 +344,10 @@
 
             // Status toggle (delegated so it works after AJAX swaps)
             $(document).on('change', '.status-toggle', function () {
-                const id = $(this).data('id');
-                const isChecked = $(this).is(':checked');
+                const $toggle = $(this);
+                const id = $toggle.data('id');
+                const type = $toggle.data('type');
+                const isChecked = $toggle.is(':checked');
                 const status = isChecked ? 1 : 0;
                 const badge = $(`#status-badge-${id}`);
 
@@ -359,12 +361,12 @@
                             else badge.removeClass('bg-success').addClass('bg-danger').text('Inactive');
                             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 3000 });
                         } else {
-                            $(`#status-${id}`).prop('checked', !isChecked);
+                            $toggle.prop('checked', !isChecked);
                             Swal.fire({ icon: 'error', title: 'Error', text: res.message });
                         }
                     },
                     error: function () {
-                        $(`#status-${id}`).prop('checked', !isChecked);
+                        $toggle.prop('checked', !isChecked);
                         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update status' });
                     }
                 });

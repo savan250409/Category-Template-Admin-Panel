@@ -38,7 +38,8 @@ class NgendevCategoryController extends Controller
 
     public function create()
     {
-        return view('ngendev.categories.form');
+        $coupleActive = (bool) (\App\Models\AiImageNgdSetting::value('couple_active') ?? 0);
+        return view('ngendev.categories.form', compact('coupleActive'));
     }
 
     public function store(Request $request)
@@ -143,7 +144,8 @@ class NgendevCategoryController extends Controller
     public function edit($id)
     {
         $category = NgendevCategory::findOrFail($id);
-        return view('ngendev.categories.form', compact('category'));
+        $coupleActive = (bool) (\App\Models\AiImageNgdSetting::value('couple_active') ?? 0);
+        return view('ngendev.categories.form', compact('category', 'coupleActive'));
     }
 
     public function update(Request $request, $id)
@@ -280,10 +282,6 @@ class NgendevCategoryController extends Controller
 
         $category = NgendevCategory::find($request->id);
 
-        if ($category->type === 'Solo' && $request->status == 0) {
-            return response()->json(['success' => false, 'message' => 'Solo categories must be active!']);
-        }
-
         if ($category->type === 'Couple' && $request->status == 1) {
             $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
             if (!$coupleActive) {
@@ -309,6 +307,9 @@ class NgendevCategoryController extends Controller
 
         if ($request->type === 'Solo') {
             $category->status = 1;
+        } elseif ($request->type === 'Couple') {
+            $coupleActive = \App\Models\AiImageNgdSetting::value('couple_active');
+            $category->status = $coupleActive ? 1 : 0;
         }
 
         $category->save();

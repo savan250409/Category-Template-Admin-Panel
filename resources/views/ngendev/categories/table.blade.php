@@ -32,7 +32,7 @@
                     <td>
                         <div class="d-flex align-items-center">
                             <div class="form-check form-switch m-0 me-2">
-                                <input class="form-check-input status-toggle" type="checkbox" role="switch" id="status-{{ $category->id }}" data-id="{{ $category->id }}" {{ $category->status ? 'checked' : '' }} {{ $category->type == 'Solo' ? 'disabled' : '' }}>
+                                <input class="form-check-input status-toggle" type="checkbox" role="switch" id="status-{{ $category->id }}" data-id="{{ $category->id }}" data-type="{{ $category->type }}" {{ $category->status ? 'checked' : '' }}>
                             </div>
                             <span id="status-badge-{{ $category->id }}" class="badge {{ $category->status ? 'bg-success' : 'bg-danger' }}">
                                 {{ $category->status ? 'Active' : 'Inactive' }}
