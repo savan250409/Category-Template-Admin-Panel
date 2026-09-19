@@ -362,7 +362,8 @@ class SubcategoryController extends Controller
         $rules = [
             'description' => 'nullable|string',
             'category_thumbnail_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
-            'images.*' => $is_video ? 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv|max:51200' : 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'images.*' => $is_video ? 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv|max:51200' : 'nullable|image|mimes:webp|max:10240',
+            'replace_images.*' => $is_video ? 'nullable' : 'nullable|image|mimes:jpeg,jpg,png,webp,gif|max:10240',
             'prompts.*' => 'nullable|string|max:2990',
             $titleField . '.*' => 'nullable|string|max:255',
             'name_change_row.*' => 'nullable|boolean',

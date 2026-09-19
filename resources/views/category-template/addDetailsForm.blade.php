@@ -181,7 +181,7 @@
                  div.innerHTML = `
             <div class="flex-grow-1">
                 <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'}</label>
-                <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : 'image/*'}" class="form-control file-input" required>
+                <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : '.webp'}" class="form-control file-input" required>
                 ${origin === 'video' ? '<input type="hidden" name="video_thumbnails[]" class="thumbnail-input">' : ''}
                 ${origin === 'video' ? '<div class="mt-1"><img class="thumbnail-preview" style="max-height: 50px; display:none;"></div>' : ''}
             </div>
@@ -214,13 +214,30 @@
                 }
             });
 
-             // Thumbnail generation event delegation
+             // File validation + thumbnail generation event delegation
              wrapper.addEventListener('change', function(e) {
-                if (e.target.classList.contains('file-input') && e.target.accept.includes('video')) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        generateThumbnail(file, e.target);
+                if (!e.target.classList.contains('file-input')) return;
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Enforce webp-only for image uploads (add time)
+                if (origin !== 'video') {
+                    const isWebp = file.type === 'image/webp' || file.name.toLowerCase().endsWith('.webp');
+                    if (!isWebp) {
+                        e.target.value = '';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Invalid File Format',
+                            text: 'Only .webp images are allowed. Please select a .webp file.',
+                            confirmButtonColor: '#d33'
+                        });
+                        return;
                     }
+                }
+
+                // Thumbnail generation for video uploads
+                if (e.target.accept.includes('video')) {
+                    generateThumbnail(file, e.target);
                 }
             });
 

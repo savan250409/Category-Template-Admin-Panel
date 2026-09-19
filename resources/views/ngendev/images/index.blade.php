@@ -86,7 +86,10 @@
 
         <div class="form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 id="formTitle"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image</h4>
+                <div class="d-flex align-items-center gap-3">
+                    <h4 id="formTitle" class="mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image</h4>
+                    <span id="editIdDisplay" class="d-none badge bg-secondary fs-6" style="font-weight:500;letter-spacing:.03em;">ID: <span id="editIdValue"></span></span>
+                </div>
                 <button type="button" id="cancelEdit" class="btn btn-outline-secondary d-none"><i class="bi bi-x-lg me-1"></i>Cancel Edit</button>
             </div>
 
@@ -387,6 +390,8 @@
             document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2 text-info"></i>Edit Ngendev Image';
             document.getElementById('submitBtn').innerHTML = '<i class="bi bi-save me-2"></i>Update Image';
             document.getElementById('cancelEdit').classList.remove('d-none');
+            document.getElementById('editIdValue').textContent = id;
+            document.getElementById('editIdDisplay').classList.remove('d-none');
 
             document.getElementById('ngendevImageForm').action = "{{ url('ngendev/images') }}/" + id;
             document.getElementById('formMethod').value = 'PUT';
@@ -437,6 +442,8 @@
             document.getElementById('formTitle').innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>Add New Ngendev Image';
             document.getElementById('submitBtn').innerHTML = '<i class="bi bi-plus-lg me-2"></i>Add Image';
             document.getElementById('cancelEdit').classList.add('d-none');
+            document.getElementById('editIdDisplay').classList.add('d-none');
+            document.getElementById('editIdValue').textContent = '';
             document.getElementById('ngendevImageForm').action = "{{ route('ngendev.images.store') }}";
             document.getElementById('formMethod').value = 'POST';
             document.getElementById('editId').value = '';
