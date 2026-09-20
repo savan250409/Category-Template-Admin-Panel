@@ -163,6 +163,11 @@
                     <input type="hidden" name="origin" value="{{ request('origin') }}">
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label class="form-label fw-semibold">ID</label>
+                            <input type="text" class="form-control" value="{{ $subcategory->id }}" readonly
+                                style="background-color:#f8f9fa;cursor:not-allowed;color:#6c757d;font-weight:600;">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label fw-semibold">Category Name</label>
                             <input type="text" class="form-control" value="{{ $subcategory->category_name }}" readonly>
                             <input type="hidden" name="category_name" value="{{ $subcategory->category_name }}">

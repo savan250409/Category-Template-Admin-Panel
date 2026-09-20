@@ -33,13 +33,13 @@
                                             <div class="col-md-4 image-block">
                                                 <div class="card h-100">
                                                     @if(request('origin') === 'video')
-                                                        <video class="card-img-top" style="height:180px; object-fit:cover;" controls>
+                                                        <video class="card-img-top" style="width:100%;height:auto;max-height:320px;object-fit:contain;background:#000;" controls>
                                                             <source src="{{ asset('upload/AI Baby Video/' . $subcategory->category_name . '/' . $subcategory->title . '/video/' . $img['file']) }}" type="video/{{ strtolower(pathinfo($img['file'], PATHINFO_EXTENSION)) }}">
                                                             Your browser does not support the video tag.
                                                         </video>
                                                     @else
                                                         <img src="{{ asset('upload/' . $subcategory->category_name . '/' . $subcategory->title . '/' . $img['file']) }}"
-                                                            class="card-img-top" style="height:180px; object-fit:cover;" alt="Image">
+                                                            class="card-img-top" style="width:100%;height:auto;" alt="Image">
                                                     @endif
                                                     <div class="card-body p-2">
                                                         <div class="mb-1">
@@ -183,7 +183,7 @@
                 <label class="small text-muted">${origin === 'video' ? 'Video' : 'Image'}</label>
                 <input type="file" name="images[]" accept="${origin === 'video' ? 'video/*' : '.webp'}" class="form-control file-input" required>
                 ${origin === 'video' ? '<input type="hidden" name="video_thumbnails[]" class="thumbnail-input">' : ''}
-                ${origin === 'video' ? '<div class="mt-1"><img class="thumbnail-preview" style="max-height: 50px; display:none;"></div>' : ''}
+                ${origin === 'video' ? '<div class="mt-1"><img class="thumbnail-preview" style="max-height: 50px; display:none;"></div>' : '<div class="mt-2 new-img-preview-wrap" style="display:none;"><img class="new-img-preview" style="width:100%;height:auto;border-radius:6px;border:1px solid #dee2e6;" alt="Preview"></div>'}
             </div>
             <div class="flex-grow-1">
                 <label class="small text-muted">Prompt</label>
@@ -225,6 +225,9 @@
                     const isWebp = file.type === 'image/webp' || file.name.toLowerCase().endsWith('.webp');
                     if (!isWebp) {
                         e.target.value = '';
+                        // Hide preview if shown
+                        const prevWrap = e.target.closest('.flex-grow-1').querySelector('.new-img-preview-wrap');
+                        if (prevWrap) { prevWrap.style.display = 'none'; }
                         Swal.fire({
                             icon: 'error',
                             title: 'Invalid File Format',
@@ -233,6 +236,14 @@
                         });
                         return;
                     }
+                    // Show full image preview
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const wrap = e.target.closest('.flex-grow-1').querySelector('.new-img-preview-wrap');
+                        const img  = e.target.closest('.flex-grow-1').querySelector('.new-img-preview');
+                        if (wrap && img) { img.src = ev.target.result; wrap.style.display = 'block'; }
+                    };
+                    reader.readAsDataURL(file);
                 }
 
                 // Thumbnail generation for video uploads
