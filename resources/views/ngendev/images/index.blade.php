@@ -576,6 +576,30 @@
                 if (page) loadImages(page);
             });
 
+            // Double-click prompt cell to copy full prompt to clipboard
+            $(document).on('dblclick', '.prompt-copy', function () {
+                var fullPrompt = $(this).data('full-prompt');
+                if (!fullPrompt) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(fullPrompt).then(function () {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Prompt copied to clipboard!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                    }).catch(function () { fallbackCopy(fullPrompt); });
+                } else {
+                    fallbackCopy(fullPrompt);
+                }
+            });
+
+            function fallbackCopy(text) {
+                var el = document.createElement('textarea');
+                el.value = text;
+                el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+                document.body.appendChild(el);
+                el.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(el);
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Prompt copied!', showConfirmButton: false, timer: 2000 });
+            }
+
             $('#cancelEdit').on('click', function () { resetForm(); });
 
             $('#ngendevImageForm').on('submit', function (e) {

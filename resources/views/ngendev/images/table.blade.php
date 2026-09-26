@@ -31,7 +31,7 @@
                             : $img->ai_prompt;
                     @endphp
                     <td>
-                        <div class="text-truncate" style="font-size:.85rem;" title="{{ $fullPrompt }}">
+                        <div class="text-truncate prompt-copy" style="font-size:.85rem;cursor:copy;" title="Double-click to copy full prompt" data-full-prompt="{{ $fullPrompt }}">
                             {{ \Illuminate\Support\Str::limit($fullPrompt, 120) }}
                         </div>
                     </td>

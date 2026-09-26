@@ -203,7 +203,7 @@ class NgendevCategoryApiController extends Controller
                     $isNameChange = (bool) $latestImage->name_change;
                     $itemData = [
                         'id' => $latestImage->id,
-                        'ai_prompt' => $latestImage->ai_prompt,
+                        'ai_prompt' => $this->buildFullPrompt($latestImage->ai_prompt),
                         'no_of_image' => $latestImage->no_of_image,
                         'name_change' => $isNameChange,
                         'category_image' => $category_image_path,
@@ -232,7 +232,7 @@ class NgendevCategoryApiController extends Controller
                     $isNameChange = (bool) $exclusiveImage->name_change;
                     $itemData = [
                         'id' => $exclusiveImage->id,
-                        'ai_prompt' => $exclusiveImage->ai_prompt,
+                        'ai_prompt' => $this->buildFullPrompt($exclusiveImage->ai_prompt),
                         'no_of_image' => $exclusiveImage->no_of_image,
                         'name_change' => $isNameChange,
                         'category_image' => $exclusive_image_path,
@@ -261,7 +261,7 @@ class NgendevCategoryApiController extends Controller
                     $isNameChange = (bool) $trendingImage->name_change;
                     $itemData = [
                         'id' => $trendingImage->id,
-                        'ai_prompt' => $trendingImage->ai_prompt,
+                        'ai_prompt' => $this->buildFullPrompt($trendingImage->ai_prompt),
                         'no_of_image' => $trendingImage->no_of_image,
                         'name_change' => $isNameChange,
                         'category_image' => $trending_image_path,
@@ -323,7 +323,7 @@ class NgendevCategoryApiController extends Controller
             $isNameChange = (bool) $image->name_change;
             $itemData = [
                 'id' => $image->id,
-                'ai_prompt' => $image->ai_prompt,
+                'ai_prompt' => $this->buildFullPrompt($image->ai_prompt),
                 'no_of_image' => $image->no_of_image,
                 'name_change' => $isNameChange,
                 'category_image' => $image->image_path
@@ -346,6 +346,16 @@ class NgendevCategoryApiController extends Controller
             'data' => $images,
         ]);
     }
+    private function buildFullPrompt($aiPrompt)
+    {
+        $defaultPrompt = 'Ultra-photorealistic portrait of the exact same person as the reference image. Preserve identical facial identity, bone structure, proportions, and all features (eyes, nose, mouth, jawline, skin detail) with zero modification. Maintain the original expression, emotion, and mood. No beautification or facial alteration. Natural lighting, lifelike skin texture, high dynamic range, and maximum identity fidelity.';
+        $userLimit = 2990 - strlen($defaultPrompt);
+
+        return (strlen($aiPrompt) <= $userLimit)
+            ? trim($aiPrompt . ' ' . $defaultPrompt)
+            : $aiPrompt;
+    }
+
     public function getAllCategoryNames()
     {
         $categories = NgendevCategory::select('id', 'category_name')
